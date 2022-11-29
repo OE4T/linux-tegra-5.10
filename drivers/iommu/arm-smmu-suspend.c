@@ -1,11 +1,17 @@
 /*
  * Copyright (c) 2018-2022 NVIDIA Corporation.  All rights reserved.
  *
- * NVIDIA Corporation and its licensors retain all intellectual property
- * and proprietary rights in and to this software and related documentation
- * and any modifications thereto.  Any use, reproduction, disclosure or
- * distribution of this software and related documentation without an express
- * license agreement from NVIDIA Corporation is strictly prohibited.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <linux/module.h>
@@ -363,3 +369,8 @@ static void __exit arm_smmu_suspend_driver_exit(void)
 
 module_init(arm_smmu_suspend_driver_init);
 module_exit(arm_smmu_suspend_driver_exit);
+
+MODULE_DESCRIPTION("arm-smmu-suspend: Driver for saving arm-smmu registers during suspend");
+MODULE_AUTHOR("Pritesh Raithatha <praithatha@nvidia.com>");
+MODULE_AUTHOR("Ashish Mhetre <amhetre@nvidia.com>");
+MODULE_LICENSE("GPL v2");
