@@ -199,7 +199,7 @@
 					port@0 {
 						reg = <0>;
 						ar0234_csi_in4: endpoint@8 {
-							port-index = <5>;
+							port-index = <4>;
 							bus-width = <2>;
 							remote-endpoint = <&ar0234_ar0234_out4>;
 						};
@@ -220,7 +220,7 @@
 					port@0 {
 						reg = <0>;
 						ar0234_csi_in5: endpoint@10 {
-							port-index = <5>;
+							port-index = <4>;
 							bus-width = <2>;
 							remote-endpoint = <&ar0234_ar0234_out5>;
 						};
@@ -241,7 +241,7 @@
 					port@0 {
 						reg = <0>;
 						ar0234_csi_in6: endpoint@12 {
-							port-index = <5>;
+							port-index = <4>;
 							bus-width = <2>;
 							remote-endpoint = <&ar0234_ar0234_out6>;
 						};
@@ -262,7 +262,7 @@
 					port@0 {
 						reg = <0>;
 						ar0234_csi_in7: endpoint@14 {
-							port-index = <5>;
+							port-index = <4>;
 							bus-width = <2>;
 							remote-endpoint = <&ar0234_ar0234_out7>;
 						};
@@ -431,7 +431,7 @@
 						remote-endpoint = <&ar0234_csi_in0>;
 						};
 					};
-				 };
+				};
 			};
 		ar0234_b@31 {
 			compatible = "nvidia,ar0234_hawk_owl";
@@ -657,7 +657,7 @@
 			mode0 {/*mode IMX424_MODE_3840X1080_CROP_30FPS*/
 				mclk_khz = "24000";
 				num_lanes = "2";
-				tegra_sinterface = "serial_f";
+				tegra_sinterface = "serial_e";
 				vc_id = "0";
 				discontinuous_clk = "no";
 				dpcm_enable = "false";
@@ -700,7 +700,7 @@
 					reg = <0>;
 					ar0234_ar0234_out4: endpoint {
 						vc-id = <0>;
-						port-index = <5>;
+						port-index = <4>;
 						bus-width = <2>;
 						remote-endpoint = <&ar0234_csi_in4>;
 						};
@@ -725,7 +725,7 @@
 			mode0 {/*mode IMX424_MODE_3840X1080_CROP_30FPS*/
 				mclk_khz = "24000";
 				num_lanes = "2";
-				tegra_sinterface = "serial_f";
+				tegra_sinterface = "serial_e";
 				vc_id = "1";
 				discontinuous_clk = "no";
 				dpcm_enable = "false";
@@ -768,7 +768,7 @@
 					reg = <0>;
 					ar0234_ar0234_out5: endpoint {
 						vc-id = <1>;
-						port-index = <5>;
+						port-index = <4>;
 						bus-width = <2>;
 						remote-endpoint = <&ar0234_csi_in5>;
 						};
@@ -793,7 +793,7 @@
 			mode0 {/*mode IMX424_MODE_3840X1080_CROP_30FPS*/
 				mclk_khz = "24000";
 				num_lanes = "2";
-				tegra_sinterface = "serial_f";
+				tegra_sinterface = "serial_e";
 				vc_id = "2";
 				discontinuous_clk = "no";
 				dpcm_enable = "false";
@@ -836,7 +836,7 @@
 					reg = <0>;
 					ar0234_ar0234_out6: endpoint {
 						vc-id = <2>;
-						port-index = <5>;
+						port-index = <4>;
 						bus-width = <2>;
 						remote-endpoint = <&ar0234_csi_in6>;
 						};
@@ -861,7 +861,7 @@
 			mode0 {/*mode IMX424_MODE_3840X1080_CROP_30FPS*/
 				mclk_khz = "24000";
 				num_lanes = "2";
-				tegra_sinterface = "serial_f";
+				tegra_sinterface = "serial_e";
 				vc_id = "3";
 				discontinuous_clk = "no";
 				dpcm_enable = "false";
@@ -904,7 +904,7 @@
 					reg = <0>;
 					ar0234_ar0234_out7: endpoint {
 						vc-id = <3>;
-						port-index = <5>;
+						port-index = <4>;
 						bus-width = <2>;
 						remote-endpoint = <&ar0234_csi_in7>;
 						};
@@ -977,11 +977,8 @@
 				position = "centerleft";
 				orientation = "1";
 				drivernode0 {
-					/* Declare PCL support driver (classically known as guid)  */
 					pcl_id = "v4l2_sensor";
-					/* Driver v4l2 device name */
 					devname = "ar0234 2-0032";
-					/* Declare the device-tree hierarchy to driver instance */
 					proc-device-tree = "/proc/device-tree/i2c@3180000/ar0234_f@32";
 				};
 			};
