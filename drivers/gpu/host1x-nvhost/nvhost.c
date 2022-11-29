@@ -34,8 +34,8 @@
 #define NVHOST_NUM_CDEV 1
 
 struct nvhost_syncpt_interface {
-	struct scatterlist sg;
 	dma_addr_t base;
+	size_t size;
 	uint32_t page_size;
 };
 
@@ -416,7 +416,6 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
 	struct nvhost_syncpt_interface *syncpt_if;
-	size_t size;
 	u64 base;
 	int err;
 
@@ -425,7 +424,7 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 		return -ENOMEM;
 
 	err = nvhost_syncpt_get_aperture(pdev->dev.parent->of_node, &base,
-					 &size);
+					 &syncpt_if->size);
 	if (err < 0) {
 		dev_err(&pdev->dev, "failed to get syncpt aperture\n");
 		return err;
@@ -440,18 +439,12 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 
 	/* If IOMMU is enabled, map it into the device memory */
 	if (iommu_get_domain_for_dev(&pdev->dev)) {
-		sg_init_table(&syncpt_if->sg, 1);
-		sg_set_page(&syncpt_if->sg, phys_to_page(base), size, 0);
-
-		err = dma_map_sg_attrs(&pdev->dev, &syncpt_if->sg, 1,
-				       DMA_BIDIRECTIONAL,
-				       DMA_ATTR_SKIP_CPU_SYNC);
-		if (err == 0) {
-			err = -ENOMEM;
-			return err;
-		}
-
-		syncpt_if->base = sg_dma_address(&syncpt_if->sg);
+		syncpt_if->base = dma_map_resource(&pdev->dev, base,
+						   syncpt_if->size,
+						   DMA_BIDIRECTIONAL,
+						   DMA_ATTR_SKIP_CPU_SYNC);
+		if (dma_mapping_error(&pdev->dev, syncpt_if->base))
+			return -ENOMEM;
 	} else {
 		syncpt_if->base = base;
 	}
@@ -460,7 +453,7 @@ int nvhost_syncpt_unit_interface_init(struct platform_device *pdev)
 
 	dev_info(&pdev->dev,
 		 "syncpt_unit_base %llx syncpt_unit_size %zx size %x\n",
-		 base, size, syncpt_if->page_size);
+		 base, syncpt_if->size, syncpt_if->page_size);
 
 	return 0;
 }
@@ -475,7 +468,7 @@ void nvhost_syncpt_unit_interface_deinit(struct platform_device *pdev)
 		pdata = platform_get_drvdata(pdev);
 		syncpt_if = pdata->syncpt_unit_interface;
 
-		dma_unmap_sg_attrs(&pdev->dev, &syncpt_if->sg, 1,
+		dma_unmap_resource(&pdev->dev, syncpt_if->base, syncpt_if->size,
 				   DMA_BIDIRECTIONAL, DMA_ATTR_SKIP_CPU_SYNC);
 	}
 }
