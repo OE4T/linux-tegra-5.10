@@ -1,7 +1,7 @@
 /**
  * TEGRA_V4L2_CAMERA.h - utilities for tegra camera driver
  *
- * Copyright (c) 2017-2021, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -106,6 +106,7 @@ struct sensor_signal_properties {
 	__u32 mclk_freq;
 	union __u64val pixel_clock;
 	__u32 cil_settletime;
+	__u32 lane_polarity;
 	__u32 discontinuous_clk;
 	__u32 dpcm_enable;
 	__u32 tegra_sinterface;

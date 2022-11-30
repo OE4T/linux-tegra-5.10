@@ -212,6 +212,8 @@ static int csi5_stream_set_config(struct tegra_csi_channel *chan, u32 stream_id,
 	const struct sensor_mode_properties *mode = NULL;
 
 	unsigned int cil_settletime = 0;
+	unsigned int lane_polarity = 0;
+	unsigned int index = 0;
 	int vi_port = 0;
 
 	struct CAPTURE_CONTROL_MSG msg;
@@ -221,7 +223,7 @@ static int csi5_stream_set_config(struct tegra_csi_channel *chan, u32 stream_id,
 	dev_dbg(csi->dev, "%s: stream_id=%u, csi_port=%u\n",
 		__func__, stream_id, csi_port);
 
-	/* Attempt to find the cil_settingtime from the device tree */
+	/* Attempt to find the brick config from the device tree */
 	if (s_data) {
 		int idx = s_data->mode_prop_idx;
 
@@ -229,9 +231,11 @@ static int csi5_stream_set_config(struct tegra_csi_channel *chan, u32 stream_id,
 		if (idx < s_data->sensor_props.num_modes) {
 			mode = &s_data->sensor_props.sensor_modes[idx];
 			cil_settletime = mode->signal_properties.cil_settletime;
+			lane_polarity = mode->signal_properties.lane_polarity;
 		} else {
 			dev_dbg(csi->dev, "mode not listed in DT, use default");
 			cil_settletime = 0;
+			lane_polarity = 0;
 		}
 	} else if (chan->of_node) {
 		int err = 0;
@@ -249,12 +253,30 @@ static int csi5_stream_set_config(struct tegra_csi_channel *chan, u32 stream_id,
 				cil_settletime = 0;
 			}
 		}
+		/* Reset string pointer for the next property */
+		str = NULL;
+		err = of_property_read_string(chan->of_node, "lane_polarity",
+			&str);
+		if (!err) {
+			err = kstrtou32(str, 10, &lane_polarity);
+			if (err) {
+				dev_dbg(csi->dev,
+					"no cil_settletime in of_node");
+				lane_polarity = 0;
+			}
+		}
 	}
 
 	/* Brick config */
 	memset(&brick_config, 0, sizeof(brick_config));
 	brick_config.phy_mode = (!is_cphy) ?
 		NVCSI_PHY_TYPE_DPHY : NVCSI_PHY_TYPE_CPHY;
+
+	/* Lane polarity */
+	if (!is_cphy) {
+		for (index = 0; index < NVCSI_BRICK_NUM_LANES; index++)
+			brick_config.lane_polarity[index] = (lane_polarity >> index) & (0x1);
+	}
 
 	/* CIL config */
 	memset(&cil_config, 0, sizeof(cil_config));

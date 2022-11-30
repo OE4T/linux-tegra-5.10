@@ -155,6 +155,14 @@ static int sensor_common_parse_signal_props(
 	else
 		signal->cil_settletime = value;
 
+	err = read_property_u32(node, "lane_polarity", &value);
+	/* absence of this value is not an error and default behaviour is
+	 * no polarity swap on any CSI lane */
+	if (err)
+		signal->lane_polarity = 0;
+	else
+		signal->lane_polarity = value;
+
 	/* initialize default if this prop not available */
 	err = of_property_read_string(node, "discontinuous_clk", &temp_str);
 	if (!err)
