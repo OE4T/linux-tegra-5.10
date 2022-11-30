@@ -13,7 +13,7 @@
 / {
 	overlay-name = "Camera IMX477-A and IMX219-C";
 	jetson-header-name = "Jetson Nano CSI Connector";
-	compatible = "nvidia,p3509-0000+p3767-0000";
+	compatible = "nvidia,p3768-0000+p3767-0000";
 
 	/* IMX77 sensor module on CSI PORT A and IMX219 sensor module on CSI PORT B  */
 	fragment@0 {
@@ -74,7 +74,7 @@
 		target = <&rbpcv3_imx477_vi_in0>;
 		__overlay__ {
 			status = "okay";
-			port-index = <0>;
+			port-index = <1>;
 			bus-width = <2>;
 			remote-endpoint = <&rbpcv3_imx477_csi_out0>;
 		};
@@ -92,7 +92,7 @@
 		target = <&rbpcv3_imx477_csi_in0>;
 		__overlay__ {
 			status = "okay";
-			port-index = <0>;
+			port-index = <1>;
 			bus-width = <2>;
 			remote-endpoint = <&rbpcv3_imx477_out0>;
 		};

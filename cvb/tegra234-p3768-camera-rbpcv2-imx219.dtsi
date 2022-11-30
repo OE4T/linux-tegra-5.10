@@ -23,12 +23,14 @@
 
 / {
 	cam_i2cmux{
+		status = "okay";
 		compatible = "i2c-mux-gpio";
 		#address-cells = <1>;
 		#size-cells = <0>;
 		i2c-parent = <&cam_i2c>;
 		mux-gpios = <&tegra_aon_gpio CAM_I2C_MUX GPIO_ACTIVE_HIGH>;
 		i2c@0 {
+			status = "okay";
 			reg = <0>;
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -37,6 +39,7 @@
 			};
 		};
 		i2c@1 {
+			status = "okay";
 			reg = <1>;
 			#address-cells = <1>;
 			#size-cells = <0>;

@@ -16,8 +16,8 @@
 #include "tegra234-p3768-0000-a0-pcie.dtsi"
 #include "tegra234-p3768-0000-a0-fixed-regulator.dtsi"
 #include "tegra234-p3768-audio.dtsi"
-#include "tegra234-p3768-camera-rbpcv2-imx219.dtsi"
 #include "tegra234-p3768-camera-rbpcv3-imx477.dtsi"
+#include "tegra234-p3768-camera-rbpcv2-imx219.dtsi"
 
 / {
 	gpio-keys {
@@ -230,5 +230,81 @@
 
 	display@13800000 {
 		status = "okay";
+	};
+
+	tegra-capture-vi  {
+		ports {
+			vi_port0 {
+				rbpcv2_imx219_vi_in0 {
+					port-index = <1>;
+				};
+			};
+		};
+	};
+
+	host1x@13e00000 {
+		nvcsi@15a00000 {
+			csi_chan0 {
+				ports {
+					port@0 {
+						rbpcv2_imx219_csi_in0 {
+							port-index = <1>;
+						};
+					};
+				};
+			};
+		};
+	};
+
+	cam_i2cmux{
+		i2c@0 {
+			rbpcv2_imx219_a@10 {
+				mode0 {
+					tegra_sinterface = "serial_b";
+					lane_polarity = "6";
+				};
+				mode1 {
+					tegra_sinterface = "serial_b";
+					lane_polarity = "6";
+				};
+				mode2 {
+					tegra_sinterface = "serial_b";
+					lane_polarity = "6";
+				};
+				mode3 {
+					tegra_sinterface = "serial_b";
+					lane_polarity = "6";
+				};
+				mode4 {
+					tegra_sinterface = "serial_b";
+					lane_polarity = "6";
+				};
+				ports {
+					port@0 {
+						endpoint {
+							port-index = <1>;
+						};
+					};
+				};
+			};
+
+			rbpcv3_imx477_a@1a {
+				mode0 {
+					tegra_sinterface = "serial_b";
+					lane_polarity = "6";
+				};
+				mode1 {
+					tegra_sinterface = "serial_b";
+					lane_polarity = "6";
+				};
+				ports {
+					port@0 {
+						endpoint {
+							port-index = <1>;
+						};
+					};
+				};
+			};
+		};
 	};
 };

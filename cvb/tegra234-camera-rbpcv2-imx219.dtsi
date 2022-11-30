@@ -132,6 +132,15 @@
 				* Only change readout_orientation if you specifically
 				* Program a different readout order for this mode
 				*
+				* lane_polarity
+				* Based on the camera connector pin.
+				* CSIx_D0 | CSIx_D1 | CSI(X+1)_D0 | CSI(X+1)CSIx_D1
+				*    LSB  |   BIT1  |     BIT2    |      MSB
+				* if there is a polarity swap on any lane, the bit corrsponding
+				* to the lane should be set
+				* e.g. polarity swap on CSIx_D0 only -> lane_polarity = "1"; 0001
+				* e.g. polarity swap on CSIx_D1 and CSI(X+1)_D0 -> lane_polarity = "6"; 0110
+				*
 				* == Image format Properties ==
 				*
 				* active_w = "";
@@ -198,6 +207,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "3280";
 					active_h = "2464";
@@ -238,6 +248,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "3280";
 					active_h = "1848";
@@ -278,6 +289,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "1920";
 					active_h = "1080";
@@ -319,6 +331,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "1640";
 					active_h = "1232";
@@ -360,6 +373,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "1280";
 					active_h = "720";
@@ -401,6 +415,7 @@
 					* discontinuous_clk = "yes";
 					* dpcm_enable = "false";
 					* cil_settletime = "0";
+					* lane_polarity = "0";
 
 					* active_w = "1280";
 					* active_h = "720";
@@ -555,6 +570,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "3280";
 					active_h = "2464";
@@ -595,6 +611,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "3280";
 					active_h = "1848";
@@ -635,6 +652,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "1920";
 					active_h = "1080";
@@ -675,6 +693,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "1640";
 					active_h = "1232";
@@ -715,6 +734,7 @@
 					discontinuous_clk = "yes";
 					dpcm_enable = "false";
 					cil_settletime = "0";
+					lane_polarity = "0";
 
 					active_w = "1280";
 					active_h = "720";
@@ -756,6 +776,7 @@
 				*	discontinuous_clk = "yes";
 				*	dpcm_enable = "false";
 				*	cil_settletime = "0";
+				*	lane_polarity = "0";
 
 				*	active_w = "1280";
 				*	active_h = "720";
