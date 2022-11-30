@@ -47,12 +47,7 @@
 #define EQOS_GET_TX_QCNT		23
 #define EQOS_GET_RX_QCNT		24
 /* L3/L4 filter */
-#define EQOS_L3_L4_FILTER_CMD		29
-/* IPv4/6 and TCP/UDP filtering */
-#define EQOS_IPV4_FILTERING_CMD		30
-#define EQOS_IPV6_FILTERING_CMD		31
-#define EQOS_UDP_FILTERING_CMD		32
-#define EQOS_TCP_FILTERING_CMD		33
+#define EQOS_L3L4_FILTER_CMD		29
 /* VLAN filtering */
 #define EQOS_VLAN_FILTERING_CMD		34
 /* L2 DA filtering */

@@ -503,8 +503,7 @@ static int ether_config_frp_cmd(struct net_device *dev,
  * 2) OSI call to update register
  *
  * @param[in] dev: pointer to net device structure.
- * @param[in] filter_flags: flag to indicate whether L3/L4 filtering to be
- *	      enabled/disabled.
+ * @param[in] ifdata: pointer to IOCTL specific structure.
  *
  * @note MAC and PHY need to be initialized.
  *
@@ -513,13 +512,35 @@ static int ether_config_frp_cmd(struct net_device *dev,
  *
  */
 static int ether_config_l3_l4_filtering(struct net_device *dev,
-					unsigned int filter_flags)
+					struct ether_exported_ifr_data *ifdata)
 {
 	struct ether_priv_data *pdata = netdev_priv(dev);
+	struct osi_core_priv_data *osi_core = pdata->osi_core;
+	struct osi_l3_l4_filter *u_l3_filter;
+	struct osi_ioctl ioctl_data = { 0 };
+	int ret = -EINVAL;
 
-	dev_err(pdata->dev, "%s: This ioctl is deprecated, directly set the filter using ioctl command EQOS_IPV4/IPV6/TCP/UDP_FILTERING_CMD instead\n",
-		__func__);
-	return -1;
+	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
+		dev_err(pdata->dev, "ip4 filter is not supported\n");
+		return ret;
+	}
+
+	if (!ifdata->ptr) {
+		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
+			__func__, ifdata->ifcmd);
+		return ret;
+	}
+
+	u_l3_filter = (struct osi_l3_l4_filter *)ifdata->ptr;
+
+	if (copy_from_user(&ioctl_data.l3l4_filter, (void __user *)u_l3_filter,
+			   sizeof(struct osi_l3_l4_filter)) != 0U) {
+		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
+		return -EFAULT;
+	}
+
+	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
+	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
 /**
@@ -586,158 +607,6 @@ static int ether_config_l2_filters(struct net_device *dev,
 	ioctl_data.l2_filter.dma_chan = osi_dma->dma_chans[0];
 	ioctl_data.l2_filter.dma_chansel = OSI_BIT(osi_dma->dma_chans[0]);
 	ioctl_data.cmd = OSI_CMD_L2_FILTER;
-	return osi_handle_ioctl(osi_core, &ioctl_data);
-}
-
-/**
- * @brief This function is invoked by ioctl function when user issues an ioctl
- * command to configure L3(IPv4) filtering.
- *
- * Algorithm:
- * 1) Layer 3 and Layer 4 Filter Enable, if already not.
- * 2) Enable/disable IPv4 filtering.
- * 3) Select source/destination address matching.
- * 4) Select perfect/inverse matching.
- * 5) Update the IPv4 address into MAC register.
- *
- * @param[in] dev: Pointer to net device structure.
- * @param[in] ifdata: pointer to IOCTL specific structure.
- * 
- * @note MAC and PHY need to be initialized.
- *
- * @retval 0 on Success
- * @retval "negative value" on Failure
- */
-static int ether_config_ip4_filters(struct net_device *dev,
-				    struct ether_exported_ifr_data *ifdata)
-{
-	struct ether_priv_data *pdata = netdev_priv(dev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_l3_l4_filter *u_l3_filter =
-		(struct osi_l3_l4_filter *)ifdata->ptr;
-	struct osi_ioctl ioctl_data = {};
-	int ret = -EINVAL;
-
-	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
-		dev_err(pdata->dev, "ip4 filter is not supported\n");
-		return ret;
-	}
-
-	if (ifdata->ptr == NULL) {
-		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
-			__func__, ifdata->ifcmd);
-		return ret;
-	}
-
-	if (copy_from_user(&ioctl_data.l3l4_filter, (void __user *)u_l3_filter,
-			   sizeof(struct osi_l3_l4_filter)) != 0U) {
-		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
-		return -EFAULT;
-	}
-
-	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
-	return osi_handle_ioctl(osi_core, &ioctl_data);
-}
-
-/**
- * @brief This function is invoked by ioctl when user issues an ioctl command
- * to configure L3 (IPv6) filtering.
- *
- * Algorithm:
- * 1) Enable/disable IPv6 filtering.
- * 2) Select source/destination address matching.
- * 3) Select perfect/inverse matching.
- * 4) Update the IPv6 address into MAC register.
- *
- * @param[in] dev: net device structure instance.
- * @param[in] ifdata: IOCTL specific structure instance.
- *
- * @note MAC and PHY need to be initialized.
- *
- * @retval 0 on Success
- * @retval "negative value" on Failure
- */
-static int ether_config_ip6_filters(struct net_device *dev,
-				    struct ether_exported_ifr_data *ifdata)
-{
-	struct ether_priv_data *pdata = netdev_priv(dev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_l3_l4_filter *u_l3_filter =
-		(struct osi_l3_l4_filter *)ifdata->ptr;
-	struct osi_ioctl ioctl_data = {};
-	int ret = -EINVAL;
-
-	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
-		dev_err(pdata->dev, "ip6 filter is not supported in the HW\n");
-		return ret;
-	}
-
-	if (ifdata->ptr == NULL) {
-		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
-			__func__, ifdata->ifcmd);
-		return ret;
-	}
-
-	if (copy_from_user(&ioctl_data.l3l4_filter, (void __user *)u_l3_filter,
-			   sizeof(struct osi_l3_l4_filter)) != 0U) {
-		dev_err(pdata->dev, "%s copy from user failed\n", __func__);
-		return -EFAULT;
-	}
-
-	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
-	return osi_handle_ioctl(osi_core, &ioctl_data);
-}
-
-/**
- * @brief This function is invoked by ioctl function when user issues an ioctl
- * command to configure L4(TCP/UDP) filtering.
- *
- * Algorithm:
- * 1) Enable/disable L4 filtering.
- * 2) Select TCP/UDP filtering.
- * 3) Select source/destination port matching.
- * 4) select perfect/inverse matching.
- * 5) Update the port number into MAC register.
- *
- * @param[in] dev: pointer to net device structure.
- * @param[in] ifdata: pointer to IOCTL specific structure.
- * @param[in] tcp_udp: flag to indicate TCP/UDP filtering.
- * 
- * @note MAC and PHY need to be initialized.
- *
- * @retval 0 on Success
- * @retval "negative value" on Failure
- */
-static int ether_config_tcp_udp_filters(struct net_device *dev,
-					struct ether_exported_ifr_data *ifdata,
-					unsigned int tcp_udp)
-{
-	struct ether_priv_data *pdata = netdev_priv(dev);
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	struct osi_l3_l4_filter *u_l4_filter =
-		(struct osi_l3_l4_filter *)ifdata->ptr;
-	struct osi_ioctl ioctl_data = {};
-	int ret = -EINVAL;
-
-	if (ifdata->ptr == NULL) {
-		dev_err(pdata->dev, "%s: Invalid data for priv ioctl %d\n",
-			__func__, ifdata->ifcmd);
-		return ret;
-	}
-
-	if (pdata->hw_feat.l3l4_filter_num == OSI_DISABLE) {
-		dev_err(pdata->dev,
-			"L4 is not supported in the HW\n");
-		return ret;
-	}
-
-	if (copy_from_user(&ioctl_data.l3l4_filter, (void __user *)u_l4_filter,
-			   sizeof(struct osi_l3_l4_filter)) != 0U) {
-		dev_err(pdata->dev, "%s copy from user failed", __func__);
-		return -EFAULT;
-	}
-
-	ioctl_data.cmd = OSI_CMD_L3L4_FILTER;
 	return osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
@@ -1220,11 +1089,7 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 	/* Enforce admin permission check */
 	switch (ifdata.ifcmd) {
 	case ETHER_AVB_ALGORITHM:
-	case EQOS_L3_L4_FILTER_CMD:
-	case EQOS_IPV4_FILTERING_CMD:
-	case EQOS_IPV6_FILTERING_CMD:
-	case EQOS_UDP_FILTERING_CMD:
-	case EQOS_TCP_FILTERING_CMD:
+	case EQOS_L3L4_FILTER_CMD:
 	case EQOS_VLAN_FILTERING_CMD:
 	case EQOS_L2_DA_FILTERING_CMD:
 	case ETHER_CONFIG_ARP_OFFLOAD:
@@ -1281,13 +1146,10 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 			ret = -EOPNOTSUPP;
 		}
 		break;
-	case EQOS_L3_L4_FILTER_CMD:
+	case EQOS_L3L4_FILTER_CMD:
 		/* flags should be 0x0 or 0x1, discard any other */
-		if (pdata->hw_feat.l3l4_filter_num > 0U &&
-		    ((ifdata.if_flags == OSI_ENABLE) ||
-		     (ifdata.if_flags == OSI_DISABLE))) {
-			ret = ether_config_l3_l4_filtering(ndev,
-							   ifdata.if_flags);
+		if (pdata->hw_feat.l3l4_filter_num > 0U) {
+			ret = ether_config_l3_l4_filtering(ndev, &ifdata);
 			if (ret == 0) {
 				ret = EQOS_CONFIG_SUCCESS;
 			} else {
@@ -1300,20 +1162,6 @@ int ether_handle_priv_ioctl(struct net_device *ndev,
 		break;
 	case ETHER_CONFIG_FRP_CMD:
 		ret = ether_config_frp_cmd(ndev, &ifdata);
-		break;
-	case EQOS_IPV4_FILTERING_CMD:
-		ret = ether_config_ip4_filters(ndev, &ifdata);
-		break;
-	case EQOS_IPV6_FILTERING_CMD:
-		ret = ether_config_ip6_filters(ndev, &ifdata);
-		break;
-	case EQOS_UDP_FILTERING_CMD:
-		ret = ether_config_tcp_udp_filters(ndev, &ifdata,
-						   OSI_L4_FILTER_UDP);
-		break;
-	case EQOS_TCP_FILTERING_CMD:
-		ret = ether_config_tcp_udp_filters(ndev, &ifdata,
-						   OSI_L4_FILTER_TCP);
 		break;
 	case EQOS_VLAN_FILTERING_CMD:
 		ret = ether_config_vlan_filter(ndev, &ifdata);
