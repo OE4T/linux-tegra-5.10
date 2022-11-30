@@ -78,7 +78,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_CMD_PTP_RXQ_ROUTE		35U
 #define OSI_CMD_CONFIG_RSS		37U
 #define OSI_CMD_CONFIG_FW_ERR		29U
-#define OSI_CMD_START_MAC		5U
 #define OSI_CMD_SET_MODE		16U
 #define OSI_CMD_POLL_FOR_MAC_RST	4U
 #define OSI_CMD_GET_MAC_VER		10U
@@ -232,7 +231,6 @@ typedef my_lint_64		nvel64_t;
  * @{
  */
 #define OSI_CMD_L3L4_FILTER		3U
-#define OSI_CMD_STOP_MAC		6U
 #define OSI_CMD_COMMON_ISR		7U
 #define OSI_CMD_PAD_CALIBRATION		8U
 #define OSI_CMD_READ_MMC		9U
@@ -1582,10 +1580,6 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core);
  *	arg1_u32 - CSR (AXI CBB) clock rate.
  *  - OSI_CMD_POLL_FOR_MAC_RST
  *	Poll Software reset bit in MAC HW
- *  - OSI_CMD_START_MAC
- *	Start MAC Tx/Rx engine
- *  - OSI_CMD_STOP_MAC
- *	Stop MAC Tx/Rx engine
  *  - OSI_CMD_COMMON_ISR
  *	Common ISR handler
  *  - OSI_CMD_PAD_CALIBRATION

@@ -123,8 +123,7 @@ static void ivc_core_deinit(struct osi_core_priv_data *const osi_core)
 
 	osi_memset(&msg, 0, sizeof(msg));
 
-	msg.cmd = handle_ioctl;
-	msg.data.ioctl_data.cmd = OSI_CMD_STOP_MAC;
+	msg.cmd = core_deinit;
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
 	if (ret < 0) {

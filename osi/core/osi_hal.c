@@ -2157,10 +2157,6 @@ static void store_l2_filter(struct osi_core_priv_data *osi_core,
  *	Restore backup of MAC MMIO address space
  *  - OSI_CMD_POLL_FOR_MAC_RST
  *	Poll Software reset bit in MAC HW
- *  - OSI_CMD_START_MAC
- *	Start MAC Tx/Rx engine
- *  - OSI_CMD_STOP_MAC
- *	Stop MAC Tx/Rx engine
  *  - OSI_CMD_COMMON_ISR
  *	Common ISR handler
  *  - OSI_CMD_PAD_CALIBRATION
@@ -2413,15 +2409,6 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		ret = hw_poll_for_swr(osi_core);
 		break;
 
-	case OSI_CMD_START_MAC:
-		hw_start_mac(osi_core);
-		ret = 0;
-		break;
-
-	case OSI_CMD_STOP_MAC:
-		hw_stop_mac(osi_core);
-		ret = 0;
-		break;
 	case OSI_CMD_GET_MAC_VER:
 		ret = osi_get_mac_version(osi_core, &data->arg1_u32);
 		break;
