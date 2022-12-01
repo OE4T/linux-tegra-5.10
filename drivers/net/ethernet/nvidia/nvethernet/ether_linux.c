@@ -3950,9 +3950,12 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 	osi_dma->mtu = new_mtu;
 
 #ifdef MACSEC_SUPPORT
-	/* Macsec is supported, reduce MTU */
-	if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
+	/* Macsec is not supported or not enabled in DT */
+	if (pdata->macsec_pdata->is_macsec_enabled_in_dt == 0U) {
+		netdev_info(pdata->ndev, "Macsec not supported or not enabled in DT\n");
+	} else if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
 	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
+		/* Macsec is supported, reduce MTU */
 		ndev->mtu -= MACSEC_TAG_ICV_LEN;
 		netdev_info(pdata->ndev, "Macsec: Reduced MTU: %d Max: %d\n",
 			    ndev->mtu, ndev->max_mtu);
