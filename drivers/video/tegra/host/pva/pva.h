@@ -326,15 +326,14 @@ struct pva_vpu_util_info {
 
 struct scatterlist;
 struct nvpva_syncpt_desc {
-	struct scatterlist *sg;
 	dma_addr_t addr;
+	size_t size;
 	u32 id;
 	u32 assigned;
 };
 
 struct nvpva_syncpts_desc {
 	struct platform_device *host_pdev;
-	struct scatterlist *sg;
 	struct nvpva_syncpt_desc syncpts_rw[MAX_PVA_QUEUE_COUNT];
 	dma_addr_t syncpt_start_iova_r;
 	dma_addr_t syncpt_range_r;
