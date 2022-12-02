@@ -1516,19 +1516,12 @@ static void prepare_l3l4_ctr_reg(const struct osi_core_priv_data *const osi_core
 				 nveu32_t *ctr_reg)
 {
 #ifndef OSI_STRIPPED_LIB
-	nveu32_t perfect_inverse_match = l3_l4->data.perfect_inverse_match;
 	nveu32_t dma_routing_enable = l3_l4->dma_routing_enable;
 	nveu32_t dst_addr_match = l3_l4->data.dst.addr_match;
 #else
-	nveu32_t perfect_inverse_match = OSI_FALSE;
 	nveu32_t dma_routing_enable = OSI_TRUE;
 	nveu32_t dst_addr_match = OSI_TRUE;
 #endif /* !OSI_STRIPPED_LIB */
-	const nveu32_t dma_chan_shift[2] = {
-		EQOS_MAC_L3L4_CTR_DMCHN_SHIFT,
-		MGBE_MAC_L3L4_CTR_DMCHN_SHIFT
-	};
-
 	const nveu32_t dma_chan_en_shift[2] = {
 		EQOS_MAC_L3L4_CTR_DMCHEN_SHIFT,
 		MGBE_MAC_L3L4_CTR_DMCHEN_SHIFT
@@ -1537,24 +1530,26 @@ static void prepare_l3l4_ctr_reg(const struct osi_core_priv_data *const osi_core
 
 	/* set routing dma channel */
 	value |= dma_routing_enable << (dma_chan_en_shift[osi_core->mac] & 0x1FU);
-	value |= l3_l4->dma_chan << (dma_chan_shift[osi_core->mac] & 0x1FU);
+	value |= l3_l4->dma_chan << MAC_L3L4_CTR_DMCHN_SHIFT;
 
 	/* Enable L3 filters for IPv4 DESTINATION addr matching */
-	value |= (dst_addr_match << MAC_L3L4_CTR_L3DAM_SHIFT) |
-		 (perfect_inverse_match << MAC_L3L4_CTR_L3DAIM_SHIFT);
+	value |= dst_addr_match << MAC_L3L4_CTR_L3DAM_SHIFT;
 
 #ifndef OSI_STRIPPED_LIB
+	/* Enable L3 filters for IPv4 DESTINATION addr INV matching */
+	value |= l3_l4->data.dst.addr_match_inv << MAC_L3L4_CTR_L3DAIM_SHIFT;
+
 	/* Enable L3 filters for IPv4 SOURCE addr matching */
 	value |= (l3_l4->data.src.addr_match << MAC_L3L4_CTR_L3SAM_SHIFT) |
-		 (perfect_inverse_match << MAC_L3L4_CTR_L3SAIM_SHIFT);
+		 (l3_l4->data.src.addr_match_inv << MAC_L3L4_CTR_L3SAIM_SHIFT);
 
 	/* Enable L4 filters for DESTINATION port No matching */
 	value |= (l3_l4->data.dst.port_match << MAC_L3L4_CTR_L4DPM_SHIFT) |
-		 (perfect_inverse_match << MAC_L3L4_CTR_L4DPIM_SHIFT);
+		 (l3_l4->data.dst.port_match_inv << MAC_L3L4_CTR_L4DPIM_SHIFT);
 
 	/* Enable L4 filters for SOURCE Port No matching */
 	value |= (l3_l4->data.src.port_match << MAC_L3L4_CTR_L4SPM_SHIFT) |
-		 (perfect_inverse_match << MAC_L3L4_CTR_L4SPIM_SHIFT);
+		 (l3_l4->data.src.port_match_inv << MAC_L3L4_CTR_L4SPIM_SHIFT);
 
 	/* set udp / tcp port matching bit (for l4) */
 	value |= l3_l4->data.is_udp << MAC_L3L4_CTR_L4PEN_SHIFT;

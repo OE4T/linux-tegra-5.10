@@ -42,8 +42,6 @@ struct osi_l3_l4_filter {
 		nveu32_t is_udp;
 		/** ipv6 (OSI_TRUE) or ipv4 (OSI_FALSE) */
 		nveu32_t is_ipv6;
-		/** perfect(OSI_FALSE) or inverse(OSI_TRUE) */
-		nveu32_t perfect_inverse_match;
 #endif /* !OSI_STRIPPED_LIB */
 		/** destination ip address information */
 		struct {
@@ -56,8 +54,12 @@ struct osi_l3_l4_filter {
 			nveu16_t port_no;
 			/** addr match enable (OSI_TRUE) or disable (OSI_FALSE) */
 			nveu32_t addr_match;
+			/** perfect(OSI_FALSE) or inverse(OSI_TRUE) match for address */
+			nveu32_t addr_match_inv;
 			/** port match enable (OSI_TRUE) or disable (OSI_FALSE) */
 			nveu32_t port_match;
+			/** perfect(OSI_FALSE) or inverse(OSI_TRUE) match for port */
+			nveu32_t port_match_inv;
 #endif /* !OSI_STRIPPED_LIB */
 		} dst;
 #ifndef OSI_STRIPPED_LIB
@@ -71,8 +73,12 @@ struct osi_l3_l4_filter {
 			nveu16_t port_no;
 			/** addr match enable (OSI_TRUE) or disable (OSI_FALSE) */
 			nveu32_t addr_match;
+			/** perfect(OSI_FALSE) or inverse(OSI_TRUE) match for address */
+			nveu32_t addr_match_inv;
 			/** port match enable (OSI_TRUE) or disable (OSI_FALSE) */
 			nveu32_t port_match;
+			/** perfect(OSI_FALSE) or inverse(OSI_TRUE) match for port */
+			nveu32_t port_match_inv;
 		} src;
 #endif /* !OSI_STRIPPED_LIB */
 	} data;
