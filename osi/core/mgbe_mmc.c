@@ -47,7 +47,7 @@ static inline nveu64_t mgbe_update_mmc_val(struct osi_core_priv_data *osi_core,
 					   nveu64_t last_value,
 					   nveu64_t offset)
 {
-	nveu64_t temp;
+	nveu64_t temp = 0;
 	nveu32_t value = osi_readl((nveu8_t *)osi_core->base +
 				       offset);
 
@@ -58,11 +58,9 @@ static inline nveu64_t mgbe_update_mmc_val(struct osi_core_priv_data *osi_core,
 			"Value overflow resetting  all counters\n",
 			(nveul64_t)offset);
 		mgbe_reset_mmc(osi_core);
-	} else {
-		return temp;
 	}
 
-	return 0ULL;
+	return temp;
 }
 
 /**

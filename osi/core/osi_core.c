@@ -46,6 +46,7 @@ static nve32_t validate_if_func_ptrs(struct osi_core_priv_data *const osi_core,
 {
 	nveu32_t i = 0;
 	void *temp_ops = (void *)if_ops_p;
+	nve32_t ret = 0;
 #if __SIZEOF_POINTER__ == 8
 	nveu64_t *l_ops = (nveu64_t *)temp_ops;
 #elif __SIZEOF_POINTER__ == 4
@@ -53,7 +54,8 @@ static nve32_t validate_if_func_ptrs(struct osi_core_priv_data *const osi_core,
 #else
 	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 		     "Undefined architecture\n", 0ULL);
-	return -1;
+	ret = -1;
+	goto fail;
 #endif
 
 	for (i = 0; i < (sizeof(*if_ops_p) / (nveu64_t)__SIZEOF_POINTER__);
@@ -61,13 +63,14 @@ static nve32_t validate_if_func_ptrs(struct osi_core_priv_data *const osi_core,
 		if (*l_ops == 0U) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "failed at index : ", i);
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 
 		l_ops++;
 	}
-
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -87,17 +90,20 @@ static nve32_t validate_if_func_ptrs(struct osi_core_priv_data *const osi_core,
 static inline nve32_t validate_if_args(struct osi_core_priv_data *const osi_core,
 				       struct core_local *l_core)
 {
+	nve32_t ret = 0;
+
 	if ((osi_core == OSI_NULL) || (l_core->if_init_done == OSI_DISABLE) ||
 	    (l_core->magic_num != (nveu64_t)osi_core)) {
-		return -1;
+		ret = -1;
 	}
 
-	return 0;
+	return ret;
 }
 
 struct osi_core_priv_data *osi_get_core(void)
 {
 	nveu32_t i;
+	struct osi_core_priv_data *osi_core = OSI_NULL;
 
 	for (i = 0U; i < MAX_CORE_INSTANCES; i++) {
 		if (g_core[i].if_init_done == OSI_ENABLE) {
@@ -108,7 +114,7 @@ struct osi_core_priv_data *osi_get_core(void)
 	}
 
 	if (i == MAX_CORE_INSTANCES) {
-		return OSI_NULL;
+		goto fail;
 	}
 
 	g_core[i].magic_num = (nveu64_t)&g_core[i].osi_core;
@@ -117,7 +123,9 @@ struct osi_core_priv_data *osi_get_core(void)
 	g_core[i].tx_ts_head.next = &g_core[i].tx_ts_head;
 	g_core[i].pps_freq = OSI_DISABLE;
 
-	return &g_core[i].osi_core;
+	osi_core = &g_core[i].osi_core;
+fail:
+	return osi_core;
 }
 
 struct osi_core_priv_data *get_role_pointer(nveu32_t role)
@@ -135,6 +143,7 @@ struct osi_core_priv_data *get_role_pointer(nveu32_t role)
 		if ((g_core[i].if_init_done == OSI_ENABLE) &&
 		    (g_core[i].ether_m2m_role == role)) {
 			ret_ptr = &g_core[i].osi_core;
+			break;
 		}
 	}
 
@@ -146,19 +155,22 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	static struct if_core_ops if_ops[MAX_INTERFACE_OPS];
-	nve32_t ret = -1;
+	nve32_t ret = 0;
 
 	if (osi_core == OSI_NULL) {
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	if (osi_core->use_virtualization > OSI_ENABLE) {
-		return ret;
+		ret = -1;
+		goto fail;
 	}
 
 	if ((l_core->magic_num != (nveu64_t)osi_core) ||
 	    (l_core->if_init_done == OSI_ENABLE)) {
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	l_core->if_ops_p = &if_ops[osi_core->use_virtualization];
@@ -172,14 +184,15 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 	if (validate_if_func_ptrs(osi_core, l_core->if_ops_p) < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Interface function validation failed\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	ret = l_core->if_ops_p->if_init_core_ops(osi_core);
 	if (ret < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "if_init_core_ops failed\n", 0ULL);
-		return ret;
+		goto fail;
 	}
 	l_core->ts_lock = OSI_DISABLE;
 	l_core->ether_m2m_role = osi_core->m2m_role;
@@ -207,7 +220,7 @@ nve32_t osi_init_core_ops(struct osi_core_priv_data *const osi_core)
 			     "invalid pps_frq\n", (nveu64_t)osi_core->pps_frq);
 		ret = -1;
 	}
-
+fail:
 	return ret;
 }
 
@@ -215,48 +228,60 @@ nve32_t osi_write_phy_reg(struct osi_core_priv_data *const osi_core,
 			  const nveu32_t phyaddr, const nveu32_t phyreg,
 			  const nveu16_t phydata)
 {
+	nve32_t ret = -1;
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
-		return -1;
+		goto fail;
 	}
 
-	return l_core->if_ops_p->if_write_phy_reg(osi_core, phyaddr, phyreg,
-						   phydata);
+	ret = l_core->if_ops_p->if_write_phy_reg(osi_core, phyaddr, phyreg,
+						 phydata);
+fail:
+	return ret;
 }
 
 nve32_t osi_read_phy_reg(struct osi_core_priv_data *const osi_core,
 			 const nveu32_t phyaddr, const nveu32_t phyreg)
 {
+	nve32_t ret = -1;
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
-		return -1;
+		goto fail;
 	}
 
-	return l_core->if_ops_p->if_read_phy_reg(osi_core, phyaddr, phyreg);
+	ret = l_core->if_ops_p->if_read_phy_reg(osi_core, phyaddr, phyreg);
+fail:
+	return ret;
 }
 
 nve32_t osi_hw_core_init(struct osi_core_priv_data *const osi_core)
 {
+	nve32_t ret = -1;
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
-		return -1;
+		goto fail;
 	}
 
-	return l_core->if_ops_p->if_core_init(osi_core);
+	ret = l_core->if_ops_p->if_core_init(osi_core);
+fail:
+	return ret;
 }
 
 nve32_t osi_hw_core_deinit(struct osi_core_priv_data *const osi_core)
 {
+	nve32_t ret = -1;
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
-		return -1;
+		goto fail;
 	}
 
-	return l_core->if_ops_p->if_core_deinit(osi_core);
+	ret = l_core->if_ops_p->if_core_deinit(osi_core);
+fail:
+	return ret;
 }
 
 nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
@@ -266,14 +291,16 @@ nve32_t osi_handle_ioctl(struct osi_core_priv_data *osi_core,
 	nve32_t ret = -1;
 
 	if (validate_if_args(osi_core, l_core) < 0) {
-		return ret;
+		goto fail;
 	}
 
 	if (data == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "CORE: Invalid argument\n", 0ULL);
-		return ret;
+		goto fail;
 	}
 
-	return l_core->if_ops_p->if_handle_ioctl(osi_core, data);
+	ret = l_core->if_ops_p->if_handle_ioctl(osi_core, data);
+fail:
+	return ret;
 }

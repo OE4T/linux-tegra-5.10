@@ -49,14 +49,20 @@
 #define XPCS_SR_AN_CTRL				0x1C0000
 #define XPCS_SR_MII_CTRL			0x7C0000
 #define XPCS_VR_MII_AN_INTR_STS			0x7E0008
-#define XPCS_VR_XS_PCS_EEE_MCTRL0		0xE0018
-#define XPCS_VR_XS_PCS_EEE_MCTRL1		0xE002C
 #define XPCS_WRAP_UPHY_HW_INIT_CTRL		0x8020
 #define XPCS_WRAP_UPHY_STATUS			0x8044
 #define XPCS_WRAP_IRQ_STATUS			0x8050
 #define XPCS_WRAP_UPHY_RX_CONTROL_0_0		0x801C
 /** @} */
 
+#ifndef OSI_STRIPPED_LIB
+#define XPCS_VR_XS_PCS_EEE_MCTRL0		0xE0018
+#define XPCS_VR_XS_PCS_EEE_MCTRL1		0xE002C
+
+#define XPCS_VR_XS_PCS_EEE_MCTRL1_TRN_LPI	OSI_BIT(0)
+#define XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN	OSI_BIT(0)
+#define XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN	OSI_BIT(1)
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @addtogroup XPCS-BIT Register bit fileds
@@ -70,9 +76,6 @@
 #define XPCS_VR_XS_PCS_DIG_CTRL1_VR_RST		OSI_BIT(15)
 #define XPCS_VR_XS_PCS_DIG_CTRL1_USRA_RST	OSI_BIT(10)
 #define XPCS_VR_XS_PCS_DIG_CTRL1_CL37_BP	OSI_BIT(12)
-#define XPCS_VR_XS_PCS_EEE_MCTRL1_TRN_LPI	OSI_BIT(0)
-#define XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN	OSI_BIT(0)
-#define XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN	OSI_BIT(1)
 #define XPCS_SR_AN_CTRL_AN_EN			OSI_BIT(12)
 #define XPCS_SR_MII_CTRL_AN_ENABLE		OSI_BIT(12)
 #define XPCS_VR_MII_AN_INTR_STS_CL37_ANCMPLT_INTR OSI_BIT(0)
@@ -119,7 +122,9 @@
 
 nve32_t xpcs_init(struct osi_core_priv_data *osi_core);
 nve32_t xpcs_start(struct osi_core_priv_data *osi_core);
+#ifndef OSI_STRIPPED_LIB
 nve32_t xpcs_eee(struct osi_core_priv_data *osi_core, nveu32_t en_dis);
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief xpcs_read - read from xpcs.
@@ -178,18 +183,23 @@ static inline nve32_t xpcs_write_safety(struct osi_core_priv_data *osi_core,
 	void *xpcs_base = osi_core->xpcs_base;
 	nveu32_t read_val;
 	nve32_t retry = 10;
+	nve32_t ret = XPCS_WRITE_FAIL_CODE;
 
 	while (--retry > 0) {
 		xpcs_write(xpcs_base, reg_addr, val);
 		read_val = xpcs_read(xpcs_base, reg_addr);
 		if (val == read_val) {
-			return 0;
+			ret = 0;
+			break;
 		}
 		osi_core->osd_ops.udelay(OSI_DELAY_1US);
 	}
 
-	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-		     "xpcs_write_safety failed", reg_addr);
-	return XPCS_WRITE_FAIL_CODE;
+	if (ret != 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "xpcs_write_safety failed", reg_addr);
+	}
+
+	return ret;
 }
 #endif

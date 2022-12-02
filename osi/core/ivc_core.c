@@ -328,11 +328,10 @@ static nve32_t ivc_get_sc_lut_key_index(struct osi_core_priv_data *const osi_cor
 	msg.data.macsec_cfg.ctlr = ctlr;
 
 	ret = osi_core->osd_ops.ivc_send(osi_core, &msg, sizeof(msg));
-	if (ret != 0) {
-		return ret;
+	if (ret == 0) {
+		*key_index = msg.data.macsec_cfg.key_index;
 	}
 
-	*key_index = msg.data.macsec_cfg.key_index;
 	return ret;
 }
 

@@ -60,7 +60,8 @@ static inline nve32_t xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_c
 				osi_core->hsi.report_count_err[AUTONEG_ERR_IDX] = OSI_ENABLE;
 			}
 #endif
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 
 		count++;
@@ -74,7 +75,7 @@ static inline nve32_t xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_c
 			status &= ~XPCS_VR_MII_AN_INTR_STS_CL37_ANCMPLT_INTR;
 			ret = xpcs_write_safety(osi_core, XPCS_VR_MII_AN_INTR_STS, status);
 			if (ret != 0) {
-				return ret;
+				goto fail;
 			}
 			cond = 0;
 		}
@@ -83,11 +84,13 @@ static inline nve32_t xpcs_poll_for_an_complete(struct osi_core_priv_data *osi_c
 	if ((status & XPCS_USXG_AN_STS_SPEED_MASK) == 0U) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "XPCS AN completed with zero speed\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	*an_status = status;
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -155,8 +158,8 @@ nve32_t xpcs_start(struct osi_core_priv_data *osi_core)
 	if (osi_core->xpcs_base == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "XPCS base is NULL", 0ULL);
-		/* TODO: Remove this once silicon arrives */
-		return 0;
+		ret = -1;
+		goto fail;
 	}
 
 	if ((osi_core->phy_iface_mode == OSI_USXGMII_MODE_10G) ||
@@ -165,16 +168,16 @@ nve32_t xpcs_start(struct osi_core_priv_data *osi_core)
 		ctrl |= XPCS_SR_MII_CTRL_AN_ENABLE;
 		ret = xpcs_write_safety(osi_core, XPCS_SR_MII_CTRL, ctrl);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
 		ret = xpcs_poll_for_an_complete(osi_core, &an_status);
 		if (ret < 0) {
-			return ret;
+			goto fail;
 		}
 
 		ret = xpcs_set_speed(osi_core, an_status);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
 		/* USXGMII Rate Adaptor Reset before data transfer */
 		ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1);
@@ -182,7 +185,8 @@ nve32_t xpcs_start(struct osi_core_priv_data *osi_core)
 		xpcs_write(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
 		while (cond == COND_NOT_MET) {
 			if (count > retry) {
-				return -1;
+				ret = -1;
+				goto fail;
 			}
 
 			count++;
@@ -201,7 +205,8 @@ nve32_t xpcs_start(struct osi_core_priv_data *osi_core)
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			return -1;
+			ret = -1;
+			break;
 		}
 
 		count++;
@@ -214,8 +219,8 @@ nve32_t xpcs_start(struct osi_core_priv_data *osi_core)
 			osi_core->osd_ops.udelay(1000U);
 		}
 	}
-
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -238,39 +243,39 @@ static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
 	nve32_t cond = COND_NOT_MET;
 	nveu32_t val = 0;
 	nveu32_t count;
+	nve32_t ret = 0;
 
 	val = osi_readla(osi_core,
 			 (nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_STATUS);
-	if ((val & XPCS_WRAP_UPHY_STATUS_TX_P_UP_STATUS) ==
+	if ((val & XPCS_WRAP_UPHY_STATUS_TX_P_UP_STATUS) !=
 	    XPCS_WRAP_UPHY_STATUS_TX_P_UP_STATUS) {
-		/* return success if TX lane is already UP */
-		return 0;
-	}
-
-	val = osi_readla(osi_core,
-			(nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
-	val |= lane_init_en;
-	osi_writela(osi_core, val,
-		    (nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
-
-	count = 0;
-	while (cond == COND_NOT_MET) {
-		if (count > retry) {
-			return -1;
-		}
-		count++;
-
 		val = osi_readla(osi_core,
-				 (nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
-		if ((val & lane_init_en) == OSI_NONE) {
-			/* exit loop */
-			cond = COND_MET;
-		} else {
-			osi_core->osd_ops.udelay(5U);
+				(nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
+		val |= lane_init_en;
+		osi_writela(osi_core, val,
+				(nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
+
+		count = 0;
+		while (cond == COND_NOT_MET) {
+			if (count > retry) {
+				ret = -1;
+				goto fail;
+			}
+			count++;
+
+			val = osi_readla(osi_core,
+					(nveu8_t *)xpcs_base + XPCS_WRAP_UPHY_HW_INIT_CTRL);
+			if ((val & lane_init_en) == OSI_NONE) {
+				/* exit loop */
+				cond = COND_MET;
+			} else {
+				osi_core->osd_ops.udelay(5U);
+			}
 		}
 	}
 
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -290,11 +295,13 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 	nve32_t cond = COND_NOT_MET;
 	nveu32_t val = 0;
 	nveu32_t count;
+	nve32_t ret = 0;
 
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 		count++;
 
@@ -311,8 +318,8 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 
 	/* Clear the status */
 	osi_writela(osi_core, val, (nveu8_t *)xpcs_base + XPCS_WRAP_IRQ_STATUS);
-
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -333,12 +340,14 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 	nveu32_t count;
 	nveu32_t val = 0;
 	nve32_t cond;
+	nve32_t ret = 0;
 
 	if (xpcs_uphy_lane_bring_up(osi_core,
 				    XPCS_WRAP_UPHY_HW_INIT_CTRL_TX_EN) < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "UPHY TX lane bring-up failed\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	val = osi_readla(osi_core,
@@ -391,7 +400,8 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 
 		count++;
@@ -440,14 +450,15 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 				     "Failed to get PCS block lock\n", 0ULL);
 			l_core->lane_status = OSI_DISABLE;
 		}
-		return -1;
+		ret = -1;
+		goto fail;
 	} else {
 		OSI_CORE_INFO(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			      "PCS block lock SUCCESS\n", 0ULL);
 		l_core->lane_status = OSI_ENABLE;
 	}
-
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -472,12 +483,13 @@ nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 	if (osi_core->xpcs_base == OSI_NULL) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "XPCS base is NULL", 0ULL);
-		/* TODO: Remove this once silicon arrives */
-		return 0;
+		ret = -1;
+		goto fail;
 	}
 
 	if (xpcs_lane_bring_up(osi_core) < 0) {
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	/* Switching to USXGMII Mode based on
@@ -489,7 +501,7 @@ nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 	ctrl |= XPCS_SR_XS_PCS_CTRL2_PCS_TYPE_SEL_BASE_R;
 	ret = xpcs_write_safety(osi_core, XPCS_SR_XS_PCS_CTRL2, ctrl);
 	if (ret != 0) {
-		return ret;
+		goto fail;
 	}
 	/* 2. enable USXGMII Mode inside DWC_xpcs */
 
@@ -506,7 +518,7 @@ nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 
 	ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_KR_CTRL, ctrl);
 	if (ret != 0) {
-		return ret;
+		goto fail;
 	}
 	/* 4. Program PHY to operate at 10Gbps/5Gbps/2Gbps
          * this step not required since PHY speed programming
@@ -517,7 +529,7 @@ nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 	ctrl |= XPCS_VR_XS_PCS_DIG_CTRL1_USXG_EN;
 	ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
 	if (ret != 0) {
-		return ret;
+		goto fail;
 	}
 
 	/* XPCS_VR_XS_PCS_DIG_CTRL1_VR_RST bit is self clearing
@@ -533,7 +545,8 @@ nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 	count = 0;
 	while (cond == 1) {
 		if (count > retry) {
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 
 		count++;
@@ -556,13 +569,13 @@ nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 		ctrl &= ~XPCS_SR_AN_CTRL_AN_EN;
 		ret = xpcs_write_safety(osi_core, XPCS_SR_AN_CTRL, ctrl);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
 		ctrl = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_DIG_CTRL1);
 		ctrl |= XPCS_VR_XS_PCS_DIG_CTRL1_CL37_BP;
 		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_DIG_CTRL1, ctrl);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
 	}
 
@@ -574,10 +587,11 @@ nve32_t xpcs_init(struct osi_core_priv_data *osi_core)
 	/* 11. XPCS configured as MAC-side USGMII - NA */
 
 	/* 13.  TODO: If there is interrupt enabled for AN interrupt */
-
-	return 0;
+fail:
+	return ret;
 }
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief xpcs_eee - XPCS enable/disable EEE
  *
@@ -597,11 +611,13 @@ nve32_t xpcs_eee(struct osi_core_priv_data *osi_core, nveu32_t en_dis)
 	nve32_t ret = 0;
 
 	if ((en_dis != OSI_ENABLE) && (en_dis != OSI_DISABLE)) {
-		return  -1;
+		ret = -1;
+		goto fail;
 	}
 
 	if (xpcs_base == OSI_NULL) {
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	if (en_dis == OSI_DISABLE) {
@@ -609,36 +625,34 @@ nve32_t xpcs_eee(struct osi_core_priv_data *osi_core, nveu32_t en_dis)
 		val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN;
 		val &= ~XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN;
 		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_EEE_MCTRL0, val);
+	} else {
+
+		/* 1. Check if DWC_xpcs supports the EEE feature by
+		 * reading the SR_XS_PCS_EEE_ABL register
+		 * 1000BASEX-Only is different config then else so can (skip)
+		 */
+
+		/* 2. Program various timers used in the EEE mode depending on the
+		 * clk_eee_i clock frequency. default times are same as IEEE std
+		 * clk_eee_i() is 102MHz. MULT_FACT_100NS = 9 because 9.8ns*10 = 98
+		 * which is between 80 and 120  this leads to default setting match
+		 */
+
+		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0);
+		/* 3. If FEC is enabled in the KR mode (skip in FPGA)*/
+		/* 4. enable the EEE feature on the Tx path and Rx path */
+		val |= (XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN |
+				XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN);
+		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_EEE_MCTRL0, val);
 		if (ret != 0) {
-			return ret;
+			goto fail;
 		}
-		return 0;
+		/* Transparent Tx LPI Mode Enable */
+		val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL1);
+		val |= XPCS_VR_XS_PCS_EEE_MCTRL1_TRN_LPI;
+		ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_EEE_MCTRL1, val);
 	}
-
-	/* 1. Check if DWC_xpcs supports the EEE feature by
-	 * reading the SR_XS_PCS_EEE_ABL register
-	 * 1000BASEX-Only is different config then else so can (skip) */
-
-	/* 2. Program various timers used in the EEE mode depending on the
-	 * clk_eee_i clock frequency. default times are same as IEEE std
-	 * clk_eee_i() is 102MHz. MULT_FACT_100NS = 9 because 9.8ns*10 = 98
-	 * which is between 80 and 120  this leads to default setting match */
-
-	val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL0);
-	/* 3. If FEC is enabled in the KR mode (skip in FPGA)*/
-	/* 4. enable the EEE feature on the Tx path and Rx path */
-	val |= (XPCS_VR_XS_PCS_EEE_MCTRL0_LTX_EN |
-		XPCS_VR_XS_PCS_EEE_MCTRL0_LRX_EN);
-	ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_EEE_MCTRL0, val);
-	if (ret != 0) {
-		return ret;
-	}
-	/* Transparent Tx LPI Mode Enable */
-	val = xpcs_read(xpcs_base, XPCS_VR_XS_PCS_EEE_MCTRL1);
-	val |= XPCS_VR_XS_PCS_EEE_MCTRL1_TRN_LPI;
-	ret = xpcs_write_safety(osi_core, XPCS_VR_XS_PCS_EEE_MCTRL1, val);
-	if (ret != 0) {
-		return ret;
-	}
-	return 0;
+fail:
+	return ret;
 }
+#endif /* !OSI_STRIPPED_LIB */

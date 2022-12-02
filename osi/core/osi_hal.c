@@ -85,6 +85,7 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 				  struct core_ops *ops_p)
 {
 	nveu32_t i = 0;
+	nve32_t ret = 0;
 	void *temp_ops = (void *)ops_p;
 #if __SIZEOF_POINTER__ == 8
 	nveu64_t *l_ops = (nveu64_t *)temp_ops;
@@ -93,7 +94,8 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 #else
 	OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 		     "Undefined architecture\n", 0ULL);
-	return -1;
+	ret = -1;
+	goto fail;
 #endif
 
 	for (i = 0; i < (sizeof(*ops_p) / (nveu64_t)__SIZEOF_POINTER__); i++) {
@@ -101,13 +103,14 @@ static nve32_t validate_func_ptrs(struct osi_core_priv_data *const osi_core,
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "core: fn ptr validation failed at\n",
 				     (nveu64_t)i);
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 
 		l_ops++;
 	}
-
-	return 0;
+fail:
+	return ret;
 }
 
 /**
@@ -211,6 +214,7 @@ static nve32_t osi_hal_read_phy_reg(struct osi_core_priv_data *const osi_core,
 
 static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 {
+	nve32_t ret = -1;
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	typedef void (*init_core_ops_arr)(struct core_ops *local_ops);
 	static struct core_ops g_ops[MAX_MAC_IP_TYPES];
@@ -220,12 +224,12 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	};
 
 	if (osi_core == OSI_NULL) {
-		return -1;
+		goto exit;
 	}
 
 	if ((l_core->magic_num != (nveu64_t)osi_core) ||
 	    (l_core->init_done == OSI_ENABLE)) {
-		return -1;
+		goto exit;
 	}
 
 	if ((osi_core->osd_ops.ops_log == OSI_NULL) ||
@@ -235,19 +239,19 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	    (osi_core->osd_ops.printf == OSI_NULL) ||
 #endif /* OSI_DEBUG */
 	    (osi_core->osd_ops.usleep_range == OSI_NULL)) {
-		return -1;
+		goto exit;
 	}
 
 	if (osi_core->mac > OSI_MAC_HW_MGBE) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid MAC HW type\n", 0ULL);
-		return -1;
+		goto exit;
 	}
 
 	if (osi_core->use_virtualization > OSI_ENABLE) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid use_virtualization value\n", 0ULL);
-		return -1;
+		goto exit;
 	}
 
 	if (i_ops[osi_core->mac][osi_core->use_virtualization] != OSI_NULL) {
@@ -257,13 +261,15 @@ static nve32_t osi_hal_init_core_ops(struct osi_core_priv_data *const osi_core)
 	if (validate_func_ptrs(osi_core, &g_ops[osi_core->mac]) < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "core: function ptrs validation failed\n", 0ULL);
-		return -1;
+		goto exit;
 	}
 
 	l_core->ops_p = &g_ops[osi_core->mac];
 	l_core->init_done = OSI_ENABLE;
 
-	return 0;
+	ret = 0;
+exit:
+	return ret;
 }
 
 #ifndef OSI_STRIPPED_LIB
@@ -465,7 +471,8 @@ static nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 		} else {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "core: temp2 >= UINT_MAX\n", 0ULL);
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 
 		/* Program addend value */
@@ -488,7 +495,7 @@ static nve32_t osi_ptp_configuration(struct osi_core_priv_data *const osi_core,
 #ifndef OSI_STRIPPED_LIB
 	}
 #endif /* !OSI_STRIPPED_LIB */
-
+fail:
 	return ret;
 }
 
@@ -700,14 +707,14 @@ static nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 			     const struct osi_filter *filter)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	nve32_t ret;
+	nve32_t ret = 0;
 
 	ret = hw_config_mac_pkt_filter_reg(osi_core, filter);
 	if (ret < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "failed to configure MAC packet filter register\n",
 			     0ULL);
-		return ret;
+		goto fail;
 	}
 
 	if (((filter->oper_mode & OSI_OPER_ADDR_UPDATE) != OSI_NONE) ||
@@ -719,13 +726,14 @@ static nve32_t osi_l2_filter(struct osi_core_priv_data *const osi_core,
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "DCS requested. Conflicts with DT config\n",
 				     0ULL);
-			return ret;
+			goto fail;
 		}
 
 		ret = l_core->ops_p->update_mac_addr_low_high_reg(osi_core,
 								  filter);
 	}
 
+fail:
 	return ret;
 }
 
@@ -1174,7 +1182,7 @@ static nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_
 	} else {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID, "temp > UINT_MAX\n",
 			     0ULL);
-		return ret;
+		goto fail;
 	}
 
 	if (neg_adj == 0U) {
@@ -1183,7 +1191,7 @@ static nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_
 		} else {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "addend > UINT_MAX\n", 0ULL);
-			return ret;
+			goto fail;
 		}
 	} else {
 		if (addend > diff) {
@@ -1196,7 +1204,10 @@ static nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_
 		}
 	}
 
-	return hw_config_addend(osi_core, addend);
+	ret = hw_config_addend(osi_core, addend);
+
+fail:
+	return ret;
 }
 
 static nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
@@ -1225,7 +1236,7 @@ static nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	} else {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "quotient > UINT_MAX\n", 0ULL);
-		return ret;
+		goto fail;
 	}
 
 	if (reminder <= UINT_MAX) {
@@ -1233,11 +1244,13 @@ static nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	} else {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "reminder > UINT_MAX\n", 0ULL);
-		return ret;
+		goto fail;
 	}
 
-	return l_core->ops_p->adjust_mactime(osi_core, sec, nsec, neg_adj,
-					     osi_core->ptp_config.one_nsec_accuracy);
+	ret = l_core->ops_p->adjust_mactime(osi_core, sec, nsec, neg_adj,
+					    osi_core->ptp_config.one_nsec_accuracy);
+fail:
+	return ret;
 }
 
 

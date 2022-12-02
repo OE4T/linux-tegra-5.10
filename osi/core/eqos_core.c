@@ -392,7 +392,7 @@ static nve32_t eqos_configure_mtl_queue(struct osi_core_priv_data *const osi_cor
 
 	ret = hw_flush_mtl_tx_queue(osi_core, que_idx);
 	if (ret < 0) {
-		return ret;
+		goto fail;
 	}
 
 	value = (tx_fifo_sz_t << EQOS_MTL_TXQ_SIZE_SHIFT);
@@ -436,7 +436,8 @@ static nve32_t eqos_configure_mtl_queue(struct osi_core_priv_data *const osi_cor
 	value |= ((osi_core->rxq_ctrl[que_idx] & EQOS_RXQ_EN_MASK) << (que_idx * 2U));
 	osi_writela(osi_core, value, (nveu8_t *)osi_core->base + EQOS_MAC_RQC0R);
 
-	return 0;
+fail:
+	return ret;
 }
 /** \endcond */
 
@@ -1210,10 +1211,6 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 	nveu32_t i, j;
 	nveu32_t chan;
 
-	if (osi_core->mac_ver < OSI_EQOS_MAC_5_30) {
-		return;
-	}
-
 	for (i = 0; i < osi_core->num_vm_irqs; i++) {
 		irq_data = &osi_core->irq_data[i];
 		for (j = 0; j < irq_data->num_vm_chans; j++) {
@@ -1226,7 +1223,7 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
 				   EQOS_VIRT_INTR_APB_CHX_CNTRL(chan));
 		}
 		osi_writel(OSI_BIT(irq_data->vm_num),
-			   (nveu8_t *)osi_core->base + VIRTUAL_APB_ERR_CTRL);
+				   (nveu8_t *)osi_core->base + VIRTUAL_APB_ERR_CTRL);
 	}
 }
 
@@ -1276,7 +1273,7 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core)
 	if (ret < 0) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "eqos pad calibration failed\n", 0ULL);
-		return ret;
+		goto fail;
 	}
 #endif /* !UPDATED_PAD_CAL */
 
@@ -1330,7 +1327,8 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core)
 	if (osi_unlikely(osi_core->num_mtl_queues > OSI_EQOS_MAX_NUM_QUEUES)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Number of queues is incorrect\n", 0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	/* Configure MTL Queues */
@@ -1339,11 +1337,12 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core)
 				 OSI_EQOS_MAX_NUM_QUEUES)) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "Incorrect queues number\n", 0ULL);
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 		ret = eqos_configure_mtl_queue(osi_core, osi_core->mtl_queues[qinx]);
 		if (ret < 0) {
-			return ret;
+			goto fail;
 		}
 		/* Enable by default to configure forward error packets.
 		 * Since this is a local function this will always return sucess,
@@ -1367,8 +1366,10 @@ static nve32_t eqos_core_init(struct osi_core_priv_data *const osi_core)
 	/* initialize L3L4 Filters variable */
 	osi_core->l3l4_filter_bitmask = OSI_NONE;
 
-	eqos_dma_chan_to_vmirq_map(osi_core);
-
+	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
+		eqos_dma_chan_to_vmirq_map(osi_core);
+	}
+fail:
 	return ret;
 }
 
@@ -1426,6 +1427,57 @@ static void eqos_handle_mac_fpe_intrs(struct osi_core_priv_data *osi_core)
 }
 
 /**
+ * @brief eqos_handle_mac_link_intrs
+ *
+ * Algorithm: This function takes care of handling the
+ *	MAC link interrupts.
+ *
+ * @param[in] osi_core: OSI core private data structure.
+ *
+ * @note MAC interrupts need to be enabled
+ */
+static void eqos_handle_mac_link_intrs(struct osi_core_priv_data *osi_core)
+{
+	nveu32_t mac_pcs = 0;
+	nve32_t ret = 0;
+
+	mac_pcs = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_PCS);
+	/* check whether Link is UP or NOT - if not return. */
+	if ((mac_pcs & EQOS_MAC_PCS_LNKSTS) == EQOS_MAC_PCS_LNKSTS) {
+		/* check for Link mode (full/half duplex) */
+		if ((mac_pcs & EQOS_MAC_PCS_LNKMOD) == EQOS_MAC_PCS_LNKMOD) {
+			ret = hw_set_mode(osi_core, OSI_FULL_DUPLEX);
+			if (osi_unlikely(ret < 0)) {
+				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+						"set mode in full duplex failed\n", 0ULL);
+			}
+		} else {
+			ret = hw_set_mode(osi_core, OSI_HALF_DUPLEX);
+			if (osi_unlikely(ret < 0)) {
+				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+						"set mode in half duplex failed\n", 0ULL);
+			}
+		}
+
+		/* set speed at MAC level */
+		/* TODO: set_tx_clk needs to be done */
+		/* Maybe through workqueue for QNX */
+		/* hw_set_speed is treated as void since it is
+		 * an internal functin which will be always success
+		 */
+		if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_10) {
+			(void)hw_set_speed(osi_core, OSI_SPEED_10);
+		} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_100) {
+			(void)hw_set_speed(osi_core, OSI_SPEED_100);
+		} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==	EQOS_MAC_PCS_LNKSPEED_1000) {
+			(void)hw_set_speed(osi_core, OSI_SPEED_1000);
+		} else {
+			/* Nothing here */
+		}
+	}
+}
+
+/**
  * @brief eqos_handle_mac_intrs - Handle MAC interrupts
  *
  * @note
@@ -1455,96 +1507,48 @@ static void eqos_handle_mac_intrs(struct osi_core_priv_data *const osi_core,
 				  nveu32_t dma_isr)
 {
 	nveu32_t mac_imr = 0;
-	nveu32_t mac_pcs = 0;
 	nveu32_t mac_isr = 0;
-	nve32_t ret = 0;
 #ifdef HSI_SUPPORT
 	nveu64_t tx_frame_err = 0;
 #endif
-	mac_isr = osi_readla(osi_core,
-			     (nveu8_t *)osi_core->base + EQOS_MAC_ISR);
+	mac_isr = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_ISR);
 
 	/* Handle MAC interrupts */
-	if ((dma_isr & EQOS_DMA_ISR_MACIS) != EQOS_DMA_ISR_MACIS) {
-		return;
-	}
-
+	if ((dma_isr & EQOS_DMA_ISR_MACIS) == EQOS_DMA_ISR_MACIS) {
 #ifdef HSI_SUPPORT
-	if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
-		/* T23X-EQOS_HSIv2-19: Consistency Monitor for TX Frame */
-		if ((dma_isr & EQOS_DMA_ISR_TXSTSIS) == EQOS_DMA_ISR_TXSTSIS) {
-			osi_core->hsi.tx_frame_err_count =
-				osi_update_stats_counter(osi_core->hsi.tx_frame_err_count,
-							 1UL);
-			tx_frame_err = osi_core->hsi.tx_frame_err_count /
-				osi_core->hsi.err_count_threshold;
-			if (osi_core->hsi.tx_frame_err_threshold < tx_frame_err) {
-				osi_core->hsi.tx_frame_err_threshold = tx_frame_err;
-				osi_core->hsi.report_count_err[TX_FRAME_ERR_IDX] = OSI_ENABLE;
+		if (osi_core->mac_ver >= OSI_EQOS_MAC_5_30) {
+			/* T23X-EQOS_HSIv2-19: Consistency Monitor for TX Frame */
+			if ((dma_isr & EQOS_DMA_ISR_TXSTSIS) == EQOS_DMA_ISR_TXSTSIS) {
+				osi_core->hsi.tx_frame_err_count =
+					osi_update_stats_counter(osi_core->hsi.tx_frame_err_count,
+								 1UL);
+				tx_frame_err = osi_core->hsi.tx_frame_err_count /
+					       osi_core->hsi.err_count_threshold;
+				if (osi_core->hsi.tx_frame_err_threshold < tx_frame_err) {
+					osi_core->hsi.tx_frame_err_threshold = tx_frame_err;
+					osi_core->hsi.report_count_err[TX_FRAME_ERR_IDX] =
+					OSI_ENABLE;
+				}
+				osi_core->hsi.err_code[TX_FRAME_ERR_IDX] = OSI_TX_FRAME_ERR;
+				osi_core->hsi.report_err = OSI_ENABLE;
 			}
-			osi_core->hsi.err_code[TX_FRAME_ERR_IDX] =
-				OSI_TX_FRAME_ERR;
-			osi_core->hsi.report_err = OSI_ENABLE;
 		}
-	}
 #endif
+		/* handle only those MAC interrupts which are enabled */
+		mac_imr = osi_readla(osi_core, (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
+		mac_isr = (mac_isr & mac_imr);
 
-	/* handle only those MAC interrupts which are enabled */
-	mac_imr = osi_readla(osi_core,
-			     (nveu8_t *)osi_core->base + EQOS_MAC_IMR);
-	mac_isr = (mac_isr & mac_imr);
-
-	/* RGMII/SMII interrupt */
-	if (((mac_isr & EQOS_MAC_ISR_RGSMIIS) != EQOS_MAC_ISR_RGSMIIS) &&
-	    ((mac_isr & EQOS_MAC_IMR_FPEIS) != EQOS_MAC_IMR_FPEIS)) {
-		return;
-	}
-
-	if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
-	    ((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
-		eqos_handle_mac_fpe_intrs(osi_core);
-	}
-
-	mac_pcs = osi_readla(osi_core,
-			     (nveu8_t *)osi_core->base + EQOS_MAC_PCS);
-	/* check whether Link is UP or NOT - if not return. */
-	if ((mac_pcs & EQOS_MAC_PCS_LNKSTS) != EQOS_MAC_PCS_LNKSTS) {
-		return;
-	}
-
-	/* check for Link mode (full/half duplex) */
-	if ((mac_pcs & EQOS_MAC_PCS_LNKMOD) == EQOS_MAC_PCS_LNKMOD) {
-		ret = hw_set_mode(osi_core, OSI_FULL_DUPLEX);
-		if (osi_unlikely(ret < 0)) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-				     "set mode in full duplex failed\n", 0ULL);
+		if (((mac_isr & EQOS_MAC_IMR_FPEIS) == EQOS_MAC_IMR_FPEIS) &&
+				((mac_imr & EQOS_IMR_FPEIE) == EQOS_IMR_FPEIE)) {
+			eqos_handle_mac_fpe_intrs(osi_core);
 		}
-	} else {
-		ret = hw_set_mode(osi_core, OSI_HALF_DUPLEX);
-		if (osi_unlikely(ret < 0)) {
-			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-				     "set mode in half duplex failed\n", 0ULL);
+
+		if ((mac_isr & EQOS_MAC_ISR_RGSMIIS) == EQOS_MAC_ISR_RGSMIIS) {
+			eqos_handle_mac_link_intrs(osi_core);
 		}
 	}
 
-	/* set speed at MAC level */
-	/* TODO: set_tx_clk needs to be done */
-	/* Maybe through workqueue for QNX */
-	/* hw_set_speed is treated as void since it is
-	 * an internal functin which will be always success
-	 */
-	if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) == EQOS_MAC_PCS_LNKSPEED_10) {
-		(void)hw_set_speed(osi_core, OSI_SPEED_10);
-	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
-		   EQOS_MAC_PCS_LNKSPEED_100) {
-		(void)hw_set_speed(osi_core, OSI_SPEED_100);
-	} else if ((mac_pcs & EQOS_MAC_PCS_LNKSPEED) ==
-		   EQOS_MAC_PCS_LNKSPEED_1000) {
-		(void)hw_set_speed(osi_core, OSI_SPEED_1000);
-	} else {
-		/* Nothing here */
-	}
-
+	return;
 }
 
 #ifndef OSI_STRIPPED_LIB
@@ -1869,69 +1873,63 @@ static void eqos_handle_common_intr(struct osi_core_priv_data *const osi_core)
 	}
 
 	dma_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_DMA_ISR);
-	if (dma_isr == 0U) {
-		return;
-	}
+	if (dma_isr != 0U) {
+		//FIXME Need to check how we can get the DMA channel here instead of
+		//MTL Queues
+		if ((dma_isr & EQOS_DMA_CHAN_INTR_STATUS) != 0U) {
+			/* Handle Non-TI/RI interrupts */
+			for (i = 0; i < osi_core->num_mtl_queues; i++) {
+				qinx = osi_core->mtl_queues[i];
+				if (qinx >= OSI_EQOS_MAX_NUM_CHANS) {
+					continue;
+				}
 
-	//FIXME Need to check how we can get the DMA channel here instead of
-	//MTL Queues
-	if ((dma_isr & EQOS_DMA_CHAN_INTR_STATUS) != 0U) {
-		/* Handle Non-TI/RI interrupts */
-		for (i = 0; i < osi_core->num_mtl_queues; i++) {
-			qinx = osi_core->mtl_queues[i];
-			if (qinx >= OSI_EQOS_MAX_NUM_CHANS) {
-				continue;
-			}
+				/* read dma channel status register */
+				dma_sr = osi_readla(osi_core, (nveu8_t *)base +
+						    EQOS_DMA_CHX_STATUS(qinx));
+				/* read dma channel interrupt enable register */
+				dma_ier = osi_readla(osi_core, (nveu8_t *)base +
+						     EQOS_DMA_CHX_IER(qinx));
 
-			/* read dma channel status register */
-			dma_sr = osi_readla(osi_core, (nveu8_t *)base +
+				/* process only those interrupts which we
+				 * have enabled.
+				 */
+				dma_sr = (dma_sr & dma_ier);
+
+				/* mask off RI and TI */
+				dma_sr &= ~(OSI_BIT(6) | OSI_BIT(0));
+				if (dma_sr == 0U) {
+					continue;
+				}
+
+				/* ack non ti/ri ints */
+				osi_writela(osi_core, dma_sr, (nveu8_t *)base +
 					    EQOS_DMA_CHX_STATUS(qinx));
-			/* read dma channel interrupt enable register */
-			dma_ier = osi_readla(osi_core, (nveu8_t *)base +
-					     EQOS_DMA_CHX_IER(qinx));
-
-			/* process only those interrupts which we
-			 * have enabled.
-			 */
-			dma_sr = (dma_sr & dma_ier);
-
-			/* mask off RI and TI */
-			dma_sr &= ~(OSI_BIT(6) | OSI_BIT(0));
-			if (dma_sr == 0U) {
-				continue;
-			}
-
-			/* ack non ti/ri ints */
-			osi_writela(osi_core, dma_sr, (nveu8_t *)base +
-				    EQOS_DMA_CHX_STATUS(qinx));
 #ifndef OSI_STRIPPED_LIB
-			update_dma_sr_stats(osi_core, dma_sr, qinx);
+				update_dma_sr_stats(osi_core, dma_sr, qinx);
 #endif /* !OSI_STRIPPED_LIB */
+			}
 		}
+
+		eqos_handle_mac_intrs(osi_core, dma_isr);
+
+		/* Handle MTL inerrupts */
+		mtl_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_MTL_INTR_STATUS);
+		if (((mtl_isr & EQOS_MTL_IS_ESTIS) == EQOS_MTL_IS_ESTIS) &&
+		    ((dma_isr & EQOS_DMA_ISR_MTLIS) == EQOS_DMA_ISR_MTLIS)) {
+			eqos_handle_mtl_intrs(osi_core);
+			mtl_isr &= ~EQOS_MTL_IS_ESTIS;
+			osi_writela(osi_core, mtl_isr, (nveu8_t *)base + EQOS_MTL_INTR_STATUS);
+		}
+
+		/* Clear FRP Interrupt MTL_RXP_Interrupt_Control_Status */
+		frp_isr = osi_readla(osi_core, (nveu8_t *)base + EQOS_MTL_RXP_INTR_CS);
+		frp_isr |= (EQOS_MTL_RXP_INTR_CS_NVEOVIS | EQOS_MTL_RXP_INTR_CS_NPEOVIS |
+			    EQOS_MTL_RXP_INTR_CS_FOOVIS | EQOS_MTL_RXP_INTR_CS_PDRFIS);
+		osi_writela(osi_core, frp_isr, (nveu8_t *)base + EQOS_MTL_RXP_INTR_CS);
+	} else {
+		/* Do Nothing */
 	}
-
-	eqos_handle_mac_intrs(osi_core, dma_isr);
-
-	/* Handle MTL inerrupts */
-	mtl_isr = osi_readla(osi_core,
-			     (nveu8_t *)base + EQOS_MTL_INTR_STATUS);
-	if (((mtl_isr & EQOS_MTL_IS_ESTIS) == EQOS_MTL_IS_ESTIS) &&
-	    ((dma_isr & EQOS_DMA_ISR_MTLIS) == EQOS_DMA_ISR_MTLIS)) {
-		eqos_handle_mtl_intrs(osi_core);
-		mtl_isr &= ~EQOS_MTL_IS_ESTIS;
-		osi_writela(osi_core, mtl_isr, (nveu8_t *)base +
-			   EQOS_MTL_INTR_STATUS);
-	}
-
-	/* Clear FRP Interrupt MTL_RXP_Interrupt_Control_Status */
-	frp_isr = osi_readla(osi_core,
-			     (nveu8_t *)base + EQOS_MTL_RXP_INTR_CS);
-	frp_isr |= (EQOS_MTL_RXP_INTR_CS_NVEOVIS |
-		    EQOS_MTL_RXP_INTR_CS_NPEOVIS |
-		    EQOS_MTL_RXP_INTR_CS_FOOVIS |
-		    EQOS_MTL_RXP_INTR_CS_PDRFIS);
-	osi_writela(osi_core, frp_isr,
-		    (nveu8_t *)base + EQOS_MTL_RXP_INTR_CS);
 }
 
 #if defined(MACSEC_SUPPORT) && !defined(OSI_STRIPPED_LIB)
@@ -2016,6 +2014,7 @@ static inline nve32_t eqos_update_mac_addr_helper(
 				OSI_UNUSED const nveu32_t src_dest)
 {
 	nveu32_t temp;
+	nve32_t ret = 0;
 
 	/* PDC bit of MAC_Ext_Configuration register is set so binary
 	 * value representation form index 32-127 else hot-bit
@@ -2047,11 +2046,11 @@ static inline nve32_t eqos_update_mac_addr_helper(
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 				     "invalid address index for MBC\n",
 				     0ULL);
-			return -1;
+			ret = -1;
 		}
 	}
 
-	return 0;
+	return ret;
 }
 
 /**
@@ -2098,28 +2097,28 @@ static void eqos_l2_filter_delete(struct osi_core_priv_data *osi_core,
 		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
 		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
 			    EQOS_MAC_ADDRH((idx)));
-		return;
-	}
-
-	dcs_check &= EQOS_MAC_ADDRH_DCS;
-	dcs_check = dcs_check >> EQOS_MAC_ADDRH_DCS_SHIFT;
-
-	if (idx >= EQOS_MAX_MAC_ADDR_REG) {
-		dcs_check = OSI_DISABLE;
 	} else {
-		temp = OSI_BIT(dma_chan);
-		dcs_check &= ~(temp);
-	}
 
-	if (dcs_check == OSI_DISABLE) {
-		*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
-		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
-			    EQOS_MAC_ADDRH((idx)));
-	} else {
-		*value &= ~(EQOS_MAC_ADDRH_DCS);
-		*value |= (dcs_check << EQOS_MAC_ADDRH_DCS_SHIFT);
-		osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
-			    EQOS_MAC_ADDRH((idx)));
+		dcs_check &= EQOS_MAC_ADDRH_DCS;
+		dcs_check = dcs_check >> EQOS_MAC_ADDRH_DCS_SHIFT;
+
+		if (idx >= EQOS_MAX_MAC_ADDR_REG) {
+			dcs_check = OSI_DISABLE;
+		} else {
+			temp = OSI_BIT(dma_chan);
+			dcs_check &= ~(temp);
+		}
+
+		if (dcs_check == OSI_DISABLE) {
+			*value &= ~(EQOS_MAC_ADDRH_AE | EQOS_MAC_ADDRH_DCS);
+			osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+				    EQOS_MAC_ADDRH((idx)));
+		} else {
+			*value &= ~(EQOS_MAC_ADDRH_DCS);
+			*value |= (dcs_check << EQOS_MAC_ADDRH_DCS_SHIFT);
+			osi_writela(osi_core, *value, (nveu8_t *)osi_core->base +
+				    EQOS_MAC_ADDRH((idx)));
+		}
 	}
 
 	return;
@@ -2174,7 +2173,8 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "invalid MAC filter index or channel number\n",
 			     0ULL);
-		return -1;
+		ret = -1;
+		goto fail;
 	}
 
 	/* read current value at index preserve DCS current value */
@@ -2185,39 +2185,36 @@ static nve32_t eqos_update_mac_addr_low_high_reg(
 	if ((filter->oper_mode & OSI_OPER_ADDR_DEL) != OSI_NONE) {
 		eqos_l2_filter_delete(osi_core, &value, idx, dma_routing_enable,
 				      dma_chan);
-		return 0;
+	} else {
+		ret = eqos_update_mac_addr_helper(osi_core, &value, idx, dma_chan,
+						  addr_mask, src_dest);
+		/* Check return value from helper code */
+		if (ret == -1) {
+			goto fail;
+		}
+
+		/* Update AE bit if OSI_OPER_ADDR_UPDATE is set */
+		if ((filter->oper_mode & OSI_OPER_ADDR_UPDATE) == OSI_OPER_ADDR_UPDATE) {
+			value |= EQOS_MAC_ADDRH_AE;
+		}
+
+		/* Setting Source/Destination Address match valid for 1 to 32 index */
+		if (((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) && (src_dest <= OSI_SA_MATCH)) {
+			value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
+				 EQOS_MAC_ADDRH_SA));
+		}
+
+		osi_writela(osi_core, ((nveu32_t)filter->mac_address[4] |
+			    ((nveu32_t)filter->mac_address[5] << 8) | value),
+			    (nveu8_t *)osi_core->base + EQOS_MAC_ADDRH((idx)));
+
+		osi_writela(osi_core, ((nveu32_t)filter->mac_address[0] |
+			    ((nveu32_t)filter->mac_address[1] << 8) |
+			    ((nveu32_t)filter->mac_address[2] << 16) |
+			    ((nveu32_t)filter->mac_address[3] << 24)),
+			    (nveu8_t *)osi_core->base +  EQOS_MAC_ADDRL((idx)));
 	}
-
-	ret = eqos_update_mac_addr_helper(osi_core, &value, idx, dma_chan,
-					  addr_mask, src_dest);
-	/* Check return value from helper code */
-	if (ret == -1) {
-		return ret;
-	}
-
-	/* Update AE bit if OSI_OPER_ADDR_UPDATE is set */
-	if ((filter->oper_mode & OSI_OPER_ADDR_UPDATE) ==
-	     OSI_OPER_ADDR_UPDATE) {
-		value |= EQOS_MAC_ADDRH_AE;
-	}
-
-	/* Setting Source/Destination Address match valid for 1 to 32 index */
-	if (((idx > 0U) && (idx < EQOS_MAX_MAC_ADDR_REG)) &&
-	    (src_dest <= OSI_SA_MATCH)) {
-		value = (value | ((src_dest << EQOS_MAC_ADDRH_SA_SHIFT) &
-				  EQOS_MAC_ADDRH_SA));
-	}
-
-	osi_writela(osi_core, ((nveu32_t)filter->mac_address[4] |
-		    ((nveu32_t)filter->mac_address[5] << 8) | value),
-		    (nveu8_t *)osi_core->base + EQOS_MAC_ADDRH((idx)));
-
-	osi_writela(osi_core, ((nveu32_t)filter->mac_address[0] |
-		    ((nveu32_t)filter->mac_address[1] << 8) |
-		    ((nveu32_t)filter->mac_address[2] << 16) |
-		    ((nveu32_t)filter->mac_address[3] << 24)),
-		    (nveu8_t *)osi_core->base +  EQOS_MAC_ADDRL((idx)));
-
+fail:
 	return ret;
 }
 
@@ -2425,6 +2422,7 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 	nveu32_t retry = RETRY_COUNT;
 	nveu32_t count;
 	nve32_t cond = COND_NOT_MET;
+	nve32_t ret = 0;
 
 	/* Wait for previous(if any) time stamp  value update to complete */
 	count = 0;
@@ -2432,7 +2430,8 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 		if (count > retry) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "poll_for_update_ts: timeout\n", 0ULL);
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 		/* Read and Check TSUPDT in MAC_Timestamp_Control register */
 		*mac_tcr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
@@ -2444,8 +2443,8 @@ static inline nve32_t eqos_poll_for_update_ts_complete(
 		count++;
 		osi_core->osd_ops.udelay(OSI_DELAY_1000US);
 	}
-
-	return 0;
+fail:
+	return ret;
 
 }
 
@@ -2490,11 +2489,11 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 	nveul64_t temp = 0;
 	nveu32_t sec1 = sec;
 	nveu32_t nsec1 = nsec;
-	nve32_t ret;
+	nve32_t ret = 0;
 
 	ret = eqos_poll_for_update_ts_complete(osi_core, &mac_tcr);
 	if (ret == -1) {
-		return -1;
+		goto fail;
 	}
 
 	if (add_sub != 0U) {
@@ -2543,11 +2542,9 @@ static nve32_t eqos_adjust_mactime(struct osi_core_priv_data *const osi_core,
 	osi_writela(osi_core, mac_tcr, (nveu8_t *)addr + EQOS_MAC_TCR);
 
 	ret = eqos_poll_for_update_ts_complete(osi_core, &mac_tcr);
-	if (ret == -1) {
-		return -1;
-	}
 
-	return 0;
+fail:
+	return ret;
 }
 
 #ifndef OSI_STRIPPED_LIB
@@ -2664,13 +2661,15 @@ static inline nve32_t poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 	nveu32_t mac_gmiiar;
 	nveu32_t count;
 	nve32_t cond = COND_NOT_MET;
+	nve32_t ret = 0;
 
 	count = 0;
 	while (cond == COND_NOT_MET) {
 		if (count > retry) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 				     "MII operation timed out\n", 0ULL);
-			return -1;
+			ret = -1;
+			goto fail;
 		}
 		count++;
 
@@ -2684,8 +2683,8 @@ static inline nve32_t poll_for_mii_idle(struct osi_core_priv_data *osi_core)
 			osi_core->osd_ops.udelay(10U);
 		}
 	}
-
-	return 0;
+fail:
+	return ret;
 }
 /** \endcond */
 
@@ -2735,7 +2734,7 @@ static nve32_t eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
 		/* poll_for_mii_idle fail */
-		return ret;
+		goto fail;
 	}
 
 	/* C45 register access */
@@ -2788,7 +2787,9 @@ static nve32_t eqos_write_phy_reg(struct osi_core_priv_data *const osi_core,
 	osi_writela(osi_core, mac_gmiiar, (nveu8_t *)osi_core->base +
 		    EQOS_MAC_MDIO_ADDRESS);
 	/* wait for MII write operation to complete */
-	return poll_for_mii_idle(osi_core);
+	ret = poll_for_mii_idle(osi_core);
+fail:
+	return ret;
 }
 
 /**
@@ -2836,7 +2837,7 @@ static nve32_t eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
 		/* poll_for_mii_idle fail */
-		return ret;
+		goto fail;
 	}
 	/* C45 register access */
 	if ((phyreg & OSI_MII_ADDR_C45) == OSI_MII_ADDR_C45) {
@@ -2883,14 +2884,16 @@ static nve32_t eqos_read_phy_reg(struct osi_core_priv_data *const osi_core,
 	ret = poll_for_mii_idle(osi_core);
 	if (ret < 0) {
 		/* poll_for_mii_idle fail */
-		return ret;
+		goto fail;
 	}
 
 	mac_gmiidr = osi_readla(osi_core, (nveu8_t *)osi_core->base +
 			        EQOS_MAC_MDIO_DATA);
 	data = (mac_gmiidr & EQOS_MAC_GMIIDR_GD_MASK);
 
-	return (nve32_t)data;
+	ret = (nve32_t)data;
+fail:
+	return ret;
 }
 
 /**
