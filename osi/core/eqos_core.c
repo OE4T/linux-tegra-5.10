@@ -2944,12 +2944,23 @@ static nveu32_t eqos_write_reg(struct osi_core_priv_data *const osi_core,
  * - Initialization: Yes
  * - Run time: Yes
  * - De-initialization: Yes
- * @retval data from register on success
+ * @retval data from register on success and 0xffffffff on failure
  */
 static nveu32_t eqos_read_macsec_reg(struct osi_core_priv_data *const osi_core,
 				     const nve32_t reg)
 {
-	return osi_readla(osi_core, (nveu8_t *)osi_core->macsec_base + reg);
+	nveu32_t ret = 0;
+
+	if (osi_core->macsec_ops != OSI_NULL) {
+		ret = osi_readla(osi_core, (nveu8_t *)osi_core->macsec_base +
+				 reg);
+	} else {
+		/* macsec is not supported or not enabled in DT */
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "read reg failed", 0ULL);
+		ret = 0xffffffff;
+	}
+	return ret;
 }
 
 /**
@@ -2964,13 +2975,23 @@ static nveu32_t eqos_read_macsec_reg(struct osi_core_priv_data *const osi_core,
  * - Initialization: Yes
  * - Run time: Yes
  * - De-initialization: Yes
- * @retval 0
+ * @retval 0 on success or 0xffffffff on error
  */
 static nveu32_t eqos_write_macsec_reg(struct osi_core_priv_data *const osi_core,
 				      const nveu32_t val, const nve32_t reg)
 {
-	osi_writela(osi_core, val, (nveu8_t *)osi_core->macsec_base + reg);
-	return 0;
+	nveu32_t ret = 0;
+
+	if (osi_core->macsec_ops != OSI_NULL) {
+		osi_writela(osi_core, val, (nveu8_t *)osi_core->macsec_base +
+			    reg);
+	} else {
+		/* macsec is not supported or not enabled in DT */
+		OSI_CORE_ERR(osi_core->osd,
+			     OSI_LOG_ARG_HW_FAIL, "write reg failed", 0ULL);
+		ret = 0xffffffff;
+	}
+	return ret;
 }
 #endif /*  MACSEC_SUPPORT */
 

@@ -2723,7 +2723,8 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	case OSI_CMD_MAC_MTU:
 		ret = 0;
 #ifdef MACSEC_SUPPORT
-		if (osi_core->macsec_ops->update_mtu != OSI_NULL) {
+		if ((osi_core->macsec_ops != OSI_NULL) &&
+		    (osi_core->macsec_ops->update_mtu != OSI_NULL)) {
 			ret = osi_core->macsec_ops->update_mtu(osi_core, data->arg1_u32);
 		}
 #endif /*  MACSEC_SUPPORT */
