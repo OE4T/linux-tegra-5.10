@@ -38,7 +38,9 @@
 #include "os_linux.h"
 #include "dmabuf_vidmem.h"
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 void gk20a_mm_delete_priv(struct gk20a_dmabuf_priv *priv);
+#endif
 
 enum nvgpu_aperture gk20a_dmabuf_aperture(struct gk20a *g,
 					  struct dma_buf *dmabuf)
@@ -68,6 +70,7 @@ enum nvgpu_aperture gk20a_dmabuf_aperture(struct gk20a *g,
 #endif
 }
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 static struct gk20a_dmabuf_priv *dma_buf_ops_to_gk20a_priv(
 		struct dma_buf_ops *ops)
 {
@@ -94,7 +97,6 @@ static void nvgpu_dma_buf_release(struct dma_buf *dmabuf)
 	nvgpu_mutex_acquire(&l->dmabuf_priv_list_lock);
 	gk20a_mm_delete_priv(priv);
 	nvgpu_mutex_release(&l->dmabuf_priv_list_lock);
-
 	dmabuf->ops->release(dmabuf);
 }
 
@@ -137,6 +139,7 @@ struct gk20a_dmabuf_priv *gk20a_dma_buf_get_drvdata(
 
 	return priv;
 }
+#endif
 
 struct sg_table *nvgpu_mm_pin(struct device *dev,
 			struct dma_buf *dmabuf, struct dma_buf_attachment **attachment,
@@ -178,6 +181,7 @@ void nvgpu_mm_unpin(struct device *dev,
 /* This function must be called after acquiring the global level
  * dmabuf_priv_list_lock.
  */
+#ifdef CONFIG_NVGPU_COMPRESSION
 void gk20a_mm_delete_priv(struct gk20a_dmabuf_priv *priv)
 {
 	struct gk20a_buffer_state *s, *s_tmp;
@@ -325,6 +329,7 @@ out:
 		*state = s;
 	return err;
 }
+#endif
 
 static void *__gk20a_dmabuf_vmap(struct dma_buf *dmabuf)
 {

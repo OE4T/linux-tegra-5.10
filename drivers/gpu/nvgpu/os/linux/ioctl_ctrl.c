@@ -1942,12 +1942,15 @@ out:
 static int nvgpu_gpu_ioctl_get_buffer_info(struct gk20a *g,
 				struct nvgpu_gpu_get_buffer_info_args *args)
 {
+	int err = -EINVAL;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	u64 user_metadata_addr = args->in.metadata_addr;
 	u32 in_metadata_size = args->in.metadata_size;
 	struct gk20a_dmabuf_priv *priv = NULL;
 	s32 dmabuf_fd = args->in.dmabuf_fd;
 	struct dma_buf *dmabuf;
-	int err = 0;
+
+	err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -2002,13 +2005,11 @@ static int nvgpu_gpu_ioctl_get_buffer_info(struct gk20a *g,
 			NVGPU_GPU_BUFFER_INFO_FLAGS_METADATA_REGISTERED;
 	}
 
-#ifdef CONFIG_NVGPU_COMPRESSION
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION) &&
 	    priv->comptags.enabled) {
 		args->out.flags |=
 			NVGPU_GPU_BUFFER_INFO_FLAGS_COMPTAGS_ALLOCATED;
 	}
-#endif
 
 	if (priv->mutable_metadata) {
 		args->out.flags |=
@@ -2022,6 +2023,7 @@ out_priv_unlock:
 	nvgpu_mutex_release(&priv->lock);
 out:
 	dma_buf_put(dmabuf);
+#endif
 	return err;
 }
 
@@ -2098,12 +2100,13 @@ static int nvgpu_handle_comptags_control(struct gk20a *g,
 static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 		struct nvgpu_gpu_register_buffer_args *args)
 {
+	int err = 0;
+#ifdef CONFIG_NVGPU_COMPRESSION
 	struct gk20a_dmabuf_priv *priv = NULL;
 	bool mutable_metadata = false;
 	bool modify_metadata = false;
 	struct dma_buf *dmabuf;
 	u8 *blob_copy = NULL;
-	int err = 0;
 
 	nvgpu_log_fn(g, " ");
 
@@ -2178,7 +2181,6 @@ static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 		goto out_priv_unlock;
 	}
 
-#ifdef CONFIG_NVGPU_COMPRESSION
 	/* Comptags allocation */
 	err = nvgpu_handle_comptags_control(g, dmabuf, priv,
 					    args->comptags_alloc_control);
@@ -2186,7 +2188,6 @@ static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 		nvgpu_err(g, "Comptags alloc control failed %d", err);
 		goto out_priv_unlock;
 	}
-#endif
 
 	/* All done, update metadata blob */
 	nvgpu_kfree(g, priv->metadata_blob);
@@ -2202,13 +2203,11 @@ static int nvgpu_gpu_ioctl_register_buffer(struct gk20a *g,
 	/* Output variables */
 	args->flags = 0;
 
-#ifdef CONFIG_NVGPU_COMPRESSION
 	if (nvgpu_is_enabled(g, NVGPU_SUPPORT_COMPRESSION) &&
 	    priv->comptags.enabled) {
 		args->flags |=
 			NVGPU_GPU_REGISTER_BUFFER_FLAGS_COMPTAGS_ALLOCATED;
 	}
-#endif
 
 	nvgpu_log_info(g, "buffer registered: mutable: %s, metadata size: %u, flags: 0x%8x",
 		       priv->mutable_metadata ? "yes" : "no", priv->metadata_blob_size,
@@ -2219,7 +2218,7 @@ out_priv_unlock:
 out:
 	dma_buf_put(dmabuf);
 	nvgpu_kfree(g, blob_copy);
-
+#endif
 	return err;
 }
 

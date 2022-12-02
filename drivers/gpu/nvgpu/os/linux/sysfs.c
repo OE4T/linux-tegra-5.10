@@ -1191,6 +1191,7 @@ static ssize_t tsg_timeslice_max_us_store(struct device *dev,
 static DEVICE_ATTR(tsg_timeslice_max_us, ROOTRW, tsg_timeslice_max_us_read,
 		   tsg_timeslice_max_us_store);
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 static ssize_t comptag_mem_deduct_store(struct device *dev,
 					struct device_attribute *attr,
 					const char *buf, size_t count)
@@ -1224,6 +1225,7 @@ static ssize_t comptag_mem_deduct_show(struct device *dev,
 
 static DEVICE_ATTR(comptag_mem_deduct, ROOTRW,
 		   comptag_mem_deduct_show, comptag_mem_deduct_store);
+#endif
 
 #ifdef CONFIG_NVGPU_MIG
 static ssize_t mig_mode_config_list_show(struct device *dev,
@@ -1399,7 +1401,10 @@ void nvgpu_remove_sysfs(struct device *dev)
 
 	device_remove_file(dev, &dev_attr_gpu_powered_on);
 
+#ifdef CONFIG_NVGPU_COMPRESSION
 	device_remove_file(dev, &dev_attr_comptag_mem_deduct);
+#endif
+
 #ifdef CONFIG_NVGPU_MIG
 	device_remove_file(dev, &dev_attr_mig_mode_config_list);
 	device_remove_file(dev, &dev_attr_mig_mode_config);
@@ -1466,7 +1471,10 @@ int nvgpu_create_sysfs(struct device *dev)
 
 	error |= device_create_file(dev, &dev_attr_gpu_powered_on);
 
-	error |= device_create_file(dev, &dev_attr_comptag_mem_deduct);
+#ifdef CONFIG_NVGPU_COMPRESSION
+	device_create_file(dev, &dev_attr_comptag_mem_deduct);
+#endif
+
 #ifdef CONFIG_NVGPU_MIG
 	error |= device_create_file(dev, &dev_attr_mig_mode_config_list);
 	error |= device_create_file(dev, &dev_attr_mig_mode_config);

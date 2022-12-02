@@ -35,8 +35,16 @@ CONFIG_NVGPU_HAL_NON_FUSA := y
 # Support recovery on failure (which may involve engine reset)
 CONFIG_NVGPU_RECOVERY := y
 
-# Support for compression
+# Enable support for compression on pre-K6.1 kernels. K6.1+ changes the
+# internals of dma-bufs which breaks some hacks we implemented to support
+# compression meta-data tracking. For now, on K6.1+ kernels, just disable
+# compression. This is a hack that should be fixed.
 CONFIG_NVGPU_COMPRESSION := y
+ifeq ($(VERSION),6)
+ifneq ($(PATCHLEVEL),0)
+CONFIG_NVGPU_COMPRESSION := n
+endif
+endif
 
 # Enable MIG Support
 CONFIG_NVGPU_MIG := y

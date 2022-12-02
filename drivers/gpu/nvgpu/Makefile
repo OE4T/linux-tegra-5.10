@@ -495,8 +495,12 @@ nvgpu-y += \
 	os/linux/periodic_timer.o
 
 nvgpu-$(CONFIG_NVGPU_IVM_BUILD) += \
-	os/linux/nvgpu_ivm.o \
+	os/linux/nvgpu_ivm.o
+
+ifeq ($(CONFIG_NVGPU_COMPRESSION),y)
+nvgpu-$(CONFIG_NVGPU_IVM_BUILD) += \
 	common/cbc/contig_pool.o
+endif
 
 nvgpu-$(CONFIG_NVGPU_VPR) += os/linux/vpr.o
 

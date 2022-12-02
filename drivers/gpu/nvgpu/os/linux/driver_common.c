@@ -139,12 +139,14 @@ static void nvgpu_init_vars(struct gk20a *g)
 
 static void nvgpu_init_max_comptag(struct gk20a *g)
 {
+#ifdef CONFIG_NVGPU_COMPRESSION
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
 	nvgpu_log_info(g, "total ram pages : %lu", totalram_pages());
 #else
 	nvgpu_log_info(g, "total ram pages : %lu", totalram_pages);
 #endif
 	g->max_comptag_mem = totalram_size_in_mb;
+#endif
 }
 
 static void nvgpu_init_timeout(struct gk20a *g)
