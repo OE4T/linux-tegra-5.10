@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -380,12 +380,10 @@ struct core_local {
 	nveu32_t lane_status;
 	/** Exact MAC used across SOCs 0:Legacy EQOS, 1:Orin EQOS, 2:Orin MGBE */
 	nveu32_t l_mac_ver;
-#ifndef OSI_STRIPPED_LIB
-#ifdef L3L4_WILDCARD_FILTER
+#if defined(L3L4_WILDCARD_FILTER)
 	/** l3l4 wildcard filter configured (OSI_ENABLE) / not configured (OSI_DISABLE) */
 	nveu32_t l3l4_wildcard_filter_configured;
 #endif /* L3L4_WILDCARD_FILTER */
-#endif /* OSI_STRIPPED_LIB */
 };
 
 /**

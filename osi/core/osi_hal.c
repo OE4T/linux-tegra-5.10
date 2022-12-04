@@ -773,11 +773,16 @@ static nve32_t l3l4_find_match(const struct core_local *const l_core,
 	nve32_t ret = -1;
 	nveu32_t found_free_index = 0;
 	nve32_t filter_size = (nve32_t)sizeof(l3_l4->data);
+#if defined(L3L4_WILDCARD_FILTER)
+	nveu32_t start_idx = 1; /* leave first one for TCP wildcard */
+#else
+	nveu32_t start_idx = 0;
+#endif /* L3L4_WILDCARD_FILTER */
 
 	/* init free index value to invalid value */
 	*free_filter_no = UINT_MAX;
 
-	for (i = 0; i < max_filter_no; i++) {
+	for (i = start_idx; i <= max_filter_no; i++) {
 		if (l_core->cfg.l3_l4[i].filter_enb_dis == OSI_FALSE) {
 			/* filter not enabled, save free index */
 			if (found_free_index == 0U) {
@@ -959,14 +964,13 @@ exit_func:
 	return ret;
 }
 
-#ifndef OSI_STRIPPED_LIB
-#ifdef L3L4_WILDCARD_FILTER
+#if defined(L3L4_WILDCARD_FILTER)
 /**
  * @brief l3l4_add_wildcard_filter - function to configure wildcard filter.
  *
  * @note
  * Algorithm:
- *  - Configure wildcard filter with all 4 tuple as 0s using configure_l3l4_filter_helper().
+ * - Configure TCP wildcard filter at index 0 using configure_l3l4_filter_helper().
  *
  * @param[in] osi_core: OSI Core private data structure.
  * @param[in] max_filter_no: maximum allowed filter number
@@ -977,44 +981,47 @@ exit_func:
 static void l3l4_add_wildcard_filter(struct osi_core_priv_data *const osi_core,
 				     nveu32_t max_filter_no)
 {
-	nve32_t err;
+	nve32_t err = -1;
 	struct osi_l3_l4_filter *l3l4_filter;
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 
 	/* use max filter index to confiture wildcard filter */
 	if (l_core->l3l4_wildcard_filter_configured != OSI_ENABLE) {
-		/* configure INV filter for IPV4/UDP with DA(0) + SP (0) +
-		 * DP (0) with routing not enabled
+		/* Configure TCP wildcard filter at index 0.
+		 * INV IP4 filter with SA (0) + DA (0) with UDP perfect match with
+		 * SP (0) + DP (0) with no routing enabled.
+		 * - TCP packets will have a IP filter match and will be routed to default DMA.
+		 * - UDP packets will have a IP match but no L4 match, hence HW goes for
+		 *   next filter index for finding match.
 		 */
-		l3l4_filter = &(l_core->cfg.l3_l4[max_filter_no]);
+		l3l4_filter = &(l_core->cfg.l3_l4[0]);
 		osi_memset(l3l4_filter, 0, sizeof(struct osi_l3_l4_filter));
 		l3l4_filter->filter_enb_dis = OSI_TRUE;
 		l3l4_filter->data.is_udp = OSI_TRUE;
-		l3l4_filter->data.src.port_match = OSI_TRUE;
-		l3l4_filter->data.src.port_match_inv = OSI_TRUE;
 		l3l4_filter->data.src.addr_match = OSI_TRUE;
 		l3l4_filter->data.src.addr_match_inv = OSI_TRUE;
-		l3l4_filter->data.dst.port_match = OSI_TRUE;
-		l3l4_filter->data.dst.port_match_inv = OSI_TRUE;
+		l3l4_filter->data.src.port_match = OSI_TRUE;
 		l3l4_filter->data.dst.addr_match = OSI_TRUE;
 		l3l4_filter->data.dst.addr_match_inv = OSI_TRUE;
+		l3l4_filter->data.dst.port_match = OSI_TRUE;
 
 		/* configure wildcard at last filter index */
-		err = configure_l3l4_filter_helper(osi_core, max_filter_no, l3l4_filter);
+		err = configure_l3l4_filter_helper(osi_core, 0, l3l4_filter);
 		if (err < 0) {
 			/* wildcard config failed */
 			OSI_CORE_ERR((osi_core->osd), (OSI_LOG_ARG_INVALID),
-				("L3L4: Wildcard config failed: "), (max_filter_no));
-		} else {
-			/* wildcard config success */
-			l_core->l3l4_wildcard_filter_configured = OSI_ENABLE;
-			OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_INVALID),
-				("L3L4: Wildcard config success"), (max_filter_no));
+				("L3L4: TCP wildcard config failed: "), (0UL));
 		}
+	}
+
+	if (err >= 0) {
+		/* wildcard config success */
+		l_core->l3l4_wildcard_filter_configured = OSI_ENABLE;
+		OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_INVALID),
+			("L3L4: Wildcard config success"), (0UL));
 	}
 }
 #endif /* L3L4_WILDCARD_FILTER */
-#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief configure_l3l4_filter - function to configure l3l4 filter.
@@ -1049,9 +1056,6 @@ static nve32_t configure_l3l4_filter(struct osi_core_priv_data *const osi_core,
 	nveu32_t free_filter_no = UINT_MAX;
 	const struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	const nveu32_t max_filter_no[2] = {
-		/* max usable filter number is less by 1 for accommodating
-		 * wildcard filter at last index.
-		 */
 		EQOS_MAX_L3_L4_FILTER - 1U,
 		OSI_MGBE_MAX_L3_L4_FILTER - 1U,
 	};
@@ -1075,7 +1079,7 @@ static nve32_t configure_l3l4_filter(struct osi_core_priv_data *const osi_core,
 		}
 
 		/* check free index */
-		if (free_filter_no >= max_filter_no[osi_core->mac]) {
+		if (free_filter_no > max_filter_no[osi_core->mac]) {
 			/* no free entry found */
 			OSI_CORE_INFO((osi_core->osd), (OSI_LOG_ARG_HW_FAIL),
 				("L3L4: Failed: no free filter: "), (free_filter_no));
@@ -1093,8 +1097,7 @@ static nve32_t configure_l3l4_filter(struct osi_core_priv_data *const osi_core,
 		}
 	}
 
-#ifndef OSI_STRIPPED_LIB
-#ifdef L3L4_WILDCARD_FILTER
+#if defined(L3L4_WILDCARD_FILTER)
 	/* setup l3l4 wildcard filter for l3l4 */
 	l3l4_add_wildcard_filter(osi_core, max_filter_no[osi_core->mac]);
 	if (l_core->l3l4_wildcard_filter_configured != OSI_ENABLE) {
@@ -1103,7 +1106,6 @@ static nve32_t configure_l3l4_filter(struct osi_core_priv_data *const osi_core,
 		goto exit_func;
 	}
 #endif /* L3L4_WILDCARD_FILTER */
-#endif /* !OSI_STRIPPED_LIB */
 
 	/* configure l3l4 filter */
 	err = configure_l3l4_filter_helper(osi_core, filter_no, l3_l4);
@@ -2105,14 +2107,12 @@ static void cfg_l3_l4_filter(struct core_local *l_core)
 			(struct osi_core_priv_data *)(void *)l_core,
 			i, &l_core->cfg.l3_l4[i]);
 
-#ifdef L3L4_WILDCARD_FILTER
-#ifndef OSI_STRIPPED_LIB
-		if (i == (OSI_MGBE_MAX_L3_L4_FILTER - 1U)) {
-			/* last filter supposed to be wildcard filter */
+#if defined(L3L4_WILDCARD_FILTER)
+		if (i == 0U) {
+			/* first filter supposed to be tcp wildcard filter */
 			l_core->l3l4_wildcard_filter_configured = OSI_ENABLE;
 		}
 #endif /* L3L4_WILDCARD_FILTER */
-#endif /* !OSI_STRIPPED_LIB */
 	}
 }
 
