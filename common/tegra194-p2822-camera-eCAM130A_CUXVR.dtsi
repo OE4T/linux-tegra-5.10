@@ -357,7 +357,7 @@
 /{
 	 tegra-camera-platform {
 		compatible = "nvidia, tegra-camera-platform";
-		num_csi_lanes = <16>;
+		num_csi_lanes = <12>;
 		max_lane_speed = <2500000>;
 		min_bits_per_pixel = <16>;
 		vi_peak_byte_per_pixel = <2>;
@@ -380,7 +380,7 @@
 				orientation = "1";
 				cam_module1_drivernode0: drivernode0 {
 					pcl_id = "v4l2_sensor";
-					devname = "e-CAM130A_CUXVR-2 ";
+					devname = "e-CAM130A_CUXVR-2";
 					proc-device-tree = "/proc/device-tree/i2c@3180000/tca9548@70/i2c@2/ar1335_c@42";
 				};
 			};
@@ -390,7 +390,7 @@
 				orientation = "1";
 				cam_module2_drivernode0: drivernode0 {
 					pcl_id = "v4l2_sensor";
-					devname = "e-CAM130A_CUXVR-3 ";
+					devname = "e-CAM130A_CUXVR-3";
 					proc-device-tree = "/proc/device-tree/i2c@3180000/tca9548@70/i2c@4/ar1335_e@42";
 				};
 			};

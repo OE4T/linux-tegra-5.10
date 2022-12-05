@@ -65,8 +65,8 @@
 		};
 		__overlay__ {
 			num_csi_lanes = <12>;
-			max_lane_speed = <1500000>;
-			min_bits_per_pixel = <10>;
+			max_lane_speed = <2500000>;
+			min_bits_per_pixel = <16>;
 			vi_peak_byte_per_pixel = <2>;
 			vi_bw_margin_pct = <25>;
 			max_pixel_rate = <200000>;
@@ -463,23 +463,6 @@
 		};
 		__overlay__ {
 			status = "okay";
-		};
-	};
-/* reset gpio pin for older Galen board */
-	fragment@36 {
-		target-path = "/gpio@2200000";
-		board_config {
-			ids = "<2822-0000-500";
-			sw-modules = "kernel";
-		};
-		__overlay__ {
-			camera-control-output-low {
-				gpios =  <TEGRA194_MAIN_GPIO(H, 4) 1
-					MIPICFG1 1 MIPICFG2 0
-					IO_EXP_RST 1>;
-				label = "mipi_sel1", "mipi_sel2",
-					"mipi_sel_3","cam_ioexp_rst";
-			};
 		};
 	};
 };
