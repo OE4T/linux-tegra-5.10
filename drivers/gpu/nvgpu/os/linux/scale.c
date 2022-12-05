@@ -49,6 +49,82 @@
  */
 
 #if defined(CONFIG_GK20A_PM_QOS) && defined(CONFIG_COMMON_CLK)
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+int gk20a_scale_qos_min_notify(struct notifier_block *nb,
+			  unsigned long n, void *p)
+{
+	struct gk20a_scale_profile *profile =
+			container_of(nb, struct gk20a_scale_profile,
+			qos_min_notify_block);
+	struct gk20a *g = get_gk20a(profile->dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct devfreq *devfreq = l->devfreq;
+
+	if (!devfreq)
+		return NOTIFY_OK;
+
+	nvgpu_mutex_acquire(&profile->lock);
+
+	profile->qos_min_freq = (unsigned long)n * 1000UL;
+
+	nvgpu_mutex_release(&profile->lock);
+
+	return NOTIFY_OK;
+}
+
+int gk20a_scale_qos_max_notify(struct notifier_block *nb,
+			  unsigned long n, void *p)
+{
+	struct gk20a_scale_profile *profile =
+			container_of(nb, struct gk20a_scale_profile,
+			qos_max_notify_block);
+	struct gk20a *g = get_gk20a(profile->dev);
+	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+	struct devfreq *devfreq = l->devfreq;
+
+	if (!devfreq)
+		return NOTIFY_OK;
+
+	nvgpu_mutex_acquire(&profile->lock);
+
+	profile->qos_max_freq = (unsigned long)n * 1000UL;
+
+	nvgpu_mutex_release(&profile->lock);
+
+	return NOTIFY_OK;
+}
+
+u16 gk20a_scale_clamp_clk_target(struct gk20a *g,
+				 u16 gpc2clk_target)
+{
+	struct gk20a_scale_profile *profile = g->scale_profile;
+	u16 min_freq_mhz, max_freq_mhz;
+
+	if (!profile)
+		return gpc2clk_target;
+
+	nvgpu_mutex_acquire(&profile->lock);
+
+	min_freq_mhz = (u16) (profile->qos_min_freq / 1000000UL);
+	max_freq_mhz = (u16) (profile->qos_max_freq / 1000000UL);
+
+	nvgpu_log_info(g, "target %u qos_min %u qos_max %u", gpc2clk_target,
+		       min_freq_mhz, max_freq_mhz);
+
+	if (gpc2clk_target < min_freq_mhz) {
+		gpc2clk_target = min_freq_mhz;
+	}
+
+	if (gpc2clk_target > max_freq_mhz) {
+		gpc2clk_target = max_freq_mhz;
+	}
+
+	nvgpu_mutex_release(&profile->lock);
+
+	return gpc2clk_target;
+}
+#else
 int gk20a_scale_qos_notify(struct notifier_block *nb,
 			  unsigned long n, void *p)
 {
@@ -81,6 +157,7 @@ int gk20a_scale_qos_notify(struct notifier_block *nb,
 
 	return NOTIFY_OK;
 }
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) */
 #elif defined(CONFIG_GK20A_PM_QOS)
 int gk20a_scale_qos_notify(struct notifier_block *nb,
 			  unsigned long n, void *p)
@@ -397,13 +474,24 @@ void gk20a_scale_init(struct device *dev)
 #ifdef CONFIG_DEVFREQ_THERMAL
 	struct thermal_cooling_device *cooling;
 #endif
+	struct devfreq *devfreq;
 	int err;
 
 	if (g->scale_profile)
 		return;
 
-	if (!platform->devfreq_governor && !platform->qos_notify)
+	if (!platform->devfreq_governor)
 		return;
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	if (!platform->qos_min_notify && !platform->qos_max_notify) {
+		return;
+	}
+#else
+	if (!platform->qos_notify) {
+		return;
+	}
+#endif
 
 	profile = nvgpu_kzalloc(g, sizeof(*profile));
 	if (!profile)
@@ -411,7 +499,9 @@ void gk20a_scale_init(struct device *dev)
 
 	profile->dev = dev;
 #ifdef CONFIG_GK20A_PM_QOS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	profile->dev_stat.busy = false;
+#endif
 #endif
 
 	/* Create frequency table */
@@ -427,7 +517,6 @@ void gk20a_scale_init(struct device *dev)
 	g->scale_profile = profile;
 
 	if (platform->devfreq_governor) {
-		struct devfreq *devfreq;
 		int error = 0;
 
 		register_gpu_opp(dev);
@@ -474,6 +563,35 @@ void gk20a_scale_init(struct device *dev)
 	}
 
 #ifdef CONFIG_GK20A_PM_QOS
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	nvgpu_mutex_init(&profile->lock);
+
+	/* Should we register min frequency QoS callback for this device? */
+	if (devfreq && platform->qos_min_notify) {
+		profile->qos_min_notify_block.notifier_call =
+					platform->qos_min_notify;
+
+		err = dev_pm_qos_add_notifier(devfreq->dev.parent,
+					      &profile->qos_min_notify_block,
+					      DEV_PM_QOS_MIN_FREQUENCY);
+		if (err) {
+			nvgpu_err(g, "failed to add min freq notifier %d", err);
+		}
+	}
+
+	/* Should we register max frequency QoS callback for this device? */
+	if (devfreq && platform->qos_max_notify) {
+		profile->qos_max_notify_block.notifier_call =
+					platform->qos_max_notify;
+
+		err = dev_pm_qos_add_notifier(devfreq->dev.parent,
+					      &profile->qos_max_notify_block,
+					      DEV_PM_QOS_MAX_FREQUENCY);
+		if (err) {
+			nvgpu_err(g, "failed to add max freq notifier %d", err);
+		}
+	}
+#else
 	/* Should we register QoS callback for this device? */
 	if (platform->qos_notify) {
 		profile->qos_notify_block.notifier_call =
@@ -484,6 +602,7 @@ void gk20a_scale_init(struct device *dev)
 		pm_qos_add_max_notifier(PM_QOS_GPU_FREQ_BOUNDS,
 					&profile->qos_notify_block);
 	}
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) */
 #endif
 
 	return;
@@ -497,18 +616,54 @@ void gk20a_scale_exit(struct device *dev)
 	struct gk20a_platform *platform = dev_get_drvdata(dev);
 	struct gk20a *g = platform->g;
 	struct nvgpu_os_linux *l = nvgpu_os_linux_from_gk20a(g);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	struct devfreq *devfreq = l->devfreq;
+	struct gk20a_scale_profile *profile;
+#endif
 	int err;
 
-	if (!platform->devfreq_governor && !platform->qos_notify)
+	if (!platform->devfreq_governor)
 		return;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	if (!platform->qos_min_notify && !platform->qos_max_notify) {
+		return;
+	}
+#else
+	if (!platform->qos_notify) {
+		return;
+	}
+#endif
+
 #ifdef CONFIG_GK20A_PM_QOS
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	if (devfreq) {
+		profile = g->scale_profile;
+
+		err = dev_pm_qos_remove_notifier(devfreq->dev.parent,
+						 &profile->qos_min_notify_block,
+						 DEV_PM_QOS_MIN_FREQUENCY);
+		if (err) {
+			nvgpu_err(g, "failed to remove min freq notifier %d", err);
+		}
+
+		err = dev_pm_qos_remove_notifier(devfreq->dev.parent,
+						 &profile->qos_max_notify_block,
+						 DEV_PM_QOS_MAX_FREQUENCY);
+		if (err) {
+			nvgpu_err(g, "failed to remove max freq notifier %d", err);
+		}
+	}
+
+	nvgpu_mutex_destroy(&profile->lock);
+#else
 	if (platform->qos_notify) {
 		pm_qos_remove_min_notifier(PM_QOS_GPU_FREQ_BOUNDS,
 				&g->scale_profile->qos_notify_block);
 		pm_qos_remove_max_notifier(PM_QOS_GPU_FREQ_BOUNDS,
 				&g->scale_profile->qos_notify_block);
 	}
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) */
 #endif
 
 #ifdef CONFIG_DEVFREQ_THERMAL

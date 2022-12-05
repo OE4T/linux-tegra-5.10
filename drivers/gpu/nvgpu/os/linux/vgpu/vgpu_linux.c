@@ -245,6 +245,8 @@ done:
 
 #ifdef CONFIG_GK20A_PM_QOS
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
+
 static int vgpu_qos_notify(struct notifier_block *nb,
 			  unsigned long n, void *data)
 {
@@ -298,6 +300,7 @@ static void vgpu_pm_qos_remove(struct device *dev)
 }
 
 #endif
+#endif
 
 static int vgpu_pm_init(struct device *dev)
 {
@@ -315,9 +318,11 @@ static int vgpu_pm_init(struct device *dev)
 		gk20a_scale_init(dev);
 
 #ifdef CONFIG_GK20A_PM_QOS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	err = vgpu_pm_qos_init(dev);
 	if (err)
 		return err;
+#endif
 #endif
 
 	return err;
@@ -517,7 +522,9 @@ int vgpu_remove(struct platform_device *pdev)
 	nvgpu_mutex_destroy(&l->dmabuf_priv_list_lock);
 
 #ifdef CONFIG_GK20A_PM_QOS
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 	vgpu_pm_qos_remove(dev);
+#endif
 #endif
 	if (g->remove_support)
 		g->remove_support(g);

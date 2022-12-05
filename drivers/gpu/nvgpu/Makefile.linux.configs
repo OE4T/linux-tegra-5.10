@@ -71,8 +71,8 @@ ifeq ($(CONFIG_PM_DEVFREQ),y)
 # Select this entry to enable gk20a scaling
 CONFIG_GK20A_DEVFREQ := y
 
-# Disable support to pass PM_QOS constraints to devfreq based scaling.
-CONFIG_GK20A_PM_QOS := n
+# Enable support to pass PM_QOS constraints to devfreq based scaling.
+CONFIG_GK20A_PM_QOS := y
 
 endif
 endif
@@ -184,21 +184,9 @@ else
 CONFIG_NVGPU_SYNCFD_NONE := y
 endif
 
-# Below check indicates the build is invoked from Nvidia's
-# internal build system.
-ifneq ($(NV_BUILD_KERNEL_OPTIONS),)
-
-ifneq ($(filter 4.9 4.14,$(patsubst -,$(space),$(NV_BUILD_KERNEL_OPTIONS))),)
-# Enable support to pass PM_QOS constraints to devfreq based scaling.
-CONFIG_GK20A_PM_QOS := y
-endif
-
-endif
-
 # Set config for OOT module build
 ifeq ($(CONFIG_TEGRA_OOT_MODULE),m)
 CONFIG_GK20A_DEVFREQ := y
-CONFIG_GK20A_PM_QOS := n
 endif
 
 ifeq ($(CONFIG_GK20A_PMU),y)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,13 @@
 #include <nvgpu/timers.h>
 #include <nvgpu/boardobjgrp_e255.h>
 #include <nvgpu/pmu/perf.h>
+
+#ifdef __KERNEL__
+#include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#include "os/linux/scale.h"
+#endif
+#endif
 
 #include "clk_arb_gv100.h"
 
@@ -426,6 +433,12 @@ void gv100_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 			(gpc2clk_target > arb->gpc_cap_clkmhz)) {
 		gpc2clk_target = arb->gpc_cap_clkmhz;
 	}
+
+#ifdef __KERNEL__
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	gpc2clk_target = gk20a_scale_clamp_clk_target(g, gpc2clk_target);
+#endif
+#endif
 
 	vf_point.gpc_mhz = gpc2clk_target;
 	(void)nvgpu_clk_arb_find_slave_points(arb, &vf_point);

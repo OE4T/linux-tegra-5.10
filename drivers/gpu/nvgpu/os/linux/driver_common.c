@@ -19,6 +19,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/mm.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/pm_runtime.h>
 #include <linux/of_platform.h>
 #include <uapi/linux/nvgpu.h>
@@ -200,7 +201,12 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 	/* disable devfreq for pre-silicon */
 	if (!nvgpu_platform_is_silicon(g)) {
 		platform->devfreq_governor = NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+		platform->qos_min_notify = NULL;
+		platform->qos_max_notify = NULL;
+#else
 		platform->qos_notify = NULL;
+#endif
 	}
 
 	nvgpu_set_enabled(g, NVGPU_GPU_CAN_ELCG,
@@ -221,7 +227,12 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		platform->can_railgate_init = false;
 		/* Disable frequency scaling for hypervisor platforms */
 		platform->devfreq_governor = NULL;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+		platform->qos_min_notify = NULL;
+		platform->qos_max_notify = NULL;
+#else
 		platform->qos_notify = NULL;
+#endif
 	} else {
 		/* Always enable railgating on simulation platform */
 		platform->can_railgate_init = nvgpu_platform_is_simulation(g) ?

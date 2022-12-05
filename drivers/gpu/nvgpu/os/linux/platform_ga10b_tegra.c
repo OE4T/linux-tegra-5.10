@@ -775,7 +775,12 @@ struct gk20a_platform ga10b_tegra_platform = {
 	.postscale = ga10b_tegra_postscale,
 	.devfreq_governor = "nvhost_podgov",
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	.qos_min_notify = gk20a_scale_qos_min_notify,
+	.qos_max_notify = gk20a_scale_qos_max_notify,
+#else
 	.qos_notify = gk20a_scale_qos_notify,
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) */
 
 	.dump_platform_dependencies = gk20a_tegra_debug_dump,
 

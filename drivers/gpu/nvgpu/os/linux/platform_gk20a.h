@@ -17,6 +17,7 @@
 #define _GK20A_PLATFORM_H_
 
 #include <linux/device.h>
+#include <linux/version.h>
 
 #include <nvgpu/lock.h>
 #include <nvgpu/gk20a.h>
@@ -264,11 +265,21 @@ struct gk20a_platform {
 	 * this governor to be used in scaling */
 	const char *devfreq_governor;
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	/* Quality of service notifier callback for min frequency limit. */
+	int (*qos_min_notify)(struct notifier_block *nb,
+			  unsigned long n, void *p);
+
+	/* Quality of service notifier callback for max frequency limit. */
+	int (*qos_max_notify)(struct notifier_block *nb,
+			  unsigned long n, void *p);
+#else
 	/* Quality of service notifier callback. If this is set, the scaling
 	 * routines will register a callback to Qos. Each time we receive
 	 * a new value, this callback gets called.  */
 	int (*qos_notify)(struct notifier_block *nb,
 			  unsigned long n, void *p);
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) */
 
 	/* Called as part of debug dump. If the gpu gets hung, this function
 	 * is responsible for delivering all necessary debug data of other

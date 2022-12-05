@@ -24,6 +24,13 @@
 #include <nvgpu/clk_arb.h>
 #include <nvgpu/pmu/clk/clk.h>
 
+#ifdef __KERNEL__
+#include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+#include "os/linux/scale.h"
+#endif
+#endif
+
 #include "clk_arb_gp10b.h"
 
 bool gp10b_check_clk_arb_support(struct gk20a *g)
@@ -302,6 +309,12 @@ void gp10b_clk_arb_run_arbiter_cb(struct nvgpu_clk_arb *arb)
 	if (gpc2clk_target > arb->gpc2clk_max) {
 		gpc2clk_target = arb->gpc2clk_max;
 	}
+
+#ifdef __KERNEL__
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
+	gpc2clk_target = gk20a_scale_clamp_clk_target(g, gpc2clk_target);
+#endif
+#endif
 
 	gpc2clk_session_target = gpc2clk_target;
 
