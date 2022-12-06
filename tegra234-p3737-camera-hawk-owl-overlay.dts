@@ -606,7 +606,17 @@
 		};
 	};
 
-	fragment@58 {
+        fragment@58 {
+                target-path = "/i2c@31e0000/max96712_a@62";
+                board_config {
+                        sw-modules = "kernel";
+                };
+                __overlay__ {
+                        status = "okay";
+                };
+        };
+
+	fragment@59 {
 		target-path = "/i2c@31e0000/ar0234_a@30";
 		board_config {
 			sw-modules = "kernel";
@@ -615,7 +625,7 @@
 			status = "okay";
 		};
 	};
-	fragment@59 {
+	fragment@60 {
 		target-path = "/i2c@31e0000/ar0234_b@31";
 		board_config {
 			sw-modules = "kernel";
@@ -624,7 +634,7 @@
 			status = "okay";
 		};
 	};
-	fragment@60 {
+	fragment@61 {
 		target-path = "/i2c@31e0000/ar0234_c@32";
 		board_config {
 			sw-modules = "kernel";
@@ -633,7 +643,7 @@
 			status = "okay";
 		};
 	};
-	fragment@61 {
+	fragment@62 {
 		target-path = "/i2c@31e0000/ar0234_d@33";
 		board_config {
 			sw-modules = "kernel";
@@ -642,7 +652,18 @@
 			status = "okay";
 		};
 	};
-	fragment@62 {
+
+       fragment@63 {
+                target-path = "/i2c@3180000/max96712_b@62";
+                board_config {
+                        sw-modules = "kernel";
+                };
+                __overlay__ {
+                        status = "okay";
+                };
+        };
+
+	fragment@64 {
 		target-path = "/i2c@3180000/ar0234_e@30";
 		board_config {
 			sw-modules = "kernel";
@@ -651,7 +672,7 @@
 			status = "okay";
 		};
 	};
-	fragment@63 {
+	fragment@65 {
 		target-path = "/i2c@3180000/ar0234_f@32";
 		board_config {
 			sw-modules = "kernel";
@@ -660,7 +681,7 @@
 			status = "okay";
 		};
 	};
-	fragment@64 {
+	fragment@66 {
 		target-path = "/i2c@3180000/ar0234_g@34";
 		board_config {
 			sw-modules = "kernel";
@@ -669,7 +690,7 @@
 			status = "okay";
 		};
 	};
-	fragment@65 {
+	fragment@67 {
 		target-path = "/i2c@3180000/ar0234_h@36";
 		board_config {
 			sw-modules = "kernel";
@@ -679,7 +700,7 @@
 		};
 	};
 
-	fragment@66 {
+	fragment@68 {
 		target-path = "/tegra-camera-platform";
 		board_config {
 			sw-modules = "kernel";
@@ -695,7 +716,7 @@
 		};
 	};
 
-	fragment@67 {
+	fragment@69 {
 		target-path = "/tegra-camera-platform/modules/module0";
 		board_config {
 			sw-modules = "kernel";
@@ -708,7 +729,7 @@
 		};
 	};
 
-	fragment@68 {
+	fragment@70 {
 		target-path = "/tegra-camera-platform/modules/module0/drivernode0";
 		board_config {
 			sw-modules = "kernel";
@@ -721,7 +742,7 @@
 		};
 	};
 
-	fragment@69 {
+	fragment@71 {
 		target-path = "/tegra-camera-platform/modules/module1";
 		board_config {
 			sw-modules = "kernel";
@@ -734,7 +755,7 @@
 		};
 	};
 
-	fragment@70 {
+	fragment@72 {
 		target-path = "/tegra-camera-platform/modules/module1/drivernode0";
 		board_config {
 			sw-modules = "kernel";
@@ -746,7 +767,7 @@
 			proc-device-tree = "/proc/device-tree/i2c@3180000/ar0234_f@32";
 		};
 	};
-	fragment@71 {
+	fragment@73 {
 		target-path = "/tegra-camera-platform/modules/module2";
 		board_config {
 			sw-modules = "kernel";
@@ -759,7 +780,7 @@
 		};
 	};
 
-	fragment@72 {
+	fragment@74 {
 		target-path = "/tegra-camera-platform/modules/module2/drivernode0";
 		board_config {
 			sw-modules = "kernel";
@@ -771,7 +792,7 @@
 			proc-device-tree = "/proc/device-tree/i2c@3180000/ar0234_g@34";
 		};
 	};
-	fragment@73 {
+	fragment@75 {
 		target-path = "/tegra-camera-platform/modules/module3";
 		board_config {
 			sw-modules = "kernel";
@@ -784,7 +805,7 @@
 		};
 	};
 
-	fragment@74 {
+	fragment@76 {
 		target-path = "/tegra-camera-platform/modules/module3/drivernode0";
 		board_config {
 			sw-modules = "kernel";
@@ -796,7 +817,7 @@
 			proc-device-tree = "/proc/device-tree/i2c@3180000/ar0234_h@36";
 		};
 	};
-	fragment@75 {
+	fragment@77 {
 		target-path = "/tegra-camera-platform/modules/module4";
 		board_config {
 			sw-modules = "kernel";
@@ -809,7 +830,7 @@
 		};
 	};
 
-	fragment@76 {
+	fragment@78 {
 		target-path = "/tegra-camera-platform/modules/module4/drivernode0";
 		board_config {
 			sw-modules = "kernel";
@@ -821,7 +842,7 @@
 			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_a@30";
 		};
 	};
-	fragment@77 {
+	fragment@79 {
 		target-path = "/tegra-camera-platform/modules/module5";
 		board_config {
 			sw-modules = "kernel";
@@ -834,7 +855,7 @@
 		};
 	};
 
-	fragment@78 {
+	fragment@80 {
 		target-path = "/tegra-camera-platform/modules/module5/drivernode0";
 		board_config {
 			sw-modules = "kernel";
@@ -846,7 +867,7 @@
 			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_b@31";
 		};
 	};
-	fragment@79 {
+	fragment@81 {
 		target-path = "/tegra-camera-platform/modules/module6";
 		board_config {
 			sw-modules = "kernel";
@@ -859,7 +880,7 @@
 		};
 	};
 
-	fragment@80 {
+	fragment@82 {
 		target-path = "/tegra-camera-platform/modules/module6/drivernode0";
 		board_config {
 			sw-modules = "kernel";
@@ -871,7 +892,7 @@
 			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_c@32";
 		};
 	};
-	fragment@81 {
+	fragment@83 {
 		target-path = "/tegra-camera-platform/modules/module7";
 		board_config {
 			sw-modules = "kernel";
@@ -884,7 +905,7 @@
 		};
 	};
 
-	fragment@82 {
+	fragment@84 {
 		target-path = "/tegra-camera-platform/modules/module7/drivernode0";
 		board_config {
 			sw-modules = "kernel";

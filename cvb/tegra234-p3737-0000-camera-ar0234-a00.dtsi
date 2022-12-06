@@ -46,13 +46,13 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 
-				max96712_a@62 {
+				single_max96712_a@62 {
 					compatible = "nvidia,max96712";
 					reg = <0x62>;
 					channel = "a";
 				};
 
-				ar0234_a@18 {
+				dual_hawk_a@18 {
 					def-addr = <0x18>;
 					/* Define any required hw resources needed by driver */
 					/* ie. clocks, io pins, power sources */
@@ -66,7 +66,7 @@
 					pwdn-gpios = <&tegra_main_gpio CAM1_PWDN GPIO_ACTIVE_HIGH>;
 					pwr-gpios = <&tegra_main_gpio PWR_EN GPIO_ACTIVE_HIGH>;
 				};
-				ar0234_b@10 {
+				dual_hawk_b@10 {
 					def-addr = <0x10>;
 					/* Define any required hw resources needed by driver */
 					/* ie. clocks, io pins, power sources */
@@ -86,7 +86,7 @@
 				i2c-mux,deselect-on-exit;
 				#address-cells = <1>;
 				#size-cells = <0>;
-				ar0234_c@18 {
+				dual_hawk_c@18 {
 					def-addr = <0x18>;
 					/* Define any required hw resources needed by driver */
 					/* ie. clocks, io pins, power sources */
@@ -100,7 +100,7 @@
 					pwdn-gpios = <&tegra_main_gpio CAM1_PWDN GPIO_ACTIVE_HIGH>;
 					pwr-gpios = <&tegra_main_gpio PWR_EN GPIO_ACTIVE_HIGH>;
 				};
-				ar0234_d@10 {
+				dual_hawk_d@10 {
 					ef-addr = <0x10>;
 					/* Define any required hw resources needed by driver */
 					/* ie. clocks, io pins, power sources */
