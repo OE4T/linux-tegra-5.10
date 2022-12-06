@@ -453,7 +453,7 @@ void hw_config_tscr(struct osi_core_priv_data *const osi_core, OSI_UNUSED const 
 
 void hw_config_ssir(struct osi_core_priv_data *const osi_core)
 {
-	nveul64_t val = 0U;
+	nveu32_t val = 0U;
 	void *addr = osi_core->base;
 	const struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	const nveu32_t mac_ssir[2] = { EQOS_MAC_SSIR, MGBE_MAC_SSIR};
@@ -465,7 +465,7 @@ void hw_config_ssir(struct osi_core_priv_data *const osi_core)
 
 	val |= val << MAC_SSIR_SSINC_SHIFT;
 	/* update Sub-second Increment Value */
-	osi_writela(osi_core, (nveu32_t)val, ((nveu8_t *)addr + mac_ssir[osi_core->mac]));
+	osi_writela(osi_core, val, ((nveu8_t *)addr + mac_ssir[osi_core->mac]));
 }
 
 nve32_t hw_ptp_tsc_capture(struct osi_core_priv_data *const osi_core,
