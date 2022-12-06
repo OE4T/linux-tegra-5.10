@@ -98,6 +98,16 @@ config TYPEC_QCOM_PMIC
 	  It will also enable the VBUS output to connected devices when a
 	  DFP connection is made.
 
+config TYPEC_FUSB301
+	tristate "Onsemi FUSB301 Type-C controller driver"
+	depends on I2C
+	help
+	  Driver for supporting role switch over the Onsemi fusb301 chip.
+	  fusb301 handles the USB Type-C role and orientation detection.
+
+	  fusb301 also enables the VBUS output to connected devices when a
+	  DFP connection is made.
+
 source "drivers/usb/typec/mux/Kconfig"
 
 source "drivers/usb/typec/altmodes/Kconfig"
