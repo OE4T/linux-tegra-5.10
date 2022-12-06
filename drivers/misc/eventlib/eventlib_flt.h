@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2022, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@
  * calculations.
  */
 
-#define MAX_MASK_SIZE 20
+#define MAX_MASK_SIZE 16
 #define NUM_SLOTS 4
 
 /* w2r shared memory subblock */

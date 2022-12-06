@@ -48,7 +48,7 @@ static inline void write_barrier(void)
 #elif defined(__x86_64__)
 	asm volatile("" ::: "memory");
 #else
-	assert(false);
+	/* nothing */
 #endif
 }
 
@@ -61,7 +61,7 @@ static inline void read_barrier(void)
 #elif defined(__x86_64__)
 	asm volatile("" ::: "memory");
 #else
-	assert(false);
+	/* nothing */
 #endif
 }
 
@@ -112,7 +112,7 @@ static inline void write64(volatile uint64_t *addr, uint64_t value)
 	asm volatile("strd %0, %1, [%2]"
 		: : "r"(r2), "r"(r3), "r"(addr) : "memory");
 #else
-	assert(false);
+	/* nothing */
 #endif
 }
 
