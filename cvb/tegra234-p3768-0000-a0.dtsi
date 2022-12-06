@@ -83,22 +83,25 @@
 						nvidia,function = "xusb";
 						status = "okay";
 					};
+					usb3-1 {
+						nvidia,function = "xusb";
+						status = "okay";
+					};
 				};
 			};
 		};
 
 		ports {
 			usb2-0 {/* Goes to recovery port */
-				mode = "peripheral";
+				mode = "otg";
 				status = "okay";
 				vbus-supply = <&p3768_vdd_5v_sys>;
 				usb-role-switch;
-				connector {
-					compatible = "usb-b-connector", "gpio-usb-b-connector";
- 					label = "micro-USB";
- 					data-role = "micro";
- 					vbus-gpio = <&tegra_main_gpio TEGRA234_MAIN_GPIO(Z, 1) GPIO_ACTIVE_LOW>;
- 				};
+				port {
+					typec_p0: endpoint {
+						remote-endpoint = <&fusb_p0>;
+					};
+				};
 			};
 			usb2-1 {/* Goes to hub */
 				mode = "host";
@@ -114,25 +117,51 @@
 				nvidia,usb2-companion = <1>;
 				status = "okay";
 			};
+			usb3-1 {/* Goes to J5 */
+				nvidia,usb2-companion = <0>;
+				status = "okay";
+			};
 		};
 	};
 
 	tegra_xudc: xudc@3550000 {
 		status = "okay";
-		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>;
-		phy-names = "usb2-0";
+		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
+			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-1}>;
+		phy-names = "usb2-0", "usb3-1";
 		nvidia,xusb-padctl = <&xusb_padctl>;
 	};
 
 	tegra_xhci: xhci@3610000 {
 		status = "okay";
-		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
+		phys = <&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-0}>,
+			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-1}>,
 			<&{/xusb_padctl@3520000/pads/usb2/lanes/usb2-2}>,
-			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-0}>;
-		phy-names = "usb2-1", "usb2-2", "usb3-0";
+			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-0}>,
+			<&{/xusb_padctl@3520000/pads/usb3/lanes/usb3-1}>;
+		phy-names = "usb2-0", "usb2-1", "usb2-2", "usb3-0", "usb3-1";
 		nvidia,xusb-padctl = <&xusb_padctl>;
 	};
 
+	i2c@c240000{
+		status = "okay";
+		fusb301@25 {
+			compatible = "onsemi,fusb301";
+			reg = <0x25>;
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			interrupt-parent = <&tegra_main_gpio>;
+			interrupts = <TEGRA234_MAIN_GPIO(Z, 1) IRQ_TYPE_LEVEL_LOW>;
+			connector@0 {
+				port@0 {
+					fusb_p0: endpoint {
+						remote-endpoint = <&typec_p0>;
+					};
+				};
+			};
+		};
+	};
 	spi@3210000{ /* SPI1 in 40 pin conn */
 		status = "okay";
 		spi@0 { /* chip select 0 */
