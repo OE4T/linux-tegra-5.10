@@ -153,7 +153,7 @@ static int set_log_level(void *data, u64 val)
 
 DEFINE_DEBUGFS_ATTRIBUTE(log_level_fops, get_log_level, set_log_level, "%llu");
 
-static void update_vpu_stats(struct pva *pva)
+static void update_vpu_stats(struct pva *pva, bool stats_enabled)
 {
 	u32 flags = PVA_CMD_INT_ON_ERR | PVA_CMD_INT_ON_COMPLETE;
 	struct pva_cmd_status_regs status = {};
@@ -179,13 +179,16 @@ static void update_vpu_stats(struct pva *pva)
 
 	nregs = pva_cmd_get_vpu_stats(&cmd,
 				      pva->vpu_util_info.stats_fw_buffer_iova,
-				      flags);
+				      flags, stats_enabled);
 	err = pva_mailbox_send_cmd_sync(pva, &cmd, nregs, &status);
 	if (err < 0) {
 		nvpva_warn(&pva->pdev->dev, "get vpu stats cmd failed: %d\n",
 			    err);
 		goto err_out;
 	}
+
+	if (stats_enabled == false)
+		goto err_out;
 
 	duration = stats_buf->window_end_time - stats_buf->window_start_time;
 	if (duration == 0)
@@ -209,7 +212,7 @@ static int print_vpu_stats(struct seq_file *s, void *data)
 {
 	struct pva *pva = s->private;
 
-	update_vpu_stats(pva);
+	update_vpu_stats(pva, pva->stats_enabled);
 	seq_printf(s, "%llu\n%llu\n%llu\n%llu\n",
 		   pva->vpu_util_info.start_stamp,
 		   pva->vpu_util_info.end_stamp,

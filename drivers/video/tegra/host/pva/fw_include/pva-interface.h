@@ -220,6 +220,17 @@ typedef uint8_t pva_status_cmds_t;
  */
 #define PVA_EXTRACT_ADDR_HIGHER_8BITS_LSB		32U
 
+/**
+ * Macro used to specify most significant bit
+ * of the VPU stats enable field in CMD_SET_VPU_STATS_BUFFER command
+ */
+#define PVA_CMD_VPU_STATS_EN_MSB		23U
+/**
+ * Macro used to specify least significant bit
+ * of the VPU stats enable field in CMD_SET_VPU_STATS_BUFFER command
+ */
+#define PVA_CMD_VPU_STATS_EN_LSB		16U
+
 /*
  * SW Bist subcommands
  */
@@ -480,13 +491,15 @@ static inline uint32_t pva_cmd_abort_task(struct pva_cmd_s *const cmd,
 static inline uint32_t
 pva_cmd_get_vpu_stats(struct pva_cmd_s * const cmd,
 		      const uint64_t addr,
-		      const uint32_t flags)
+		      const uint32_t flags,
+			  const uint8_t value)
 {
 	cmd->cmd_field[0] = flags
 		       | PVA_SET_COMMAND(CMD_GET_VPU_STATS)
 		       | PVA_INSERT(PVA_EXTRACT64(addr, PVA_EXTRACT_ADDR_HIGHER_8BITS_MSB,
 				    PVA_EXTRACT_ADDR_HIGHER_8BITS_LSB, uint32_t),
-				    PVA_ADDR_HIGHER_8BITS_MSB, PVA_ADDR_HIGHER_8BITS_LSB);
+				    PVA_ADDR_HIGHER_8BITS_MSB, PVA_ADDR_HIGHER_8BITS_LSB)
+			   | PVA_INSERT(value, PVA_CMD_VPU_STATS_EN_MSB, PVA_CMD_VPU_STATS_EN_LSB);
 	cmd->cmd_field[1] = PVA_LOW32(addr);
 
 	return 2U;
