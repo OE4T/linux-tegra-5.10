@@ -957,10 +957,11 @@ static nve32_t eqos_hsi_configure(struct osi_core_priv_data *const osi_core,
  * @retval -1 on failure
  */
 
-static void eqos_hsi_inject_err(struct osi_core_priv_data *const osi_core,
+static nve32_t eqos_hsi_inject_err(struct osi_core_priv_data *const osi_core,
 			 const nveu32_t error_code)
 {
 	nveu32_t value;
+	nve32_t ret = 0;
 
 	switch (error_code) {
 	case OSI_HSI_EQOS0_CE_CODE:
@@ -978,9 +979,11 @@ static void eqos_hsi_inject_err(struct osi_core_priv_data *const osi_core,
 				EQOS_MTL_DBG_CTL);
 		break;
 	default:
-		hsi_common_error_inject(osi_core, error_code);
+		ret = hsi_common_error_inject(osi_core, error_code);
 		break;
 	}
+
+	return ret;
 }
 #endif
 

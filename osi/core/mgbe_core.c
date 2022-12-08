@@ -1687,8 +1687,10 @@ fail:
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] error_code: HSI Error code
  *
+ * @retval 0 on success
+ * @retval -1 on failure
  */
-static void mgbe_hsi_inject_err(struct osi_core_priv_data *const osi_core,
+static nve32_t mgbe_hsi_inject_err(struct osi_core_priv_data *const osi_core,
 				const nveu32_t error_code)
 {
 	const nveu32_t val_ce = (MGBE_MTL_DEBUG_CONTROL_FDBGEN |
@@ -1701,6 +1703,7 @@ static void mgbe_hsi_inject_err(struct osi_core_priv_data *const osi_core,
 				 MGBE_MTL_DEBUG_CONTROL_DBGMOD |
 				 MGBE_MTL_DEBUG_CONTROL_FIFORDEN |
 				 MGBE_MTL_DEBUG_CONTROL_EIEE);
+	nve32_t ret = 0;
 
 	switch (error_code) {
 	case OSI_HSI_MGBE0_CE_CODE:
@@ -1718,9 +1721,11 @@ static void mgbe_hsi_inject_err(struct osi_core_priv_data *const osi_core,
 			    MGBE_MTL_DEBUG_CONTROL);
 		break;
 	default:
-		hsi_common_error_inject(osi_core, error_code);
+		ret = hsi_common_error_inject(osi_core, error_code);
 		break;
 	}
+
+	return ret;
 }
 #endif
 

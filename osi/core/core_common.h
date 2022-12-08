@@ -173,7 +173,7 @@ void prepare_l3l4_registers(const struct osi_core_priv_data *const osi_core,
 			    nveu32_t *l3_addr1_reg,
 			    nveu32_t *ctr_reg);
 #ifdef HSI_SUPPORT
-void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
-			     nveu32_t error_code);
+nve32_t hsi_common_error_inject(struct osi_core_priv_data *osi_core,
+				nveu32_t error_code);
 #endif
 #endif /* INCLUDED_CORE_COMMON_H */

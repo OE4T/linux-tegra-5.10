@@ -1438,10 +1438,15 @@ void hw_tsn_init(struct osi_core_priv_data *osi_core,
  * @param[in] error_code: Ethernet HSI error code
  *
  * @note MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
  */
-void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
-			     nveu32_t error_code)
+nve32_t hsi_common_error_inject(struct osi_core_priv_data *osi_core,
+				nveu32_t error_code)
 {
+	nve32_t ret = 0;
+
 	switch (error_code) {
 	case OSI_INBOUND_BUS_CRC_ERR:
 		osi_core->hsi.inject_crc_err_count =
@@ -1491,8 +1496,11 @@ void hsi_common_error_inject(struct osi_core_priv_data *osi_core,
 	default:
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
 			     "Invalid error code\n", (nveu32_t)error_code);
+		ret = -1;
 		break;
 	}
+
+	return ret;
 }
 #endif
 
