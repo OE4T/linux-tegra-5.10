@@ -2,7 +2,7 @@
  * imx477.c - imx477 sensor driver
  *
  * Copyright (c) 2020, RidgeRun. All rights reserved.
- * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Contact us: support@ridgerun.com
  *
@@ -51,6 +51,11 @@ static const u32 ctrl_cid_list[] = {
 	TEGRA_CAMERA_CID_SENSOR_MODE_ID,
 };
 
+enum imx477_Config {
+	TWO_LANE_CONFIG,
+	FOUR_LANE_CONFIG,
+};
+
 struct imx477 {
 	struct i2c_client *i2c_client;
 	struct v4l2_subdev *subdev;
@@ -58,6 +63,7 @@ struct imx477 {
 	u32 frame_length;
 	struct camera_common_data *s_data;
 	struct tegracam_device *tc_dev;
+	enum imx477_Config config;
 };
 
 static const struct regmap_config sensor_regmap_config = {
@@ -594,14 +600,29 @@ static int imx477_set_mode(struct tegracam_device *tc_dev)
 	struct camera_common_data *s_data = tc_dev->s_data;
 
 	int err = 0;
+	const char *config;
+	struct device_node *mode;
+	uint offset = ARRAY_SIZE(imx477_frmfmt);
 
 	dev_dbg(tc_dev->dev, "%s:\n", __func__);
+	mode = of_get_child_by_name(tc_dev->dev->of_node, "mode0");
+	err = of_property_read_string(mode, "num_lanes", &config);
+
+	if (config[0] == '4')
+		priv->config = FOUR_LANE_CONFIG;
+	else if (config[0] == '2')
+		priv->config = TWO_LANE_CONFIG;
+	else
+		dev_err(tc_dev->dev, "Unsupported config\n");
 
 	err = imx477_write_table(priv, mode_table[IMX477_MODE_COMMON]);
 	if (err)
 		return err;
 
-	err = imx477_write_table(priv, mode_table[s_data->mode]);
+	if (priv->config == FOUR_LANE_CONFIG)
+		err = imx477_write_table(priv, mode_table[s_data->mode + offset]);
+	else
+		err = imx477_write_table(priv, mode_table[s_data->mode]);
 	if (err)
 		return err;
 
