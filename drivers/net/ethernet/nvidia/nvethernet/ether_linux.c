@@ -2643,15 +2643,6 @@ static int ether_open(struct net_device *dev)
 	/* Init EEE configuration */
 	ether_init_eee_params(pdata);
 
-	/* Start the MAC */
-	ioctl_data.cmd = OSI_CMD_START_MAC;
-	ret = osi_handle_ioctl(pdata->osi_core, &ioctl_data);
-	if (ret < 0) {
-		dev_err(&dev->dev,
-			"%s: failed to start MAC %d\n",
-			__func__, ret);
-		goto err_r_irq;
-	}
 	/* start PHY */
 	phy_start(pdata->phydev);
 
@@ -6725,14 +6716,6 @@ static int ether_resume(struct ether_priv_data *pdata)
 
 	/* enable NAPI */
 	ether_napi_enable(pdata);
-	/* start the mac */
-	ioctl_data.cmd = OSI_CMD_START_MAC;
-	ret = osi_handle_ioctl(osi_core, &ioctl_data);
-	if (ret < 0) {
-		dev_err(dev,
-			"%s: failed to start MAC %d\n", __func__, ret);
-		goto err_start_mac;
-	}
 
 	if (pdata->phydev && !(device_may_wakeup(&ndev->dev))) {
 		/* configure phy init */
@@ -6761,9 +6744,9 @@ static int ether_resume(struct ether_priv_data *pdata)
 #endif /* MACSEC_SUPPORT */
 
 	return 0;
-err_start_mac:
-	ether_napi_disable(pdata);
+
 err_dma:
+	ether_napi_disable(pdata);
 	osi_hw_core_deinit(osi_core);
 err_resume:
 	free_dma_resources(pdata);
