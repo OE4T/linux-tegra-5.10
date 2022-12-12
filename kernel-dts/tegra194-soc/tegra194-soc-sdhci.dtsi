@@ -117,8 +117,6 @@
 		nvidia,vqmmc-always-on;
 		pwrdet-support;
 #if TEGRA_SDMMC_VERSION >= DT_VERSION_2
-		nvidia,pad-autocal-pull-up-offset-1v8 = <0x00>;
-		nvidia,pad-autocal-pull-down-offset-1v8 = <0x7a>;
 		nvidia,pad-autocal-pull-up-offset-3v3-timeout = <0x07>;
 		nvidia,pad-autocal-pull-down-offset-3v3-timeout =
 								<0x07>;
