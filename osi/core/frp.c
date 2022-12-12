@@ -370,8 +370,10 @@ done:
 static nve32_t frp_hw_write(struct osi_core_priv_data *const osi_core,
 			    struct core_ops *const ops_p)
 {
-	nve32_t ret, tmp;
+	nve32_t ret = 0;
+	nve32_t tmp = 0;
 	struct osi_core_frp_entry *entry;
+	struct osi_core_frp_data bypass_entry = {};
 	nveu32_t frp_cnt = osi_core->frp_cnt, i = OSI_NONE;
 
 	/* Disable the FRP in HW */
@@ -384,29 +386,55 @@ static nve32_t frp_hw_write(struct osi_core_priv_data *const osi_core,
 		goto hw_write_enable_frp;
 	}
 
-	/* Write FRP entries into HW  */
-	for (i = 0; i < frp_cnt; i++) {
-		entry = &osi_core->frp_table[i];
-		ret = ops_p->update_frp_entry(osi_core, i, &entry->data);
+	/* Check space for XCS BYPASS rule */
+	if ((frp_cnt + 1U) > OSI_FRP_MAX_ENTRY) {
+		ret = -1;
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+			     "No space for rules\n", OSI_NONE);
+		goto error;
+	}
+
+	/* Check HW table size for non-zero */
+	if (frp_cnt != 0U) {
+		/* Write FRP entries into HW  */
+		for (i = 0; i < frp_cnt; i++) {
+			entry = &osi_core->frp_table[i];
+			ret = ops_p->update_frp_entry(osi_core, i,
+						      &entry->data);
+			if (ret < 0) {
+				OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+					"Fail to update FRP entry\n",
+					OSI_NONE);
+				goto hw_write_enable_frp;
+			}
+		}
+
+		/* Write BYPASS rule for XDCS */
+		bypass_entry.match_en = 0x0U;
+		bypass_entry.accept_frame = 1;
+		bypass_entry.reject_frame = 1;
+		ret = ops_p->update_frp_entry(osi_core, frp_cnt, &bypass_entry);
 		if (ret < 0) {
 			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-				"Fail to update FRP entry\n",
+				"Fail to update BYPASS entry\n",
 				OSI_NONE);
 			goto hw_write_enable_frp;
 		}
-	}
 
-	/* Update the NVE */
-	ret = ops_p->update_frp_nve(osi_core, (frp_cnt - 1U));
-	if (ret < 0) {
-		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
-			"Fail to update FRP NVE\n",
-			OSI_NONE);
-	}
+		/* Update the NVE */
+		ret = ops_p->update_frp_nve(osi_core, frp_cnt);
+		if (ret < 0) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_HW_FAIL,
+				"Fail to update FRP NVE\n",
+				OSI_NONE);
+		}
 
-	/* Enable the FRP in HW */
+		/* Enable the FRP in HW */
 hw_write_enable_frp:
-	tmp = ops_p->config_frp(osi_core, OSI_ENABLE);
+		tmp = ops_p->config_frp(osi_core, OSI_ENABLE);
+	}
+
+error:
 	return (ret < 0) ? ret : tmp;
 }
 
@@ -616,6 +644,9 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
 		pos++;
 	}
 
+	/* Update the frp_cnt entry */
+	osi_core->frp_cnt = (frp_cnt - count);
+
 	/* Write FRP Table into HW */
 	ret = frp_hw_write(osi_core, ops_p);
 	if (ret < 0) {
@@ -623,9 +654,6 @@ static nve32_t frp_delete(struct osi_core_priv_data *const osi_core,
 			"Fail to update FRP NVE\n",
 			OSI_NONE);
 	}
-
-	/* Update the frp_cnt entry */
-	osi_core->frp_cnt = (frp_cnt - count);
 
 done:
 	return ret;
