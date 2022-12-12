@@ -27,15 +27,6 @@
 #include <osi_core.h>
 
 /**
- * @addtogroup XPCS helper macros
- *
- * @brief XPCS helper macros.
- * @{
- */
-#define XPCS_RETRY_COUNT	(RETRY_COUNT * (2U))
-/** @} */
-
-/**
  * @addtogroup XPCS Register offsets
  *
  * @brief XPCS register offsets

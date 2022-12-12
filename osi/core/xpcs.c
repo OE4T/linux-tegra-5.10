@@ -216,7 +216,12 @@ nve32_t xpcs_start(struct osi_core_priv_data *osi_core)
 		    XPCS_SR_XS_PCS_STS1_RLU) {
 			cond = COND_MET;
 		} else {
-			osi_core->osd_ops.udelay(1000U);
+			/* Maximum wait delay as per HW team is 1msec.
+			 * So add a loop for 1000 iterations with 1usec delay,
+			 * so that if check get satisfies before 1msec will come
+			 * out of loop and it can save some boot time
+			 */
+			osi_core->osd_ops.udelay(1U);
 		}
 	}
 fail:
@@ -239,7 +244,7 @@ static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
 				       nveu32_t lane_init_en)
 {
 	void *xpcs_base = osi_core->xpcs_base;
-	nveu32_t retry = XPCS_RETRY_COUNT;
+	nveu32_t retry = 5U;
 	nve32_t cond = COND_NOT_MET;
 	nveu32_t val = 0;
 	nveu32_t count;
@@ -269,7 +274,11 @@ static nve32_t xpcs_uphy_lane_bring_up(struct osi_core_priv_data *osi_core,
 				/* exit loop */
 				cond = COND_MET;
 			} else {
-				osi_core->osd_ops.udelay(5U);
+				/* Max wait time is 1usec.
+				 * Most of the time loop got exited in first iteration.
+				 * but added an extra count of 4 for safer side
+				 */
+				osi_core->osd_ops.udelay(1U);
 			}
 		}
 	}
@@ -291,7 +300,7 @@ fail:
 static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 {
 	void *xpcs_base = osi_core->xpcs_base;
-	nveu32_t retry = XPCS_RETRY_COUNT;
+	nveu32_t retry = RETRY_COUNT;
 	nve32_t cond = COND_NOT_MET;
 	nveu32_t val = 0;
 	nveu32_t count;
@@ -312,7 +321,12 @@ static nve32_t xpcs_check_pcs_lock_status(struct osi_core_priv_data *osi_core)
 			/* exit loop */
 			cond = COND_MET;
 		} else {
-			osi_core->osd_ops.udelay(5U);
+			/* Maximum wait delay as per HW team is 1msec.
+			 * So add a loop for 1000 iterations with 1usec delay,
+			 * so that if check get satisfies before 1msec will come
+			 * out of loop and it can save some boot time
+			 */
+			osi_core->osd_ops.udelay(1U);
 		}
 	}
 
@@ -336,7 +350,7 @@ fail:
 static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
-	nveu32_t retry = 1000;
+	nveu32_t retry = 7U;
 	nveu32_t count;
 	nveu32_t val = 0;
 	nve32_t cond;
@@ -412,7 +426,14 @@ static nve32_t xpcs_lane_bring_up(struct osi_core_priv_data *osi_core)
 		if ((val & XPCS_WRAP_UPHY_RX_CONTROL_0_0_RX_CAL_EN) == 0U) {
 			cond = COND_MET;
 		} else {
-			osi_core->osd_ops.udelay(1000U);
+			/* Maximum wait delay as per HW team is 100 usec.
+			 * But most of the time as per experiments it takes
+			 * around 14usec to satisy the condition, so add a
+			 * minimum delay of 14usec and loop it for 7times.
+			 * With this 14usec delay condition gets satifies
+			 * in first iteration itself.
+			 */
+			osi_core->osd_ops.udelay(14U);
 		}
 	}
 
