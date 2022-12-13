@@ -35,17 +35,21 @@
 
 	pcie@14180000 {
 		nvidia,max-speed = <3>;
+		max-link-speed = <3>;
 	};
 
 	pcie@14140000 {
 		nvidia,max-speed = <3>;
+		max-link-speed = <3>;
 	};
 
 	pcie@141a0000 {
 		nvidia,max-speed = <3>;
+		max-link-speed = <3>;
 	};
 
 	pcie_ep@141a0000 {
 		nvidia,max-speed = <3>;
+		max-link-speed = <3>;
 	};
 };

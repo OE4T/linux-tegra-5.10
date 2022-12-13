@@ -149,6 +149,7 @@
 		nvidia,disable-clock-request;
 
 		nvidia,max-speed = <2>;
+		max-link-speed = <2>;
 #if TEGRA_PCIE_VERSION >= DT_VERSION_2
 		phys = <&p2u_hsio_0>;
 		phy-names = "p2u-0";
