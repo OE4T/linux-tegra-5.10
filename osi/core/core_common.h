@@ -176,4 +176,6 @@ void prepare_l3l4_registers(const struct osi_core_priv_data *const osi_core,
 nve32_t hsi_common_error_inject(struct osi_core_priv_data *osi_core,
 				nveu32_t error_code);
 #endif
+nve32_t hw_validate_avb_input(struct osi_core_priv_data *const osi_core,
+			      const struct osi_core_avb_algorithm *const avb);
 #endif /* INCLUDED_CORE_COMMON_H */

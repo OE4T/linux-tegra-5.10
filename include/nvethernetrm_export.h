@@ -109,7 +109,11 @@ struct osi_core_frp_cmd {
 	nveu8_t filter_mode;
 	/** OSD FRP Link ID */
 	nve32_t next_frp_id;
-	/** OSD DMA Channel Selection */
+	/** OSD DMA Channel Selection
+	 * Bit selection of DMA channels to route the frame
+	 * Bit[0] - DMA channel 0
+	 * ..
+	 * Bit [N] - DMA channel N] */
 	nveu32_t dma_sel;
 };
 
@@ -127,13 +131,19 @@ struct  osi_core_avb_algorithm {
 	 *
 	 * Expected values are enable(1) or disable(0) */
 	nveu32_t credit_control;
-	/** idleSlopeCredit value required for CBS */
+	/** idleSlopeCredit value required for CBS
+	 * Max value for EQOS - 0x000FFFFFU
+	 * Max value for MGBE - 0x001FFFFFU */
 	nveu32_t idle_slope;
-	/** sendSlopeCredit value required for CBS */
+	/** sendSlopeCredit value required for CBS
+	 * Max value for EQOS - 0x0000FFFFU
+	 * Max value for MGBE - 0x00003FFFU */
 	nveu32_t send_slope;
-	/** hiCredit value required for CBS */
+	/** hiCredit value required for CBS
+	 * Max value - 0x1FFFFFFFU */
 	nveu32_t hi_credit;
-	/** lowCredit value required for CBS */
+	/** lowCredit value required for CBS
+	 * Max value - 0x1FFFFFFFU */
 	nveu32_t low_credit;
 	/** Transmit queue operating mode
 	 *
@@ -143,7 +153,8 @@ struct  osi_core_avb_algorithm {
 	 *
 	 * 10: enable */
 	nveu32_t oper_mode;
-	/** TC index */
+	/** TC index
+	 * value 0 to 7 represent 8 TC */
 	nveu32_t tcindex;
 };
 
@@ -158,13 +169,17 @@ struct osi_est_config {
 	 * index 0 for nsec, index 1 for sec
 	 */
 	nveu32_t btr[2];
-	/** 64 bit base time offset index 0 for nsec, index 1 for sec */
+	/** 64 bit base time offset index 0 for nsec, index 1 for sec
+	 * 32 bits for Seconds, 32 bits for nanoseconds (max 10^9) */
 	nveu32_t btr_offset[2];
-	/** 40 bit cycle time register, index 0 for nsec, index 1 for sec */
+	/** 40 bits cycle time register, index 0 for nsec, index 1 for sec
+	 * 8 bits for Seconds, 32 bits for nanoseconds (max 10^9) */
 	nveu32_t ctr[2];
-	/** Configured Time Interval width + 7 bit extension register */
+	/** Configured Time Interval width(24 bits) + 7 bits
+	 * extension register */
 	nveu32_t ter;
-	/** size of the gate control list */
+	/** size of the gate control list Max 256 entries
+	 * valid value range (1-255)*/
 	nveu32_t llr;
 	/** data array 8 bit gate op + 24 execution time
 	 * MGBE HW support GCL depth 256 */
@@ -175,11 +190,13 @@ struct osi_est_config {
  * @brief OSI Core FPE structure
  */
 struct osi_fpe_config {
-	/** Queue Mask 1 preemption 0- express bit representation */
+	/** Queue Mask 1 - preemption 0 - express
+	 * bit representation*/
 	nveu32_t tx_queue_preemption_enable;
 	/** RQ for all preemptable packets  which are not filtered
 	 * based on user priority or SA-DA
-	 */
+	 * Value range for EQOS 1-7
+	 * Value range for MGBE 1-9 */
 	nveu32_t rq;
 };
 

@@ -239,6 +239,7 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 	nveu8_t i = 0U, j = 0U, md_pos = 0U;
 	nveu8_t temp_pos = pos;
 	nve32_t ret;
+	nveu32_t dma_sel_val[MAX_MAC_IP_TYPES] = {0xFFU, 0x3FF};
 
 	/* Validate length */
 	if (length > OSI_FRP_MATCH_DATA_MAX) {
@@ -263,6 +264,15 @@ static nve32_t frp_entry_add(struct osi_core_priv_data *const osi_core,
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid offset value\n",
 			offset);
+		ret = -1;
+		goto done;
+	}
+
+	/* Validate channel selection */
+	if (dma_sel > dma_sel_val[osi_core->mac]) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid DMA selection\n",
+			     (nveu64_t)dma_sel);
 		ret = -1;
 		goto done;
 	}

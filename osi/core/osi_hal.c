@@ -2423,6 +2423,13 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		break;
 
 	case OSI_CMD_SET_AVB:
+		if (data->avb.algo == OSI_MTL_TXQ_AVALG_CBS) {
+			ret = hw_validate_avb_input(osi_core, &data->avb);
+			if (ret != 0) {
+				break;
+			}
+		}
+
 		ret = ops_p->set_avb_algorithm(osi_core, &data->avb);
 		if (ret == 0) {
 			(void)osi_memcpy(&l_core->cfg.avb[data->avb.qindex].avb_info,

@@ -2402,7 +2402,7 @@ static nve32_t mgbe_set_avb_algorithm(
 	if (avb->algo > OSI_MTL_TXQ_AVALG_CBS) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			"Invalid Algo input\n",
-			(nveul64_t)avb->tcindex);
+			(nveul64_t)avb->algo);
 		goto done;
 	}
 

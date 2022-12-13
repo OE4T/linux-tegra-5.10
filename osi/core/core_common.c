@@ -721,10 +721,48 @@ static nve32_t gcl_validate(struct osi_core_priv_data *const osi_core,
 				    {&ctr_l, MTL_EST_CTR_LOW[mac]},
 				    {&ctr_h, MTL_EST_CTR_HIGH[mac]}};
 
+	if (est->en_dis > OSI_ENABLE) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "input argument en_dis value\n",
+			     (nveul64_t)est->en_dis);
+		ret = -1;
+		goto done;
+	}
+
 	if (est->llr > l_core->gcl_dep) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "input argument more than GCL depth\n",
 			     (nveul64_t)est->llr);
+		ret = -1;
+		goto done;
+	}
+
+	/* 24 bit configure time in GCL + 7) */
+	if (est->ter > 0x7FFFFFFFU) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "invalid TER value\n",
+			     (nveul64_t)est->ter);
+		ret = -1;
+		goto done;
+	}
+
+	/* nenosec register value can't be more than 10^9 nsec */
+	if ((est->ctr[0] > OSI_NSEC_PER_SEC) ||
+	    (est->btr[0] > OSI_NSEC_PER_SEC) ||
+	    (est->ctr[1] > 0xFFU)) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "input argument CTR/BTR nsec is invalid\n",
+			     0ULL);
+		ret = -1;
+		goto done;
+	}
+
+	/* if btr + offset is more than limit */
+	if ((est->btr[0] > (OSI_NSEC_PER_SEC - est->btr_offset[0])) ||
+	    (est->btr[1] > (UINT_MAX - est->btr_offset[1]))) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "input argument BTR offset is invalid\n",
+			     0ULL);
 		ret = -1;
 		goto done;
 	}
@@ -1070,6 +1108,15 @@ nve32_t hw_config_fpe(struct osi_core_priv_data *const osi_core,
 	    (osi_core->hw_feature->fpe_sel == OSI_DISABLE)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "FPE not supported in HW\n", 0ULL);
+		ret = -1;
+		goto error;
+	}
+
+	/* Only 8 TC */
+	if (fpe->tx_queue_preemption_enable > 0xFFU) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "FPE input tx_queue_preemption_enable is invalid\n",
+			     (nveul64_t)fpe->tx_queue_preemption_enable);
 		ret = -1;
 		goto error;
 	}
@@ -1721,4 +1768,68 @@ void prepare_l3l4_registers(const struct osi_core_priv_data *const osi_core,
 		/* prepare control register data */
 		prepare_l3l4_ctr_reg(osi_core, l3_l4, ctr_reg);
 	}
+}
+
+/**
+ * @brief hw_validate_avb_input- validate input arguments
+ *
+ * Algorithm:
+ *	1) Check if idle slope is valid
+ *	2) Check if send slope is valid
+ *	3) Check if hi credit is valid
+ *	4) Check if low credit is valid
+ *
+ * @param[in] osi_core: osi core priv data structure
+ * @param[in] avb: structure having configuration for avb algorithm
+ *
+ * @note 1) MAC should be init and started. see osi_start_mac()
+ *
+ * @retval 0 on success
+ * @retval -1 on failure.
+ */
+nve32_t hw_validate_avb_input(struct osi_core_priv_data *const osi_core,
+			      const struct osi_core_avb_algorithm *const avb)
+{
+	nve32_t ret = 0;
+	nveu32_t ETS_QW_ISCQW_MASK[MAX_MAC_IP_TYPES] = {EQOS_MTL_TXQ_ETS_QW_ISCQW_MASK,
+							MGBE_MTL_TCQ_ETS_QW_ISCQW_MASK};
+	nveu32_t ETS_SSCR_SSC_MASK[MAX_MAC_IP_TYPES] = {EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK,
+							MGBE_MTL_TCQ_ETS_SSCR_SSC_MASK};
+	nveu32_t ETS_HCR_HC_MASK[MAX_MAC_IP_TYPES] = {EQOS_MTL_TXQ_ETS_HCR_HC_MASK,
+						      MGBE_MTL_TCQ_ETS_HCR_HC_MASK};
+	nveu32_t ETS_LCR_LC_MASK[MAX_MAC_IP_TYPES] = {EQOS_MTL_TXQ_ETS_LCR_LC_MASK,
+						      MGBE_MTL_TCQ_ETS_LCR_LC_MASK};
+	nveu32_t mac = osi_core->mac;
+
+	if (avb->idle_slope > ETS_QW_ISCQW_MASK[mac]) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid idle_slope\n",
+			     (nveul64_t)avb->idle_slope);
+		ret = -1;
+		goto fail;
+	}
+	if (avb->send_slope > ETS_SSCR_SSC_MASK[mac]) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid send_slope\n",
+			     (nveul64_t)avb->send_slope);
+		ret = -1;
+		goto fail;
+	}
+	if (avb->hi_credit > ETS_HCR_HC_MASK[mac]) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid hi credit\n",
+			     (nveul64_t)avb->hi_credit);
+		ret = -1;
+		goto fail;
+	}
+	if (avb->low_credit > ETS_LCR_LC_MASK[mac]) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "Invalid low credit\n",
+			     (nveul64_t)avb->low_credit);
+		ret = -1;
+		goto fail;
+	}
+
+fail:
+	return ret;
 }
