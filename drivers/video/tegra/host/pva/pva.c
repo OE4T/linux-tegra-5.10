@@ -796,11 +796,11 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	nvpva_dbg_fn(pva, "");
 	if (!pva->boot_from_file) {
 		nvpva_dbg_fn(pva, "boot from file");
-		pva->co = pva_fw_co_get_info(pdev);
+		pva->co = pva_fw_co_get_info(pva);
 
 		if (pva->co == NULL) {
 			nvpva_dbg_fn(pva, "failed to get carveout");
-			err = -55;
+			err = -ENOMEM;
 			goto err_poweron;
 		}
 

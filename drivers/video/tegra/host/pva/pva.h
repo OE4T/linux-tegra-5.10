@@ -380,6 +380,7 @@ struct pva {
 	struct nvpva_queue_pool *pool;
 	struct pva_fw fw_info;
 	struct nvpva_carveout_info *co;
+	struct nvpva_carveout_info fw_carveout;
 	struct pva_vpu_auth_s pva_auth;
 	struct pva_vpu_auth_s pva_auth_sys;
 	struct nvpva_syncpts_desc syncpts;

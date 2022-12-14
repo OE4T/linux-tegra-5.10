@@ -28,7 +28,7 @@ struct nvpva_carveout_info {
 	bool		initialized;
 };
 
-struct nvpva_carveout_info *pva_fw_co_get_info(struct platform_device *pdev);
-bool pva_fw_co_initialized(void);
+struct nvpva_carveout_info *pva_fw_co_get_info(struct pva *pva);
+bool pva_fw_co_initialized(struct pva *pva);
 
 #endif

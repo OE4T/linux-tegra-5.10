@@ -31,15 +31,7 @@
 #include "pva.h"
 #include "pva_fw_carveout.h"
 
-static struct nvpva_carveout_info nvpva_carveout = {
-	.base		= 0,
-	.base_pa	= 0,
-	.base_va	= 0,
-	.size		= 0,
-	.initialized	= false
-};
-
-struct nvpva_carveout_info *pva_fw_co_get_info(struct platform_device *pdev)
+struct nvpva_carveout_info *pva_fw_co_get_info(struct pva *pva)
 {
 	struct device_node *np;
 	const char *status = NULL;
@@ -47,41 +39,42 @@ struct nvpva_carveout_info *pva_fw_co_get_info(struct platform_device *pdev)
 
 	np = of_find_compatible_node(NULL, NULL, "nvidia,pva-carveout");
 	if (np == NULL) {
-		dev_err(&pdev->dev, "find node failed\n");
+		dev_err(&pva->pdev->dev, "find node failed\n");
 		goto err_out;
 	}
 
 	if (of_property_read_string(np, "status", &status)) {
-		dev_err(&pdev->dev, "read status failed\n");
+		dev_err(&pva->pdev->dev, "read status failed\n");
 		goto err_out;
 	}
 
 	if (strcmp(status, "okay")) {
-		dev_err(&pdev->dev, "status %s  compare failed\n", status);
+		dev_err(&pva->pdev->dev, "status %s  compare failed\n", status);
 		goto err_out;
 	}
 
 	if (of_property_read_u32_array(np, "reg", reg, 4)) {
-		dev_err(&pdev->dev, "reaf_32_array failed\n");
+		dev_err(&pva->pdev->dev, "reaf_32_array failed\n");
 		goto err_out;
 	}
 
-	nvpva_carveout.base = ((u64)reg[0] << 32 | (u64)reg[1]);
-	nvpva_carveout.size = ((u64)reg[2] << 32 | (u64)reg[3]);
-	nvpva_carveout.base_va = 0;
-	nvpva_carveout.base_pa = 0;
-	nvpva_carveout.initialized = true;
+	pva->fw_carveout.base = ((u64)reg[0] << 32 | (u64)reg[1]);
+	pva->fw_carveout.size = ((u64)reg[2] << 32 | (u64)reg[3]);
+	pva->fw_carveout.base_va = 0;
+	pva->fw_carveout.base_pa = 0;
+	pva->fw_carveout.initialized = true;
 
-	dev_err(&pdev->dev, "get co success\n");
+	nvpva_dbg_fn(pva, "get co success\n");
 
-	return &nvpva_carveout;
+	return &pva->fw_carveout;
 err_out:
-	dev_err(&pdev->dev, "get co fail\n");
-	nvpva_carveout.initialized = false;
+	dev_err(&pva->pdev->dev, "get co fail\n");
+	pva->fw_carveout.initialized = false;
+
 	return NULL;
 }
 
-bool pva_fw_co_initialized(void)
+bool pva_fw_co_initialized(struct pva *pva)
 {
-	return nvpva_carveout.initialized;
+	return pva->fw_carveout.initialized;
 }
