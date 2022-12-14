@@ -237,29 +237,6 @@
 	};
 };
 / {
-	funnel_top_ccplex@26020000 {
-		in-ports {
-			/delete-node/ port@2;
-		};
-	};
-
-	/delete-node/ funnel_ccplex2@26050000;
-	/delete-node/ cpu11_etm@27B40000;
-	/delete-node/ cpu10_etm@27A40000;
-	/delete-node/ cpu9_etm@27940000;
-	/delete-node/ cpu8_etm@27840000;
-	/delete-node/ dsu-pmu-2;
-
-	cpus {
-		cpu-map {
-			/delete-node/ cluster2;
-		};
-		/delete-node/ cpu@8;
-		/delete-node/ cpu@9;
-		/delete-node/ cpu@10;
-		/delete-node/ cpu@11;
-	};
-
 	thermal-zones {
 		CPU-therm {
 			cooling-maps {
