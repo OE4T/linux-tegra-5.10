@@ -26,8 +26,6 @@
  * SIOCDEVPRIVATE custom ioctl command.
  * @{
  */
-/** Line speed */
-#define EQOS_GET_CONNECTED_SPEED	25
 /** To set HW AVB configuration from user application */
 #define ETHER_AVB_ALGORITHM		27
 /** To get current configuration in HW */

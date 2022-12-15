@@ -46,6 +46,8 @@
 /* TX/RX channel/queue count */
 #define EQOS_GET_TX_QCNT		23
 #define EQOS_GET_RX_QCNT		24
+/** Line speed */
+#define EQOS_GET_CONNECTED_SPEED	25
 /* L3/L4 filter */
 #define EQOS_L3L4_FILTER_CMD		29
 /* VLAN filtering */
