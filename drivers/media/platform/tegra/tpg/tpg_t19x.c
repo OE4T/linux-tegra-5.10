@@ -352,7 +352,7 @@ static int __init tpg_probe_t19x(void)
 		mc_csi->tpg_emb_data_config = false;
 	} else if (chip_id == TEGRA234) {
 		mc_csi->get_tpg_settings = get_tpg_settings_t23x;
-		mc_csi->tpg_gain_ctrl = true;
+		mc_csi->tpg_gain_ctrl = false;
 		mc_csi->tpg_emb_data_config = emb_data;
 	} else {
 		dev_err(mc_csi->dev, "%s invalid chip-id : %d\n",
