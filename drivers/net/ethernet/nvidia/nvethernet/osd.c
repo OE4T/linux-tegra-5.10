@@ -889,6 +889,7 @@ void ether_restart_lane_bringup_task(struct tasklet_struct *t)
 
 	if (pdata->tx_start_stop == OSI_DISABLE) {
 		netif_tx_lock(pdata->ndev);
+		netif_carrier_off(pdata->ndev);
 		netif_tx_stop_all_queues(pdata->ndev);
 		netif_tx_unlock(pdata->ndev);
 		schedule_delayed_work(&pdata->set_speed_work, msecs_to_jiffies(500));
