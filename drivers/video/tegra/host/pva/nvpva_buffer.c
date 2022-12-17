@@ -238,6 +238,8 @@ nvpva_buffer_map(struct platform_device *pdev,
 		 bool is_user)
 {
 
+	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
+	struct pva *pva = pdata->private_data;
 	const dma_addr_t cvnas_begin = nvcvnas_get_cvsram_base();
 	const dma_addr_t cvnas_end = cvnas_begin + nvcvnas_get_cvsram_size();
 	struct dma_buf_attachment *attach;
@@ -245,6 +247,8 @@ nvpva_buffer_map(struct platform_device *pdev,
 	dma_addr_t dma_addr;
 	dma_addr_t phys_addr;
 	int err = 0;
+
+	nvpva_dbg_fn(pva, "");
 
 	get_dma_buf(dmabuf);
 	if (is_user)
@@ -291,6 +295,13 @@ nvpva_buffer_map(struct platform_device *pdev,
 	vm->user_offset = offset;
 	vm->user_size = size;
 	vm->user_map_count = 1;
+
+	if (is_user)
+		nvpva_dbg_fn(pva, "mapped user @ base %llx,  uaddr %llx,  size %llx\n",
+			     (u64) dma_addr, (u64) vm->user_addr, size);
+	else
+		nvpva_dbg_fn(pva, "mapped priv @ base %llx,  uaddr  %llx,  size %llx\n",
+			     (u64) dma_addr, (u64) vm->user_addr, size);
 
 	return err;
 

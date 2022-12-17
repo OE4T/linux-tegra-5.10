@@ -178,6 +178,11 @@ static int pva_iommu_context_dev_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
+	if (strnstr(pdev->name, dev_names[7], 29) != NULL)
+		dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
+	else
+		dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(39));
+
 	INIT_LIST_HEAD(&ctx->list);
 	ctx->pdev = pdev;
 

@@ -618,7 +618,7 @@ static int pva_load_fw(struct platform_device *pdev, struct pva *pva)
 	return err;
 
 load_fw_err:
-		pva_free_fw(pdev, pva);
+	pva_free_fw(pdev, pva);
 
 	return err;
 }
@@ -792,10 +792,14 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	struct pva *pva = pdata->private_data;
 	int err = 0;
 	int i;
+	u64 timestamp;
+	u64 timestamp2;
+
+	timestamp = nvpva_get_tsc_stamp();
 
 	nvpva_dbg_fn(pva, "");
 	if (!pva->boot_from_file) {
-		nvpva_dbg_fn(pva, "boot from file");
+		nvpva_dbg_fn(pva, "boot from co");
 		pva->co = pva_fw_co_get_info(pva);
 
 		if (pva->co == NULL) {
@@ -842,8 +846,15 @@ int pva_finalize_poweron(struct platform_device *pdev)
 		goto err_poweron;
 	}
 
+	timestamp2 = nvpva_get_tsc_stamp() - timestamp;
+
 	pva_set_log_level(pva, pva->log_level, true);
 	pva->booted = true;
+
+	timestamp = nvpva_get_tsc_stamp() - timestamp;
+
+	nvpva_dbg_prof(pva, "Power on took %lld us, without log level%lld\n",
+		       (32 * timestamp)/1000, (32 * timestamp2)/1000);
 
 	return err;
 
@@ -1035,10 +1046,13 @@ static int pva_probe(struct platform_device *pdev)
 	memset(&pva->vpu_util_info, 0, sizeof(pva->vpu_util_info));
 	pva->syncpts.syncpts_mapped_r = false;
 	pva->syncpts.syncpts_mapped_rw = false;
-	if (strncmp(match->compatible, "nvidia,tegra234-pva-hv", 22) == 0)
+	if (strncmp(match->compatible, "nvidia,tegra234-pva-hv", 22) == 0) {
+		nvpva_dbg_fn(pva, "match. compatible = %s", match->compatible);
 		pva->map_co_needed = false;
-	else
+	} else {
+		nvpva_dbg_fn(pva, "no match. compatible = %s", match->compatible);
 		pva->map_co_needed = true;
+	}
 
 #ifdef CONFIG_PVA_CO_DISABLED
 	pva->boot_from_file = true;

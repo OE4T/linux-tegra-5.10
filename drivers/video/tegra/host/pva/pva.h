@@ -123,7 +123,7 @@ enum nvpva_dbg_categories {
 	pva_dbg_info    = BIT(0),  /* slightly verbose info */
 	pva_dbg_fn      = BIT(2),  /* fn name tracing */
 	pva_dbg_reg     = BIT(3),  /* register accesses, very verbose */
-	pva_dbg_clk     = BIT(7),  /* nvhost clk */
+	pva_dbg_prof    = BIT(7),  /* profiling info */
 	pva_dbg_mem     = BIT(31), /* memory accesses, very verbose */
 };
 
@@ -161,6 +161,9 @@ enum nvpva_dbg_categories {
 
 #define nvpva_dbg_info(pva, fmt, arg...) \
 	nvpva_dbg(pva, pva_dbg_info, fmt, ##arg)
+
+#define nvpva_dbg_prof(pva, fmt, arg...) \
+	nvpva_dbg(pva, pva_dbg_prof, fmt, ##arg)
 
 /**
  * @brief		struct to hold the segment details
@@ -587,4 +590,16 @@ int nvpva_get_device_hwid(struct platform_device *pdev,
 u32 nvpva_get_id_idx(struct pva *dev, struct platform_device *pdev);
 
 void pva_push_aisr_status(struct pva *pva, uint32_t aisr_status);
+
+static inline u64 nvpva_get_tsc_stamp(void)
+{
+	u64 timestamp;
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+	timestamp = arch_timer_read_counter();
+#else
+	timestamp = arch_counter_get_cntvct();
+#endif
+	return timestamp;
+}
 #endif
