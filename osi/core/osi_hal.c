@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1831,30 +1831,113 @@ done:
 
 /**
  * @brief calculate time drift between primary and secondary
- *  interface.
+ *  interface and update current time.
  * Algorithm:
  * - Get drift using last difference = 0 and
  *   current differance as  MGBE time - EQOS time
  *   drift  =  current differance with which EQOS should
  *   update.
  *
- * @param[in] sec: primary interface sec counter
- * @param[in] nsec: primary interface nsec counter
- * @param[in] secondary_sec: Secondary interface sec counter
- * @param[in] secondary_nsec: Secondary interface nsec counter
+ * @param[in] osi_core: OSI core data structure for primary interface.
+ * @param[in] sec_osi_core: OSI core data structure for seconday interface.
+ * @param[out] primary_time: primary interface time pointer
+ * @param[out] secondary_time: Secondary interface time pointer
  *
  * @retval calculated drift value
  */
-static inline nvel64_t dirft_calculation(nveu32_t sec, nveu32_t nsec,
-					 nveu32_t secondary_sec,
-					 nveu32_t secondary_nsec)
+static inline nvel64_t dirft_calculation(struct osi_core_priv_data *const osi_core,
+					 struct osi_core_priv_data *const sec_osi_core,
+					 nvel64_t *primary_time,
+					 nvel64_t *secondary_time)
 {
+	nve32_t ret;
+	nveu32_t sec = 0x0;
+	nveu32_t nsec = 0x0;
+	nveu32_t secondary_sec = 0x0;
+	nveu32_t secondary_nsec = 0x0;
 	nvel64_t val = 0LL;
+	nveul64_t temp = 0x0U;
+	nveul64_t time1 = 0x0U;
+	nveul64_t time2 = 0x0U;
+	struct osi_core_ptp_tsc_data ptp_tsc1;
+	struct osi_core_ptp_tsc_data ptp_tsc2;
 
-	val = (nvel64_t)sec - (nvel64_t)secondary_sec;
-	val = (nvel64_t)(val * 1000000000LL);
-	val += (nvel64_t)nsec - (nvel64_t)secondary_nsec;
+	ret = hw_ptp_tsc_capture(osi_core, &ptp_tsc1);
+	if (ret != 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "CORE: TSC PTP capture failed for primary\n", 0ULL);
+		goto fail;
+	}
 
+	ret = hw_ptp_tsc_capture(sec_osi_core, &ptp_tsc2);
+	if (ret != 0) {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "CORE: TSC PTP capture failed for secondary\n", 0ULL);
+		goto fail;
+	}
+
+	time1 = ((nveul64_t)((nveul64_t)ptp_tsc1.tsc_high_bits << 32) +
+		 (nveul64_t)ptp_tsc1.tsc_low_bits);
+	sec = ptp_tsc1.ptp_high_bits;
+	nsec = ptp_tsc1.ptp_low_bits;
+	if ((OSI_LLONG_MAX - (nvel64_t)nsec) > ((nvel64_t)sec * OSI_NSEC_PER_SEC_SIGNED)) {
+		*primary_time = ((nvel64_t)sec * OSI_NSEC_PER_SEC_SIGNED) + (nvel64_t)nsec;
+	} else {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "CORE: Negative primary PTP time\n", 0ULL);
+		goto fail;
+	}
+
+	time2 = ((nveul64_t)((nveul64_t)ptp_tsc2.tsc_high_bits << 32) +
+		 (nveul64_t)ptp_tsc2.tsc_low_bits);
+	secondary_sec = ptp_tsc2.ptp_high_bits;
+	secondary_nsec = ptp_tsc2.ptp_low_bits;
+
+	if ((OSI_LLONG_MAX - (nvel64_t)secondary_nsec) >
+	    ((nvel64_t)secondary_sec * OSI_NSEC_PER_SEC_SIGNED)) {
+		*secondary_time = ((nvel64_t)secondary_sec * OSI_NSEC_PER_SEC_SIGNED) +
+				   (nvel64_t)secondary_nsec;
+	} else {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "CORE: Negative secondary PTP time\n", 0ULL);
+		goto fail;
+	}
+
+	if (time2 > time1) {
+		temp = time2 - time1;
+		if ((OSI_LLONG_MAX - (nvel64_t)temp) > *secondary_time) {
+			*secondary_time -= (nvel64_t)temp;
+		} else {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "CORE: sec time crossing limit\n", 0ULL);
+			goto fail;
+		}
+	} else if (time1 >= time2) {
+		temp = time1 - time2;
+		if ((OSI_LLONG_MAX - (nvel64_t)temp) > *secondary_time) {
+			*secondary_time += (nvel64_t)temp;
+		} else {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "CORE: sec time crossing limit\n", 0ULL);
+			goto fail;
+		}
+	} else {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "CORE: wrong drift\n", 0ULL);
+		goto fail;
+	}
+	/* 0 is lowest possible valid time value which represent
+	 * 1 Jan, 1970
+	 */
+	if ((*primary_time >= 0) && (*secondary_time >= 0)) {
+		val = (*primary_time - *secondary_time);
+	} else {
+		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+			     "CORE: negative time\n", 0ULL);
+		goto fail;
+	}
+
+fail:
 	return val;
 }
 
@@ -2337,13 +2420,12 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 	nve32_t ret = -1;
 	struct osi_core_priv_data *sec_osi_core;
 	struct core_local *secondary_osi_lcore;
-	nvel64_t drift_value = 0x0;
 	nveu32_t sec = 0x0;
 	nveu32_t nsec = 0x0;
-	nveu32_t secondary_sec = 0x0;
-	nveu32_t secondary_nsec = 0x0;
+	nvel64_t drift_value = 0x0;
 	nve32_t freq_adj_value = 0x0;
-	nvel64_t secondary_time;
+	nvel64_t secondary_time = 0x0;
+	nvel64_t primary_time = 0x0;
 
 	ops_p = l_core->ops_p;
 
@@ -2521,16 +2603,10 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 		}
 
 		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
-			drift_value = 0x0;
-			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
-			common_get_systime_from_mac(sec_osi_core->base,
-				    sec_osi_core->mac, &secondary_sec, &secondary_nsec);
-			common_get_systime_from_mac(osi_core->base,
-				    osi_core->mac, &sec, &nsec);
-			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
+			drift_value = dirft_calculation(osi_core, sec_osi_core,
+							&primary_time,
+							&secondary_time);
 
-			drift_value = dirft_calculation(sec, nsec, secondary_sec, secondary_nsec);
-			secondary_time = ((nvel64_t)secondary_sec * 1000000000LL) + (nvel64_t)secondary_nsec;
 			secondary_osi_lcore->serv.const_i = I_COMPONENT_BY_10;
 			secondary_osi_lcore->serv.const_p = P_COMPONENT_BY_10;
 			freq_adj_value = freq_offset_calculate(sec_osi_core,
@@ -2540,6 +2616,13 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 				/* call adjust time as JUMP happened */
 				ret = osi_adjust_time(sec_osi_core,
 						      drift_value);
+				if (ret < 0) {
+					OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+						     "CORE: adjust_time failed\n",
+						     0ULL);
+				} else {
+					ret = osi_adjust_freq(sec_osi_core, 0);
+				}
 			} else {
 				ret = osi_adjust_freq(sec_osi_core,
 						      freq_adj_value);
@@ -2579,20 +2662,15 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 
 		if (l_core->ether_m2m_role == OSI_PTP_M2M_PRIMARY) {
 			drift_value = 0x0;
-			osi_lock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
-			common_get_systime_from_mac(sec_osi_core->base,
-				    sec_osi_core->mac, &secondary_sec, &secondary_nsec);
-			common_get_systime_from_mac(osi_core->base,
-				    osi_core->mac, &sec, &nsec);
-			osi_unlock_irq_enabled(&secondary_osi_lcore->serv.m2m_lock);
-			drift_value = dirft_calculation(sec, nsec,
-							secondary_sec,
-							secondary_nsec);
+			drift_value = dirft_calculation(osi_core, sec_osi_core,
+							&primary_time,
+							&secondary_time);
 			ret = osi_adjust_time(sec_osi_core, drift_value);
 			if (ret == 0) {
 				secondary_osi_lcore->serv.count = SERVO_STATS_0;
 				secondary_osi_lcore->serv.drift = 0;
 				secondary_osi_lcore->serv.last_ppb = 0;
+				ret = osi_adjust_freq(sec_osi_core, 0);
 			}
 		}
 
@@ -2676,6 +2754,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 				secondary_osi_lcore->serv.count = SERVO_STATS_0;
 				secondary_osi_lcore->serv.drift = 0;
 				secondary_osi_lcore->serv.last_ppb = 0;
+				ret = osi_adjust_freq(sec_osi_core, 0);
 			}
 		}
 		if (ret < 0) {
