@@ -10,7 +10,13 @@ BUILD_ENABLE=y
 endif
 
 dtb-$(BUILD_ENABLE) += tegra234-p3767-0000-p3509-a02.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3767-0001-p3509-a02.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3767-0003-p3509-a02.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3767-0004-p3509-a02.dtb
 dtb-$(BUILD_ENABLE) += tegra234-p3767-0000-p3768-0000-a0.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3767-0001-p3768-0000-a0.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3767-0003-p3768-0000-a0.dtb
+dtb-$(BUILD_ENABLE) += tegra234-p3767-0004-p3768-0000-a0.dtb
 dtbo-$(BUILD_ENABLE) += tegra234-p3767-0000-p3509-a02-hdr40.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3767-0000-p3768-0000-a0-hdr40.dtbo
 dtbo-$(BUILD_ENABLE) += tegra234-p3767-camera-imx477-imx219.dtbo

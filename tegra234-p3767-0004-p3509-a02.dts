@@ -1,5 +1,5 @@
 /*
- * Top level DTS file for CVM:P3767-0000 and CVB:P3768-0000.
+ * Top level DTS file for CVM:P3767-0004 and CVB:P3509-a02-0000.
  *
  * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -14,18 +14,11 @@
  */
 
 /dts-v1/;
-#include "tegra234-dcb-p3767-0000-dp.dtsi"
-#include <tegra234-soc/mods-simple-bus.dtsi>
-#include <t234-common-cvm/tegra234-thermal.dtsi>
-#include <t234-common-cvm/tegra234-cpuidle.dtsi>
-#include <t234-common-cvm/tegra234-thermal-cooling.dtsi>
-#include <t234-common-cvm/tegra234-thermal-userspace-alert.dtsi>
-#include "cvm/tegra234-p3767-0000.dtsi"
-#include "cvb/tegra234-p3768-0000-a0.dtsi"
+#include "tegra234-p3767-0000-p3509-a02.dts"
 
 / {
 	nvidia,dtsfilename = __FILE__;
 	nvidia,dtbbuildtime = __DATE__, __TIME__;
-	compatible = "nvidia,p3768-0000+p3767-0000", "nvidia,p3767-0000", "nvidia,tegra234", "nvidia,tegra23x";
-	model = "NVIDIA Orin NX Developer Kit";
+	compatible = "nvidia,p3509-0000+p3767-0004", "nvidia,p3767-0004", "nvidia,tegra234", "nvidia,tegra23x";
+	model = "NVIDIA Orin Nano Developer Kit";
 };
