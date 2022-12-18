@@ -1181,7 +1181,7 @@ static nve32_t osi_adjust_freq(struct osi_core_priv_data *const osi_core, nve32_
 		diff = (nveu32_t)temp;
 	} else {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID, "temp > UINT_MAX\n",
-			     0ULL);
+			     (nvel64_t)temp);
 		goto fail;
 	}
 
@@ -1216,11 +1216,13 @@ static nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	nveu32_t neg_adj = 0;
 	nveu32_t sec = 0, nsec = 0;
+	nveu32_t cur_sec = 0, cur_nsec = 0;
 	nveu64_t quotient;
 	nveu64_t reminder = 0;
 	nveu64_t udelta = 0;
 	nve32_t ret = -1;
 	nvel64_t nsec_delta1 = nsec_delta;
+	nvel64_t calculate;
 
 	if (nsec_delta1 < 0) {
 		neg_adj = 1;
@@ -1247,13 +1249,32 @@ static nve32_t osi_adjust_time(struct osi_core_priv_data *const osi_core,
 		goto fail;
 	}
 
+	common_get_systime_from_mac(osi_core->base,
+				    osi_core->mac, &cur_sec, &cur_nsec);
+	calculate = ((nvel64_t)cur_sec * OSI_NSEC_PER_SEC_SIGNED) + (nvel64_t)cur_nsec;
+
+	if (neg_adj == 1U) {
+		if ((calculate + nsec_delta) < 0LL) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "Wrong delta, put time in -ve\n", 0ULL);
+			ret = -1;
+			goto fail;
+		}
+	} else {
+		/* Addition of 2 sec for compensate Max nanosec factors*/
+		if (cur_sec > (UINT_MAX - sec - 2U)) {
+			OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
+				     "Not Supported sec beyond UINT_max\n", 0ULL);
+			ret = -1;
+			goto fail;
+		}
+	}
+
 	ret = l_core->ops_p->adjust_mactime(osi_core, sec, nsec, neg_adj,
 					    osi_core->ptp_config.one_nsec_accuracy);
 fail:
 	return ret;
 }
-
-
 
 #ifndef OSI_STRIPPED_LIB
 /**
@@ -1868,6 +1889,8 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 	 */
 	if ((offset >= 1000000000LL) || (offset <= -1000000000LL)) {
 		s->count = SERVO_STATS_0; /* JUMP */
+		s->drift = 0;
+		s->last_ppb = 0;
 		goto fail;
 	}
 
@@ -1908,10 +1931,10 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 			}
 		}
 		/* update this with constant */
-		if (s->drift < -MAX_FREQ) {
-			s->drift = -MAX_FREQ;
-		} else if (s->drift > MAX_FREQ) {
-			s->drift = MAX_FREQ;
+		if (s->drift < MAX_FREQ_NEG) {
+			s->drift = MAX_FREQ_NEG;
+		} else if (s->drift > MAX_FREQ_POS) {
+			s->drift = MAX_FREQ_POS;
 		} else {
 			/* Do Nothing */
 		}
@@ -1935,14 +1958,15 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 		cofficient = (1000000000LL) / (s->local[1] - s->local[0]);
 
 		if ((cofficient != 0) && (offset < 0) &&
-		    ((s->const_i > (-OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))) ||
-		     (s->const_p > (-OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))))) {
+		    (((offset / WEIGHT_BY_10) < (-OSI_LLONG_MAX / (s->const_i * cofficient))) ||
+		     ((offset / WEIGHT_BY_10) < (-OSI_LLONG_MAX / (s->const_p * cofficient))))) {
 			s->count = SERVO_STATS_0;
 			break;
 		}
+
 		if ((cofficient != 0) && (offset > 0) &&
-		    ((s->const_i > (OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))) ||
-		     (s->const_p > (OSI_LLONG_MAX / (WEIGHT_BY_10 * cofficient * offset))))) {
+		    (((offset / WEIGHT_BY_10) > (OSI_LLONG_MAX / (cofficient * s->const_i))) ||
+		     ((offset / WEIGHT_BY_10) > (OSI_LLONG_MAX / (cofficient * s->const_p))))) {
 			s->count = SERVO_STATS_0;
 			break;
 		}
@@ -1953,10 +1977,10 @@ static inline nve32_t freq_offset_calculate(struct osi_core_priv_data *sec_osi_c
 		      ki_term;
 
 		/* FIXME tune cofficients */
-		if (ppb < -MAX_FREQ) {
-			ppb = -MAX_FREQ;
-		} else if (ppb > MAX_FREQ) {
-			ppb = MAX_FREQ;
+		if (ppb < MAX_FREQ_NEG) {
+			ppb = MAX_FREQ_NEG;
+		} else if (ppb > MAX_FREQ_POS) {
+			ppb = MAX_FREQ_POS;
 		} else {
 			if (((s->drift >= 0) && ((OSI_LLONG_MAX - s->drift) < ki_term)) ||
 			    ((s->drift < 0) && ((-OSI_LLONG_MAX - s->drift) > ki_term))) {
