@@ -3329,11 +3329,6 @@ int ether_sysfs_register(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
 	int ret = 0;
-#if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ)) && defined(HSI_SUPPORT)
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	u32 inst_id = osi_core->instance_id;
-	u32 ip_type[2] = {IP_EQOS, IP_MGBE};
-#endif
 
 #ifdef CONFIG_DEBUG_FS
 	/* Intentionally ignored the return value of debugfs
@@ -3343,19 +3338,6 @@ int ether_sysfs_register(struct ether_priv_data *pdata)
 	ether_create_debugfs(pdata);
 #endif
 
-#if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ)) && defined(HSI_SUPPORT)
-	if (osi_core->use_virtualization == OSI_ENABLE) {
-		if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS)
-			inst_id = 0;
-		ret = hsierrrpt_reg_cb(ip_type[osi_core->mac], inst_id,
-				       hsi_inject_err_fsi, pdata);
-		if (ret != 0) {
-			dev_err(pdata->dev, "Err inj callback registration failed: %d",
-				ret);
-			return ret;
-		}
-	}
-#endif
 	/* Create nvethernet sysfs group under /sys/devices/<ether_device>/ */
 	ret = sysfs_create_group(&dev->kobj, &ether_attribute_group);
 	return ret;
@@ -3364,26 +3346,8 @@ int ether_sysfs_register(struct ether_priv_data *pdata)
 void ether_sysfs_unregister(struct ether_priv_data *pdata)
 {
 	struct device *dev = pdata->dev;
-#if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ)) && defined(HSI_SUPPORT)
-	struct osi_core_priv_data *osi_core = pdata->osi_core;
-	u32 inst_id = osi_core->instance_id;
-	u32 ip_type[2] = {IP_EQOS, IP_MGBE};
-	int ret;
-#endif
 #ifdef CONFIG_DEBUG_FS
 	ether_remove_debugfs(pdata);
-#endif
-#if (IS_ENABLED(CONFIG_TEGRA_HSIERRRPTINJ)) && defined(HSI_SUPPORT)
-	if (osi_core->use_virtualization == OSI_ENABLE) {
-		if (osi_core->instance_id == OSI_INSTANCE_ID_EQOS)
-			inst_id = 0;
-
-		ret = hsierrrpt_dereg_cb(ip_type[osi_core->mac], inst_id);
-		if (ret != 0) {
-			dev_err(pdata->dev, "Err inj callback deregistration failed: %d",
-				ret);
-		}
-	}
 #endif
 	/* Remove nvethernet sysfs group under /sys/devices/<ether_device>/ */
 	sysfs_remove_group(&dev->kobj, &ether_attribute_group);
