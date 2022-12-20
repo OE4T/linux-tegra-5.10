@@ -24,6 +24,7 @@
 #include "tegra234-p3767-powermon.dtsi"
 #include "tegra234-p3767-fixed-regulator.dtsi"
 #include "tegra234-p3767-power-tree.dtsi"
+#include <t234-common-cvm/tegra234-platforms-vrs.dtsi>
 #include "tegra234-thermal.dtsi"
 
 / {
