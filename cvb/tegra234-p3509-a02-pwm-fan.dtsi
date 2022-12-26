@@ -13,8 +13,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <dt-bindings/gpio/tegra234-gpio.h>
-#include <dt-bindings/pwm/pwm.h>
 
 / {
 	pwm-fan {
@@ -22,6 +20,6 @@
 		status = "okay";
 		pwms = <&tegra_pwm3 0 45334>;
 		#cooling-cells = <2>;
-		cooling-levels = <255 178 135 95 0 0 0 0 0 0>;
+		cooling-levels = <128 135 178 200 255 255 255 255 255 255>;
 	};
 };
