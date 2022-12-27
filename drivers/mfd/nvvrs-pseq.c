@@ -2,7 +2,7 @@
 /*
  * Voltage Regulator Specification: Power Sequencer MFD Driver
  *
- * Copyright (C) 2020-2022 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2020-2023 NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/i2c.h>
@@ -218,6 +218,14 @@ static int nvvrs_pseq_probe(struct i2c_client *client,
 	ret = nvvrs_pseq_vendor_info(nvvrs_chip);
 	if (ret < 0) {
 		dev_err(nvvrs_chip->dev, "Invalid vendor info: %d\n", ret);
+		return ret;
+	}
+
+	/* When battery mounted, the chip may have IRQ asserted. */
+	/* Clear it before IRQ requested. */
+	ret = nvvrs_pseq_irq_clear(nvvrs_chip);
+	if (ret < 0) {
+		dev_err(nvvrs_chip->dev, "Failed to clear IRQ: %d\n", ret);
 		return ret;
 	}
 
