@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -235,6 +235,8 @@ struct PVA_PACKED pva_td_s {
 	uint64_t			timeout;
 	/** @brief Variable to hold the queued time of the task */
 	uint64_t			queued_time;
+	/** @brief The ID of the batch that this task belongs to */
+	uint64_t			batch_id;
 	/** Size of L2SRAM required for the task */
 	uint32_t			l2sram_size;
 	/** Number of total tasks with timer resource utilization */
@@ -245,15 +247,13 @@ struct PVA_PACKED pva_td_s {
 	uint16_t			num_parameters;
 	/** @brief Interface on which FW should return status */
 	uint8_t				status_interface;
-	/** @brief The ID of the batch that this task belongs to */
-	uint8_t				batch_id;
 	/** @brief The ID of this task used to identify it during AISR */
 	uint8_t				task_id;
 	/** @note The below two fields are added for backward
 	 * compatibility, will be removed once changes are merged
 	 */
 	/** Additional padding to maintain alignement */
-	uint8_t				pad0[3];
+	uint8_t				pad0[4];
 };
 
 /** Runlist version for new task descriptor format */

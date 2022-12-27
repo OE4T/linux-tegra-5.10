@@ -1,7 +1,7 @@
 /*
  * NVPVA Queue management header for T194 and T234
  *
- * Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -101,7 +101,7 @@ struct nvpva_queue {
 	struct pva_hw_task *old_tail;
 	struct pva_hw_task *hw_task_tail;
 
-	u8 batch_id;
+	u64 batch_id;
 };
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -1256,7 +1256,7 @@ set_task_parameters(const struct pva_submit_tasks *task_header)
 
 	u8 status_interface = 0U;
 	u32 flag = 0;
-	u8 batch_id;
+	u64 batch_id;
 	u16 idx;
 
 	/* Storing to local variable to update in task
