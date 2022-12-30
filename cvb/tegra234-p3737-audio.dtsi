@@ -65,6 +65,8 @@
 		};
 	};
 
+	hdr40_i2c1: i2c@c250000 { };
+
 	tegra_sound: sound {
 		compatible = "nvidia,tegra186-ape";
 		nvidia-audio-card,name = "NVIDIA Jetson AGX Orin APE";
