@@ -2,7 +2,7 @@ old-dtb := $(dtb-y)
 old-dtbo := $(dtbo-y)
 dtb-y :=
 dtbo-y :=
-makefile-path := platform/t23x/arvala/kernel-dts
+makefile-path := platform/t23x/p3768/kernel-dts
 
 BUILD_ENABLE=n
 ifneq ($(filter y,$(CONFIG_ARCH_TEGRA_23x_SOC)),)
