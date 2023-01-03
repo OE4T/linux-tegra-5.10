@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -164,25 +164,23 @@
  * interface.
  */
 typedef uint8_t pva_cmds_t;
-#define CMD_NOOP		0U
-#define CMD_GET_STATUS		1U
-#define CMD_GET_VPU_STATS	2U
-#define CMD_SET_LOGGING		4U
-#define CMD_SUBMIT		8U
-#define CMD_FLUSH		11U
-#define CMD_SW_BIST		19U
-#define CMD_ABORT_QUEUE		20U
-#define CMD_NEXT		22U /* Must be last */
+#define CMD_GET_STATUS		0U
+#define CMD_SUBMIT		1U
+#define CMD_ABORT_QUEUE		2U
+#define CMD_NOOP		3U
+#define CMD_SW_BIST		4U
+#define CMD_GET_VPU_STATS	5U
+#define CMD_SET_LOGGING		6U
+#define CMD_NEXT		7U /* Must be last */
 
 /*
  * CMD_GET_STATUS subcommands
  */
 typedef uint8_t pva_status_cmds_t;
 #define R5_VERSION 0U
-#define RUNNING_TASKS 10U
-#define PVA_UPTIME 11U
-#define COMPLETED_TASK 19U
-#define GET_STATUS_NEXT 23U
+#define PVA_UPTIME 1U
+#define COMPLETED_TASK 2U
+#define GET_STATUS_NEXT 3U /* Deleted RUNNING TASKS as it is not used in FW */
 
 /*
  * CCQ FIFO SUBMIT interface definition
@@ -351,25 +349,6 @@ static inline uint32_t pva_cmd_R5_version(struct pva_cmd_s *const cmd,
 	cmd->cmd_field[0] = pva_cmd_get_status(R5_VERSION, flags);
 	return 1U;
 }
-
-/*
- * RUNNING_TASKS get status command
- */
-struct pva_status_running_tasks_s {
-	uint32_t task_addr_lo;
-	uint32_t task_addr_hi;
-};
-
-static inline uint32_t pva_cmd_running_tasks(struct pva_cmd_s *const cmd,
-					     const pva_vpu_id_t vpu,
-					     const uint32_t flags)
-{
-	cmd->cmd_field[0] = pva_cmd_get_status(RUNNING_TASKS, flags) |
-		       PVA_INSERT(vpu, 23U, 16U);
-	return 1U;
-}
-
-#define PVA_RUNNING_TASK_VALID PVA_BIT64(63U)
 
 /*
  * PVA_UPTIME get status command
