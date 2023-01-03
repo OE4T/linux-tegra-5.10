@@ -26,6 +26,8 @@
 		status = "okay";
 	};
 
+	hdr40_i2c1: i2c@c250000 { };
+
 	tegra_sound: sound {
 		status = "okay";
 		compatible = "nvidia,tegra186-ape";
