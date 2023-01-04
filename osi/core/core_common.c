@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2022-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1795,10 +1795,8 @@ nve32_t hw_validate_avb_input(struct osi_core_priv_data *const osi_core,
 							MGBE_MTL_TCQ_ETS_QW_ISCQW_MASK};
 	nveu32_t ETS_SSCR_SSC_MASK[MAX_MAC_IP_TYPES] = {EQOS_MTL_TXQ_ETS_SSCR_SSC_MASK,
 							MGBE_MTL_TCQ_ETS_SSCR_SSC_MASK};
-	nveu32_t ETS_HCR_HC_MASK[MAX_MAC_IP_TYPES] = {EQOS_MTL_TXQ_ETS_HCR_HC_MASK,
-						      MGBE_MTL_TCQ_ETS_HCR_HC_MASK};
-	nveu32_t ETS_LCR_LC_MASK[MAX_MAC_IP_TYPES] = {EQOS_MTL_TXQ_ETS_LCR_LC_MASK,
-						      MGBE_MTL_TCQ_ETS_LCR_LC_MASK};
+	nveu32_t ETS_HC_BOUND = 0x8000000U;
+	nveu32_t ETS_LC_BOUND = 0xF8000000U;
 	nveu32_t mac = osi_core->mac;
 
 	if (avb->idle_slope > ETS_QW_ISCQW_MASK[mac]) {
@@ -1815,21 +1813,21 @@ nve32_t hw_validate_avb_input(struct osi_core_priv_data *const osi_core,
 		ret = -1;
 		goto fail;
 	}
-	if (avb->hi_credit > ETS_HCR_HC_MASK[mac]) {
+	if (avb->hi_credit > ETS_HC_BOUND) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid hi credit\n",
 			     (nveul64_t)avb->hi_credit);
 		ret = -1;
 		goto fail;
 	}
-	if (avb->low_credit > ETS_LCR_LC_MASK[mac]) {
+	if ((avb->low_credit < ETS_LC_BOUND) &&
+	    (avb->low_credit != 0U)) {
 		OSI_CORE_ERR(osi_core->osd, OSI_LOG_ARG_INVALID,
 			     "Invalid low credit\n",
 			     (nveul64_t)avb->low_credit);
 		ret = -1;
 		goto fail;
 	}
-
 fail:
 	return ret;
 }
