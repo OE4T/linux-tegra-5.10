@@ -23,7 +23,7 @@
 			regulator-max-microvolt = <5000000>;
 			regulator-always-on;
 		};
-		p3509_vdd_3v3_sys: regulator@101 {
+		hdr40_vdd_3v3: p3509_vdd_3v3_sys: regulator@101 {
 			/* BUCK_3V3_EN enable is driven by button MCU */
 			compatible = "regulator-fixed";
 			reg = <101>;

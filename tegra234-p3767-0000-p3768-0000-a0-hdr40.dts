@@ -21,4 +21,9 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-common/jetson/tegra234-p3767-0000-p3768-0000.h>
 #include "tegra234-p3767-0000-common-hdr40.dtsi"
+
+/ {
+	compatible = JETSON_COMPATIBLE;
+};
