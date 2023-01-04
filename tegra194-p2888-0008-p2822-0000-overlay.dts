@@ -38,4 +38,19 @@
 			};
 		};
 	};
+
+	fragment-pcie-c5-ep-enable@2 {
+		target-path = "/";
+		board_config {
+		    odm-data = "pcie-c5-endpoint-enable";
+		};
+		__overlay__ {
+			pcie@141a0000 {
+				status = "disabled";
+			};
+			pcie_ep@141a0000 {
+				status = "okay";
+			};
+		};
+	};
 };
