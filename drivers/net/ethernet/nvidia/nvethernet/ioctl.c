@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -997,7 +997,8 @@ static int ether_config_fpe(struct net_device *dev,
 	}
 
 	if (copy_from_user(&ioctl_data.fpe, (void __user *)u_fpe_cfg,
-			   sizeof(struct osi_fpe_config) != 0U)) {
+			   sizeof(struct osi_fpe_config)) != 0U) {
+		dev_err(pdata->dev, "%s: copy_from_user error\n", __func__);
 		return -EFAULT;
 	}
 
