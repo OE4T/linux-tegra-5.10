@@ -3,7 +3,7 @@
  *  providing keys and microphone audio functionality
  *
  * Copyright (C) 2014 Google, Inc.
- * Copyright (c) 2015-2021 NVIDIA CORPORATION, All rights reserved.
+ * Copyright (c) 2015-2021,2023 NVIDIA CORPORATION, All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -2165,12 +2165,8 @@ static const struct hid_device_id atvr_devices[] = {
 			      USB_DEVICE_ID_NVIDIA_FRIDAY)},
 	{HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_NVIDIA,
 			      USB_DEVICE_ID_NVIDIA_THUNDERSTRIKE)},
-	{HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_NVIDIA,
-			      USB_DEVICE_ID_NVIDIA_STORMCASTER)},
 	{HID_USB_DEVICE(USB_VENDOR_ID_NVIDIA,
 			      USB_DEVICE_ID_NVIDIA_THUNDERSTRIKE)},
-	{HID_USB_DEVICE(USB_VENDOR_ID_NVIDIA,
-			      USB_DEVICE_ID_NVIDIA_STORMCASTER)},
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, atvr_devices);
