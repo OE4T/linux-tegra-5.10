@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2015-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -898,6 +898,8 @@ static void tegra_camrtc_poweroff(struct device *dev)
 		return;
 
 	rtcpu->powered = false;
+	rtcpu->boot_sync_done = false;
+	rtcpu->fw_active = false;
 
 	tegra_camrtc_assert_resets(dev);
 	tegra_camrtc_disable_clks(dev);
@@ -1001,10 +1003,30 @@ static void tegra_camrtc_log_fw_version(struct device *dev)
 	dev_info(dev, "firmware %s\n", version);
 }
 
+static void tegra_camrtc_pm_start(struct device *dev, char const *op)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	dev_dbg(dev, "start %s [powered=%d synced=%d active=%d online=%d]\n",
+		op, rtcpu->powered, rtcpu->boot_sync_done,
+		rtcpu->fw_active, rtcpu->online);
+}
+
+static void tegra_camrtc_pm_done(struct device *dev, char const *op, int err)
+{
+	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
+
+	dev_dbg(dev, "done %s err=%d [powered=%d synced=%d active=%d online=%d]\n",
+		op, err, rtcpu->powered, rtcpu->boot_sync_done,
+		rtcpu->fw_active, rtcpu->online);
+}
+
 static int tegra_cam_rtcpu_runtime_suspend(struct device *dev)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	int err;
+
+	tegra_camrtc_pm_start(dev, "runtime_suspend");
 
 	err = tegra_camrtc_fw_suspend(dev);
 	/* Try full reset if an error occurred while suspending core. */
@@ -1021,12 +1043,22 @@ static int tegra_cam_rtcpu_runtime_suspend(struct device *dev)
 
 	camrtc_clk_group_adjust_slow(rtcpu->clocks);
 
+	tegra_camrtc_pm_done(dev, "runtime_suspend", err);
+
 	return 0;
 }
 
 static int tegra_cam_rtcpu_runtime_resume(struct device *dev)
 {
-	return tegra_camrtc_boot(dev);
+	int err;
+
+	tegra_camrtc_pm_start(dev, "runtime_resume");
+
+	err = tegra_camrtc_boot(dev);
+
+	tegra_camrtc_pm_done(dev, "runtime_resume", err);
+
+	return err;
 }
 
 static int tegra_cam_rtcpu_runtime_idle(struct device *dev)
@@ -1348,19 +1380,23 @@ void tegra_camrtc_flush_trace(struct device *dev)
 }
 EXPORT_SYMBOL(tegra_camrtc_flush_trace);
 
-static int tegra_camrtc_halt(struct device *dev)
+static int tegra_camrtc_halt(struct device *dev, char const *op)
 {
 	struct tegra_cam_rtcpu *rtcpu = dev_get_drvdata(dev);
 	bool online = rtcpu->online;
 	int err = 0;
 
+	tegra_camrtc_pm_start(dev, op);
+
 	tegra_camrtc_set_online(dev, false);
 
-	if (!rtcpu->powered)
+	if (!rtcpu->powered) {
+		tegra_camrtc_pm_done(dev, op, 0);
 		return 0;
+	}
 
 	if (!pm_runtime_suspended(dev))
-		/* Tell CAMRTC that we power down camera devices */
+		/* Tell CAMRTC that it should power down camera devices */
 		err = tegra_camrtc_fw_suspend(dev);
 
 	if (online && rtcpu->hsp && err == 0)
@@ -1373,21 +1409,32 @@ static int tegra_camrtc_halt(struct device *dev)
 
 	tegra_camrtc_poweroff(dev);
 
-	/* Ensure peer sync happens on system wakeup */
-	rtcpu->fw_active = false;
-	rtcpu->boot_sync_done = false;
+	tegra_camrtc_pm_done(dev, op, err); /* note this is not returned */
 
 	return 0;
 }
 
+static int tegra_camrtc_suspend(struct device *dev)
+{
+	return tegra_camrtc_halt(dev, "suspend");
+}
+
 static int tegra_camrtc_resume(struct device *dev)
 {
-	return tegra_camrtc_poweron(dev, false);
+	int err;
+
+	tegra_camrtc_pm_start(dev, "resume");
+
+	err = tegra_camrtc_poweron(dev, true);
+
+	tegra_camrtc_pm_done(dev, "resume", err);
+
+	return err;
 }
 
 static void tegra_cam_rtcpu_shutdown(struct platform_device *pdev)
 {
-	tegra_camrtc_halt(&pdev->dev);
+	tegra_camrtc_halt(&pdev->dev, "shutdown");
 }
 
 static const struct of_device_id tegra_cam_rtcpu_of_match[] = {
@@ -1405,7 +1452,7 @@ static const struct of_device_id tegra_cam_rtcpu_of_match[] = {
 MODULE_DEVICE_TABLE(of, tegra_cam_rtcpu_of_match);
 
 static const struct dev_pm_ops tegra_cam_rtcpu_pm_ops = {
-	.suspend = tegra_camrtc_halt,
+	.suspend = tegra_camrtc_suspend,
 	.resume = tegra_camrtc_resume,
 	.runtime_suspend = tegra_cam_rtcpu_runtime_suspend,
 	.runtime_resume = tegra_cam_rtcpu_runtime_resume,
