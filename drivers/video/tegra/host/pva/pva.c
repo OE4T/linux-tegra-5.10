@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -42,12 +42,10 @@
 #endif
 #include <soc/tegra/fuse-helper.h>
 
-#ifdef CONFIG_TEGRA_T23X_GRHOST
 #include "pva_mailbox_t23x.h"
 #include "pva_interface_regs_t23x.h"
 #include "pva_version_config_t23x.h"
 #include "pva_ccq_t23x.h"
-#endif
 #include "nvpva_queue.h"
 #include "pva_queue.h"
 #include "pva.h"
@@ -143,7 +141,6 @@ struct nvhost_device_data t19_pva0_info = {
 	.can_powergate		= true,
 };
 
-#ifdef CONFIG_TEGRA_T23X_GRHOST
 struct nvhost_device_data t23x_pva0_info = {
 	.version = PVA_HW_GEN2,
 	.num_channels		= 1,
@@ -180,7 +177,6 @@ struct nvhost_device_data t23x_pva0_info = {
 	.get_reloc_phys_addr	= nvhost_t23x_get_reloc_phys_addr,
 	.can_powergate		= true,
 };
-#endif
 
 /* Map PVA-A and PVA-B to respective configuration items in nvhost */
 static struct of_device_id tegra_pva_of_match[] = {
@@ -192,7 +188,6 @@ static struct of_device_id tegra_pva_of_match[] = {
 		.name = "pva1",
 		.compatible = "nvidia,tegra194-pva",
 		.data = (struct nvhost_device_data *)&t19_pva1_info },
-#ifdef CONFIG_TEGRA_T23X_GRHOST
 	{
 		.name = "pva0",
 		.compatible = "nvidia,tegra234-pva",
@@ -201,7 +196,6 @@ static struct of_device_id tegra_pva_of_match[] = {
 		.name = "pva0",
 		.compatible = "nvidia,tegra234-pva-hv",
 		.data = (struct nvhost_device_data *)&t23x_pva0_info },
-#endif
 	{ },
 };
 
@@ -1003,13 +997,7 @@ static int pva_probe(struct platform_device *pdev)
 		pdata->firmware_name = "nvpva_020.fw";
 		pdata->firmware_not_in_subdir = true;
 		pva->submit_cmd_mode = PVA_SUBMIT_MODE_MMIO_CCQ;
-#ifdef CONFIG_TEGRA_T23X_GRHOST
 		pva->version_config = &pva_t23x_config;
-#else
-		dev_err(dev, "No T23x config available\n");
-		err = -ENODEV;
-		goto err_no_ip;
-#endif
 	} else {
 		pva->version = PVA_HW_GEN1;
 		pdata->firmware_name = "nvpva_010.fw";
