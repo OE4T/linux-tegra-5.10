@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -162,78 +162,6 @@
 
 	thermal-zones {
 		status = "disabled";
-		CPU-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
-		GPU-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
-		CV0-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
-		CV1-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
-		CV2-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
-		SOC0-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
-		SOC1-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
-		SOC2-therm {
-			cooling-maps {
-				map0 {
-					cooling-device = <&cl0_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&cl1_0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
-							 <&tegra_ga10b THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
-				};
-			};
-		};
 
 		Tboard_tegra {
 			/* There is no external temp sensor */
