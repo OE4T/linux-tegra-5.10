@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -437,20 +437,19 @@ out:
  */
 bool dce_ipc_channel_is_ready(struct tegra_dce *d, u32 ch_type)
 {
-	bool ret;
+	bool is_est;
 
 	struct dce_ipc_channel *ch = d->d_ipc.ch[ch_type];
 
 	dce_mutex_lock(&ch->lock);
 
-	ret = (tegra_ivc_notified(&ch->d_ivc) ? false : true);
+	is_est = (tegra_ivc_notified(&ch->d_ivc) ? false : true);
 
-	if (ret == false)
-		ch->signal.notify(d, &ch->signal.to_d);
+	ch->signal.notify(d, &ch->signal.to_d);
 
 	dce_mutex_unlock(&ch->lock);
 
-	return ret;
+	return is_est;
 }
 
 /**
