@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -198,7 +198,6 @@ typedef my_lint_64		nvel64_t;
 #define OSI_OPER_ADDR_UPDATE		OSI_BIT(8)
 #define OSI_OPER_ADDR_DEL		OSI_BIT(9)
 
-#define OSI_PAUSE_FRAMES_DISABLE	1U
 #define OSI_PFT_MATCH		0U
 #define OSI_SA_MATCH		1U
 
