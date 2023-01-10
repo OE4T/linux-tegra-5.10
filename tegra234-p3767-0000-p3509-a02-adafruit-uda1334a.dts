@@ -13,11 +13,11 @@
 
 /*
  * Device-tree overlay for Adafruit I2S Stereo Decoder Breakout with board
- * tegra234-p3767-0000-p3509-a02.
+ * tegra234-p3767-0000 based platforms.
  */
 
 /dts-v1/;
 /plugin/;
 
-#include <dt-common/jetson/tegra234-p3767-0000-p3509-a02.h>
+#include <dt-common/jetson/tegra234-p3767-0000-common.h>
 #include <overlays/jetson-adafruit-uda1334a.dts>
