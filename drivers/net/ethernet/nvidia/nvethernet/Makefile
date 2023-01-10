@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2018-2023, NVIDIA CORPORATION.  All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms and conditions of the GNU General Public License,
@@ -11,6 +11,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ifneq ($(CONFIG_TEGRA_LINUX_SAFETY),y)
 
 OSI_COMMON := nvethernetrm/osi/common
 OSI_CORE := nvethernetrm/osi/core
@@ -58,3 +60,5 @@ nvethernet-objs:= ether_linux.o \
 include $(srctree.nvidia)/drivers/net/ethernet/nvidia/nvethernet/nvethernetrm/include/config.tmk
 
 nvethernet-$(CONFIG_NVETHERNET_SELFTESTS) += selftests.o
+
+endif
