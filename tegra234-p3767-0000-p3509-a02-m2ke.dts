@@ -19,7 +19,7 @@
 /plugin/;
 
 #include <dt-bindings/pinctrl/pinctrl-tegra.h>
-#include <dt-common/jetson/tegra234-p3767-0000-p3509-a02.h>
+#include <dt-common/jetson/tegra234-p3767-0000-common.h>
 
 / {
 	overlay-name = "Jetson M.2 Key E Slot";

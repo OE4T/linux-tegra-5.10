@@ -12,11 +12,11 @@
  */
 /*
  * Device-tree overlay for FE-PI Audio V1 and Z V2 with board
- * tegra234-p3767-0000-p3509-a02.
+ * tegra234-p3767-0000 based platforms.
  */
 
 /dts-v1/;
 /plugin/;
 
-#include <dt-common/jetson/tegra234-p3767-0000-p3509-a02.h>
+#include <dt-common/jetson/tegra234-p3767-0000-common.h>
 #include <overlays/jetson-fe-pi-audio.dts>
