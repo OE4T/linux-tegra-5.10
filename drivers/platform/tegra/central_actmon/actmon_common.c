@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016-2021, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2016-2023, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -38,8 +38,6 @@ static struct device *mon_dev;
 #include <linux/platform/tegra/emc_bwmgr.h>
 static u8 max_dram_channels;
 static u8 ch_num;
-
-#define offs(dev_reg_offs) (actmon->base + dev_reg_offs)
 
 static inline unsigned long do_percent(unsigned long val, unsigned int pct)
 {

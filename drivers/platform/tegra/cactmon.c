@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2022, NVIDIA Corporation. All rights reserved.
+ * Copyright (C) 2017-2023, NVIDIA Corporation. All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -77,9 +77,19 @@ static void set_prd(u32 val, void __iomem *base)
 	__raw_writel(val, base + ACTMON_GLB_CTRL);
 }
 
+static u32 get_glb_ctrl(void __iomem *base)
+{
+	return __raw_readl(base + ACTMON_GLB_CTRL);
+}
+
 static void set_glb_intr(u32 val, void __iomem *base)
 {
 	__raw_writel(val, base + ACTMON_GLB_INT_EN);
+}
+
+static u32 get_glb_intr(void __iomem *base)
+{
+	return __raw_readl(base + ACTMON_GLB_INT_EN);
 }
 
 static u32 get_glb_intr_st(void __iomem *base)
@@ -99,9 +109,19 @@ static void set_avg_up_wm(u32 val, void __iomem *base)
 	__raw_writel(val, base + ACTMON_DEV_AVG_UP_WMARK);
 }
 
+static u32 get_avg_up_wm(void __iomem *base)
+{
+	return __raw_readl(base + ACTMON_DEV_AVG_UP_WMARK);
+}
+
 static void set_avg_dn_wm(u32 val, void __iomem *base)
 {
 	__raw_writel(val, base + ACTMON_DEV_AVG_DOWN_WMARK);
+}
+
+static u32 get_avg_dn_wm(void __iomem *base)
+{
+	return __raw_readl(base + ACTMON_DEV_AVG_DOWN_WMARK);
 }
 
 static void set_dev_up_wm(u32 val, void __iomem *base)
@@ -109,9 +129,19 @@ static void set_dev_up_wm(u32 val, void __iomem *base)
 	__raw_writel(val, base + ACTMON_DEV_UP_WMARK);
 }
 
+static u32 get_dev_up_wm(void __iomem *base)
+{
+	return __raw_readl(base + ACTMON_DEV_UP_WMARK);
+}
+
 static void set_dev_dn_wm(u32 val, void __iomem *base)
 {
 	__raw_writel(val, base + ACTMON_DEV_DOWN_WMARK);
+}
+
+static u32 get_dev_dn_wm(void __iomem *base)
+{
+	return __raw_readl(base + ACTMON_DEV_DOWN_WMARK);
 }
 
 static void set_cnt_wt(u32 val, void __iomem *base)
@@ -127,6 +157,16 @@ static void set_intr_st(u32 val, void __iomem *base)
 static u32 get_intr_st(void __iomem *base)
 {
 	return __raw_readl(base + ACTMON_DEV_INTR_STATUS);
+}
+
+static void set_dev_ctrl(u32 val, void __iomem *base)
+{
+	__raw_writel(val, base + ACTMON_DEV_CTRL);
+}
+
+static u32 get_dev_ctrl(void __iomem *base)
+{
+	return __raw_readl(base + ACTMON_DEV_CTRL);
 }
 
 static void init_dev_cntrl(struct actmon_dev *dev, void __iomem *base)
@@ -200,12 +240,18 @@ static void actmon_dev_reg_ops_init(struct actmon_dev *adev)
 {
 	adev->ops.set_init_avg = set_init_avg;
 	adev->ops.set_avg_up_wm = set_avg_up_wm;
+	adev->ops.get_avg_up_wm = get_avg_up_wm;
 	adev->ops.set_avg_dn_wm = set_avg_dn_wm;
+	adev->ops.get_avg_dn_wm = get_avg_dn_wm;
 	adev->ops.set_dev_up_wm = set_dev_up_wm;
+	adev->ops.get_dev_up_wm = get_dev_up_wm;
 	adev->ops.set_dev_dn_wm = set_dev_dn_wm;
+	adev->ops.get_dev_dn_wm = get_dev_dn_wm;
 	adev->ops.set_cnt_wt = set_cnt_wt;
 	adev->ops.set_intr_st = set_intr_st;
 	adev->ops.get_intr_st = get_intr_st;
+	adev->ops.set_dev_ctrl = set_dev_ctrl;
+	adev->ops.get_dev_ctrl = get_dev_ctrl;
 	adev->ops.init_dev_cntrl = init_dev_cntrl;
 	adev->ops.enb_dev_intr_all = enb_dev_intr_all;
 	adev->ops.enb_dev_intr = enb_dev_intr;
@@ -532,6 +578,8 @@ static struct actmon_drv_data actmon_data =
 	.actmon_dev_platform_init = actmon_dev_platform_init,
 	.ops.set_sample_prd = set_prd,
 	.ops.set_glb_intr = set_glb_intr,
+	.ops.get_glb_intr = get_glb_intr,
+	.ops.get_glb_ctrl = get_glb_ctrl,
 	.ops.get_glb_intr_st = get_glb_intr_st,
 };
 
@@ -541,6 +589,69 @@ static const struct of_device_id tegra_actmon_of_match[] = {
 	{ .compatible = "nvidia,tegra234-cactmon", .data = &actmon_data, },
 	{},
 };
+
+static int tegra_actmon_resume(struct platform_device *pdev)
+{
+	int ret = 0;
+	int i;
+	struct actmon_drv_data *actmon = (struct actmon_drv_data *) platform_get_drvdata(pdev);
+	struct actmon_dev *adev;
+
+	for (i = 0; i < MAX_DEVICES; i++) {
+		if (actmon->devices[i].state != ACTMON_ON) {
+			continue;
+		}
+		adev = &actmon->devices[i];
+
+		/* dev_intr_enb */
+		adev->ops.enb_dev_intr_all(offs(adev->reg_offs));
+		/* init_avg */
+		adev->ops.set_init_avg(adev->avg_count, offs(adev->reg_offs));
+		/* cnt_wt */
+		adev->ops.set_cnt_wt(adev->count_weight, offs(adev->reg_offs));
+
+		adev->ops.set_avg_up_wm(adev->reg_ctx.dev_avg_up_wm, offs(adev->reg_offs));
+		adev->ops.set_avg_dn_wm(adev->reg_ctx.dev_avg_dn_wm, offs(adev->reg_offs));
+		adev->ops.set_dev_up_wm(adev->reg_ctx.dev_up_wm, offs(adev->reg_offs));
+		adev->ops.set_dev_dn_wm(adev->reg_ctx.dev_dn_wm, offs(adev->reg_offs));
+		adev->ops.set_dev_ctrl(adev->reg_ctx.dev_ctrl, offs(adev->reg_offs));
+	}
+
+	/* clear interrupts */
+	actmon->ops.set_glb_intr(0xff, actmon->base);
+
+	/* glb enables */
+	actmon->ops.set_sample_prd(actmon->reg_ctx.glb_ctrl, actmon->base);
+	actmon->ops.set_glb_intr(actmon->reg_ctx.glb_intr_en, actmon->base);
+
+	return ret;
+}
+
+static int tegra_actmon_suspend(struct platform_device *pdev, struct pm_message pm)
+{
+	int ret = 0;
+	int i;
+	struct actmon_drv_data *actmon = (struct actmon_drv_data *) platform_get_drvdata(pdev);
+	struct actmon_dev *adev;
+
+	for (i = 0; i < MAX_DEVICES; i++) {
+		if (actmon->devices[i].state != ACTMON_ON) {
+			continue;
+		}
+		adev = &actmon->devices[i];
+
+		adev->reg_ctx.dev_up_wm = adev->ops.get_avg_up_wm(offs(adev->reg_offs));
+		adev->reg_ctx.dev_dn_wm = adev->ops.get_avg_dn_wm(offs(adev->reg_offs));
+		adev->reg_ctx.dev_avg_up_wm = adev->ops.get_dev_up_wm(offs(adev->reg_offs));
+		adev->reg_ctx.dev_avg_dn_wm = adev->ops.get_dev_dn_wm(offs(adev->reg_offs));
+		adev->reg_ctx.dev_ctrl = adev->ops.get_dev_ctrl(offs(adev->reg_offs));
+	}
+
+	actmon->reg_ctx.glb_ctrl = actmon->ops.get_glb_ctrl(actmon->base);
+	actmon->reg_ctx.glb_intr_en = actmon->ops.get_glb_intr(actmon->base);
+
+	return ret;
+}
 
 static int __init tegra_actmon_probe(struct platform_device *pdev)
 {
@@ -564,6 +675,8 @@ static int __init tegra_actmon_probe(struct platform_device *pdev)
 static struct platform_driver tegra19x_actmon_driver __refdata = {
 	.probe		= tegra_actmon_probe,
 	.remove		= tegra_actmon_remove,
+	.resume		= tegra_actmon_resume,
+	.suspend	= tegra_actmon_suspend,
 	.driver	= {
 		.name	= "tegra_actmon",
 		.owner	= THIS_MODULE,
