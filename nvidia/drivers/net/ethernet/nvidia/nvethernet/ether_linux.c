@@ -5596,7 +5596,7 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 	ret = of_property_read_u32(np, "nvidia,pause_frames",
 				   &pdata->osi_core->pause_frames);
 	if (ret < 0) {
-		dev_info(dev, "Failed to read nvida,pause_frames, so"
+		dev_info(dev, "Failed to read nvidia,pause_frames, so"
 			 " setting to default support as disable\n");
 		pdata->osi_core->pause_frames = OSI_PAUSE_FRAMES_DISABLE;
 	}
