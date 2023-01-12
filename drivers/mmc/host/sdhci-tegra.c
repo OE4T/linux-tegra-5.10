@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (C) 2010 Google, Inc.
- * Copyright (c) 2012-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2012-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -227,6 +227,7 @@ struct sdhci_tegra_soc_data {
 	u32 nvquirks;
 	u8 min_tap_delay;
 	u8 max_tap_delay;
+	unsigned int min_host_clk;
 	bool use_bwmgr;
 };
 
@@ -1375,6 +1376,8 @@ static void tegra_sdhci_set_clock(struct sdhci_host *host, unsigned int clock)
 	 */
 	if (!tegra_host->skip_clk_rst) {
 		host_clk = tegra_sdhci_apply_clk_limits(host, clock);
+		if (host_clk < tegra_host->soc_data->min_host_clk)
+			host_clk = tegra_host->soc_data->min_host_clk;
 		clk_set_rate(pltfm_host->clk, host_clk);
 		tegra_host->curr_clk_rate = clk_get_rate(pltfm_host->clk);
 		if (tegra_host->ddr_signaling)
@@ -2696,6 +2699,7 @@ static const struct sdhci_tegra_soc_data soc_data_tegra234 = {
 		    NVQUIRK_HAS_TMCLK,
 	.min_tap_delay = 95,
 	.max_tap_delay = 111,
+	.min_host_clk = 20000000,
 	.use_bwmgr = false,
 };
 
