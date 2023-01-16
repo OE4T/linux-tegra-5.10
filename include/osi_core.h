@@ -1301,8 +1301,6 @@ struct osi_core_priv_data {
 	nveu32_t mtu;
 	/** Ethernet MAC address */
 	nveu8_t mac_addr[OSI_ETH_ALEN];
-	/** DT entry to enable(1) or disable(0) pause frame support */
-	nveu32_t pause_frames;
 	/** Current flow control settings */
 	nveu32_t flow_ctrl;
 	/** PTP configuration settings */
@@ -1329,6 +1327,8 @@ struct osi_core_priv_data {
 	nveu16_t vlan_filter_cnt;
 	/** RSS core structure */
 	struct osi_core_rss rss;
+	/** DT entry to enable(1) or disable(0) pause frame support */
+	nveu32_t pause_frames;
 #endif
 	/** Residual queue valid with FPE support */
 	nveu32_t residual_queue;

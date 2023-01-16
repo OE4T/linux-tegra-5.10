@@ -53,6 +53,8 @@
 #define OSI_MAX_TX_COALESCE_USEC	1020U
 #define OSI_MIN_TX_COALESCE_USEC	32U
 #define OSI_MIN_TX_COALESCE_FRAMES	1U
+#define OSI_PAUSE_FRAMES_DISABLE	0U
+#define OSI_PAUSE_FRAMES_ENABLE		1U
 #endif /* !OSI_STRIPPED_LIB */
 
 /* Compiler hints for branch prediction */
@@ -77,16 +79,13 @@
 #define OSI_GCL_SIZE_1024		1024U
 /** @} */
 
-#define OSI_PAUSE_FRAMES_DISABLE	0U
 #ifndef OSI_STRIPPED_LIB
-
 /**
  * @addtogroup Helper MACROS
  *
  * @brief EQOS generic helper MACROS.
  * @{
  */
-#define OSI_PAUSE_FRAMES_ENABLE		1U
 #define OSI_PTP_REQ_CLK_FREQ		250000000U
 #define OSI_FLOW_CTRL_DISABLE		0U
 #define OSI_ADDRESS_32BIT		0
