@@ -1,7 +1,7 @@
 /*
  * PVA Debug Information file
  *
- * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2017-2023, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -362,7 +362,8 @@ void pva_debugfs_init(struct platform_device *pdev)
 					GFP_KERNEL);
 	if (IS_ERR_OR_NULL(pva->vpu_util_info.stats_fw_buffer_va)) {
 		err = PTR_ERR(pva->vpu_util_info.stats_fw_buffer_va);
-		dev_err(&pva->pdev->dev, "failed to allocate stats buffer\n");
+		dev_err(&pva->pdev->dev,
+			"err = %d. failed to allocate stats buffer\n", err);
 		pva->vpu_util_info.stats_fw_buffer_va = 0;
 		pva->vpu_util_info.stats_fw_buffer_iova = 0;
 	}
