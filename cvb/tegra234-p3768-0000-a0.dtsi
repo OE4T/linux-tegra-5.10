@@ -263,8 +263,8 @@
 
 	tegra-capture-vi  {
 		ports {
-			vi_port0 {
-				rbpcv2_imx219_vi_in0 {
+			port@0 {
+				endpoint {
 					port-index = <1>;
 				};
 			};
@@ -276,7 +276,7 @@
 			csi_chan0 {
 				ports {
 					port@0 {
-						rbpcv2_imx219_csi_in0 {
+						endpoint@0 {
 							port-index = <1>;
 						};
 					};
