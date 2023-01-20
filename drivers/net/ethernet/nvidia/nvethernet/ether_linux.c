@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -3942,7 +3942,7 @@ static int ether_change_mtu(struct net_device *ndev, int new_mtu)
 
 #ifdef MACSEC_SUPPORT
 	/* Macsec is not supported or not enabled in DT */
-	if (pdata->macsec_pdata->is_macsec_enabled_in_dt == 0U) {
+	if (!pdata->macsec_pdata) {
 		netdev_info(pdata->ndev, "Macsec not supported or not enabled in DT\n");
 	} else if ((osi_core->mac == OSI_MAC_HW_EQOS && osi_core->mac_ver == OSI_EQOS_MAC_5_30) ||
 	    (osi_core->mac == OSI_MAC_HW_MGBE && osi_core->mac_ver == OSI_MGBE_MAC_3_10)) {
