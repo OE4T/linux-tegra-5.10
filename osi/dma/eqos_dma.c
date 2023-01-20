@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef OSI_STRIPPED_LIB
 #include "../osi/common/common.h"
 #include "dma_local.h"
 #include "eqos_dma.h"
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_config_slot - Configure slot Checking for DMA channel
  *
@@ -80,7 +80,6 @@ static void eqos_config_slot(struct osi_dma_priv_data *osi_dma,
 			   EQOS_DMA_CHX_SLOT_CTRL(chan));
 	}
 }
-#endif /* !OSI_STRIPPED_LIB */
 
 #ifdef OSI_DEBUG
 /**
@@ -136,16 +135,11 @@ static void eqos_debug_intr_config(struct osi_dma_priv_data *osi_dma)
  *
  * @param[in] ops: DMA channel operations pointer.
  */
-#ifndef OSI_STRIPPED_LIB
 void eqos_init_dma_chan_ops(struct dma_chan_ops *ops)
-#else
-void eqos_init_dma_chan_ops(OSI_UNUSED struct dma_chan_ops *ops)
-#endif /* !OSI_STRIPPED_LIB */
 {
-#ifndef OSI_STRIPPED_LIB
 	ops->config_slot = eqos_config_slot;
-#endif /* !OSI_STRIPPED_LIB */
 #ifdef OSI_DEBUG
 	ops->debug_intr_config = eqos_debug_intr_config;
 #endif
 }
+#endif /* !OSI_STRIPPED_LIB */

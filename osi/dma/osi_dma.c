@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -280,13 +280,14 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 	const nveu32_t default_rz[] = { EQOS_DEFAULT_RING_SZ, MGBE_DEFAULT_RING_SZ };
 	const nveu32_t max_rz[] = { EQOS_DEFAULT_RING_SZ, MGBE_MAX_RING_SZ };
 	struct dma_local *l_dma = (struct dma_local *)(void *)osi_dma;
-	typedef void (*init_ops_arr)(struct dma_chan_ops *temp);
 	static struct dma_chan_ops dma_gops[MAX_MAC_IP_TYPES];
-	nve32_t ret = 0;
-
+#ifndef OSI_STRIPPED_LIB
+	typedef void (*init_ops_arr)(struct dma_chan_ops *temp);
 	const init_ops_arr i_ops[MAX_MAC_IP_TYPES] = {
 		eqos_init_dma_chan_ops, mgbe_init_dma_chan_ops
 	};
+#endif
+	nve32_t ret = 0;
 
 	if (osi_dma == OSI_NULL) {
 		ret = -1;
@@ -340,9 +341,9 @@ nve32_t osi_init_dma_ops(struct osi_dma_priv_data *osi_dma)
 		ret = -1;
 		goto fail;
 	}
-
+#ifndef OSI_STRIPPED_LIB
 	i_ops[osi_dma->mac](&dma_gops[osi_dma->mac]);
-
+#endif
 	if (init_desc_ops(osi_dma) < 0) {
 		OSI_DMA_ERR(osi_dma->osd, OSI_LOG_ARG_INVALID,
 			    "DMA desc ops init failed\n", 0ULL);

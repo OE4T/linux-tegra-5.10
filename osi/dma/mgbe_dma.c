@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef OSI_STRIPPED_LIB
 #include "../osi/common/common.h"
 #include <osi_common.h>
 #include "mgbe_dma.h"
 #include "dma_local.h"
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief mgbe_config_slot - Configure slot Checking for DMA channel
  *
@@ -67,7 +67,6 @@ static void mgbe_config_slot(struct osi_dma_priv_data *osi_dma,
 			   MGBE_DMA_CHX_SLOT_CTRL(chan));
 	}
 }
-#endif
 
 #ifdef OSI_DEBUG
 /**
@@ -118,16 +117,11 @@ static void mgbe_debug_intr_config(struct osi_dma_priv_data *osi_dma)
 }
 #endif
 
-#ifndef OSI_STRIPPED_LIB
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops)
-#else
-void mgbe_init_dma_chan_ops(OSI_UNUSED struct dma_chan_ops *ops)
-#endif
 {
-#ifndef OSI_STRIPPED_LIB
 	ops->config_slot = mgbe_config_slot;
-#endif
 #ifdef OSI_DEBUG
 	ops->debug_intr_config = mgbe_debug_intr_config;
 #endif
 };
+#endif /* !OSI_STRIPPED_LIB */

@@ -1,4 +1,4 @@
-# copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
+# copyright (c) 2022-2023, NVIDIA CORPORATION. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,13 +19,24 @@
 # DEALINGS IN THE SOFTWARE.
 #
 ###############################################################################
+
+# Set the Makefile config macros to zero by default
+OSI_STRIPPED_LIB := 0
+OSI_DEBUG := 0
+DEBUG_MACSEC := 0
+
 ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),1)
         NV_COMPONENT_CFLAGS += -DOSI_STRIPPED_LIB
+	OSI_STRIPPED_LIB := 1
 else
         NV_COMPONENT_CFLAGS += -DOSI_DEBUG
         NV_COMPONENT_CFLAGS += -DDEBUG_MACSEC
+	OSI_DEBUG := 1
+	DEBUG_MACSEC := 1
 endif
 NV_COMPONENT_CFLAGS += -DHSI_SUPPORT
 NV_COMPONENT_CFLAGS += -DMACSEC_SUPPORT
 #NV_COMPONENT_CFLAGS += -DMACSEC_KEY_PROGRAM
+HSI_SUPPORT := 1
+MACSEC_SUPPORT := 1
 ccflags-y += $(NV_COMPONENT_CFLAGS)

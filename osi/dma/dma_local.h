@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -112,6 +112,7 @@ struct dma_local {
 	nveu32_t l_mac_ver;
 };
 
+#ifndef OSI_STRIPPED_LIB
 /**
  * @brief eqos_init_dma_chan_ops - Initialize eqos DMA operations.
  *
@@ -137,6 +138,7 @@ void eqos_init_dma_chan_ops(struct dma_chan_ops *ops);
  * - De-initialization: No
  */
 void mgbe_init_dma_chan_ops(struct dma_chan_ops *ops);
+#endif /* !OSI_STRIPPED_LIB */
 
 /**
  * @brief eqos_get_desc_ops - EQOS init DMA descriptor operations
