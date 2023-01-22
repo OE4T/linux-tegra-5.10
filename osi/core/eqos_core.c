@@ -533,7 +533,7 @@ done:
  * Algorithm:
  *
  * @param[in] osi_core: OSI core private data.
- * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ * @param[in] nve: Number of Valid Entries.
  *
  * @note MAC should be init and started. see osi_start_mac()
  *
@@ -1243,8 +1243,6 @@ static void eqos_dma_chan_to_vmirq_map(struct osi_core_priv_data *osi_core)
  * @param[in] osi_core: OSI core private data structure. Used params are
  *  - base, dcs_en, num_mtl_queues, mtl_queues, mtu, stip_vlan_tag, pause_frames,
  *    l3l4_filter_bitmask
- * @param[in] tx_fifo_size: MTL TX FIFO size. Max 11.
- * @param[in] rx_fifo_size: MTL RX FIFO size. Max 11.
  *
  * @pre
  *  - MAC should be out of reset. See osi_poll_for_mac_reset_complete()
@@ -1990,9 +1988,9 @@ static void eqos_config_mac_tx(struct osi_core_priv_data *const osi_core,
  * @param[in] osi_core: OSI core private data structure. Used param base.
  * @param[out] value: nveu32_t pointer which has value read from register.
  * @param[in] idx: Refer #osi_filter->index for details.
- * @param[in] dma_routing_enable: Refer #osi_filter->dma_routing for details.
  * @param[in] dma_chan: Refer #osi_filter->dma_chan for details.
  * @param[in] addr_mask: Refer #osi_filter->addr_mask for details.
+ * @param[in] src_dest: source/destination MAC address.
  *
  * @pre
  *  - MAC should be initialized and started. see osi_start_mac()
@@ -2066,7 +2064,7 @@ static inline nve32_t eqos_update_mac_addr_helper(
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[out] value: nveu32_t pointer which has value read from register.
- * @param[in] idx: filter index
+ * @param[in] filter_idx: filter index
  * @param[in] dma_routing_enable: dma channel routing enable(1)
  * @param[in] dma_chan: dma channel number
  *

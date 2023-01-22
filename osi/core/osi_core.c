@@ -31,6 +31,7 @@ static struct core_local g_core[MAX_CORE_INSTANCES];
  * @brief Function to validate function pointers.
  *
  * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] if_ops_p: pointer to interface core operations.
  *
  * @note
  * API Group:
@@ -78,6 +79,7 @@ fail:
  * @brief Function to validate input arguments of API.
  *
  * @param[in] osi_core: OSI Core private data structure.
+ * @param[in] l_core: Core local private data structure.
  *
  * @note
  * API Group:

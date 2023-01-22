@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -210,6 +210,7 @@ static void frp_entry_mode_parse(nveu8_t filter_mode,
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] frp_id: FRP ID to add.
+ * @param[in] pos: FRP entry position.
  * @param[in] match: Pointer to match data.
  * @param[in] length: Match data length.
  * @param[in] offset: Actual match data offset position.
@@ -373,6 +374,7 @@ done:
  * Algorithm: Update FRP table into HW.
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ops_p: Core operations data structure.
  *
  * @retval 0 on success.
  * @retval -1 on failure.
@@ -602,6 +604,7 @@ static void frp_parse_mtype(struct osi_core_frp_cmd *const cmd)
  * Algorithm: Parse give FRP delete command and update it on OSI data and HW.
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ops_p: Core operations data structure.
  * @param[in] cmd: OSI FRP command structure.
  *
  * @retval 0 on success.
@@ -675,6 +678,7 @@ done:
  * Algorithm: Parse give FRP update command and update it on OSI data and HW.
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ops_p: Core operations data structure.
  * @param[in] cmd: OSI FRP command structure.
  *
  * @retval 0 on success.
@@ -763,6 +767,7 @@ done:
  * Algorithm: Parse give FRP Add command and update it on OSI data and HW.
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ops_p: Core operations data structure.
  * @param[in] cmd: OSI FRP command structure.
  *
  * @retval 0 on success.
@@ -840,6 +845,7 @@ done:
  * Algorithm: Parse give FRP command and update it on OSI data and HW.
  *
  * @param[in] osi_core: OSI core private data structure.
+ * @param[in] ops_p: Core operations data structure.
  * @param[in] cmd: OSI FRP command structure.
  *
  * @retval 0 on success.

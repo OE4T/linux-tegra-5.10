@@ -38,7 +38,7 @@
  * Algorithm: Waits for waits for transfer busy bit to be cleared in
  * MAC Indirect address control register to complete operations.
  *
- * @param[in] addr: MGBE virtual base address.
+ * @param[in] osi_core: osi core priv data structure
  *
  * @note MAC needs to be out of reset and proper clock configured.
  *
@@ -75,7 +75,7 @@ static nve32_t mgbe_poll_for_mac_acrtl(struct osi_core_priv_data *osi_core)
  *
  * Algorithm: writes MAC Indirect AC register
  *
- * @param[in] base: MGBE virtual base address.
+ * @param[in] osi_core: osi core priv data structure
  * @param[in] mc_no: MAC AC Mode Select number
  * @param[in] addr_offset: MAC AC Address Offset.
  * @param[in] value: MAC AC register value
@@ -134,7 +134,7 @@ static nve32_t mgbe_mac_indir_addr_write(struct osi_core_priv_data *osi_core,
  *
  * Algorithm: Reads MAC Indirect AC register
  *
- * @param[in] base: MGBE virtual base address.
+ * @param[in] osi_core: osi core priv data structure
  * @param[in] mc_no: MAC AC Mode Select number
  * @param[in] addr_offset: MAC AC Address Offset.
  * @param[in] value: Pointer MAC AC register value
@@ -387,7 +387,7 @@ fail:
  * Algorithm: Waits for waits for transfer busy bit to be cleared in
  * L3_L4 address control register to complete filter register operations.
  *
- * @param[in] addr: MGBE virtual base address.
+ * @param[in] osi_core: osi core priv data structure
  *
  * @note MAC needs to be out of reset and proper clock configured.
  *
@@ -433,7 +433,7 @@ fail:
  *
  * Algorithm: writes L3_L4 filter register
  *
- * @param[in] base: MGBE virtual base address.
+ * @param[in] osi_core: osi core priv data structure
  * @param[in] filter_no: MGBE  L3_L4 filter number
  * @param[in] filter_type: MGBE L3_L4 filter register type.
  * @param[in] value: MGBE  L3_L4 filter register value
@@ -1119,8 +1119,8 @@ done:
  *
  * Algorithm:
  *
- * @param[in] addr: MGBE virtual base address.
- * @param[in] enabled: Flag to indicate feature is to be enabled/disabled.
+ * @param[in] osi_core: osi core priv data structure
+ * @param[in] nve: Number of Valid Entries.
  *
  * @note MAC should be init and started. see osi_start_mac()
  *
@@ -1171,9 +1171,8 @@ done:
  *	6) Enable Rx Queues
  *	7) Enable TX Underflow Interrupt for MTL Q
  *
- * @param[in] qinx: Queue number that need to be configured.
- * @param[in] osi_core: OSI core private data.
- * @param[in] tx_fifo: MTL TX queue size for a MTL queue.
+ * @param[in] osi_core: OSI core private data structure.
+ * @param[in] hw_qinx: Queue number that need to be configured.
  *
  * @note MAC has to be out of reset.
  *
@@ -2172,7 +2171,6 @@ static inline nveu32_t get_free_ts_idx(struct core_local *l_core)
  *	MAC nve32_terrupts which includes speed, mode detection.
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] dma_isr: DMA ISR register read value.
  *
  * @note MAC nve32_terrupts need to be enabled
  */
@@ -2629,6 +2627,7 @@ fail:
  * There is one status interrupt which says swich to SWOL complete.
  *
  * @param[in] osi_core: osi core priv data structure
+ * @param[in] mtl_isr: MTL interrupt status value
  *
  * @note MAC should be init and started. see osi_start_mac()
  */
@@ -3644,8 +3643,7 @@ static nve32_t mgbe_get_hw_features(struct osi_core_priv_data *const osi_core,
  * Algorithm: Read time stamp update value from TCR register until it is
  *	equal to zero.
  *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] mac_tcr: Address to store time stamp control register read value
  *
  * @note MAC should be init and started. see osi_start_mac()
@@ -3681,8 +3679,7 @@ static inline nve32_t mgbe_poll_for_update_ts_complete(
  *
  * Algorithm: Update MAC time with system time
  *
- * @param[in] addr: Base address indicating the start of
- *	      memory mapped IO region of the MAC.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] sec: Seconds to be configured
  * @param[in] nsec: Nano seconds to be configured
  * @param[in] add_sub: To decide on add/sub with system time

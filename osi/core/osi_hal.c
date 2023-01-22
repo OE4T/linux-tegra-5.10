@@ -813,7 +813,7 @@ static nve32_t l3l4_find_match(const struct core_local *const l_core,
  * - Return -1 if parameter validation fails.
  * - Return 0 on success.
  *
- * @param[inout] l_core: OSI local core data structure.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
  *
  * @pre
@@ -896,7 +896,7 @@ exit_func:
  * - Store the filter into l_core->cfg.l3_l4[] and enable
  *   l3l4 filter if any of the filter index enabled currently.
  *
- * @param[inout] l_core: OSI local core data structure.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] filter_no: pointer to filter number
  * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
  *

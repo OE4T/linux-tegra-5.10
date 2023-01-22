@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -99,7 +99,7 @@
 /** @} */
 
 /**
- * @addtogroup Generic table CONFIG register helpers macros
+ * @addtogroup MACSEC-Generic table CONFIG register helpers macros
  *
  * @brief Helper macros for generic table CONFIG register programming
  * @{
@@ -154,9 +154,9 @@
 /** @} */
 
 /**
- * @addtogroup MACSEC Misc helper macro's
+ * @addtogroup MACSEC related helper MACROs
  *
- * @brief MACSEC Helper macro's
+ * @brief MACSEC generic helper MACROs
  * @{
  */
 #define OSI_MACSEC_TX_EN	OSI_BIT(0)
@@ -644,6 +644,7 @@ nve32_t osi_macsec_en(struct osi_core_priv_data *const osi_core,
  *
  * @param[in] osi_core: OSI core private data structure
  * @param[in] sc: Pointer to the sc that needs to be added/deleted/updated
+ * @param[in] enable: macsec enable/disable selection
  * @param[in] ctlr: Controller selected
  * @param[out] kt_idx: Pointer to the kt_index passed to OSD
  *

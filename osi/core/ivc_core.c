@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -91,8 +91,6 @@ static nve32_t ivc_handle_ioctl(struct osi_core_priv_data *osi_core,
  * @brief ivc_core_init - EQOS MAC, MTL and common DMA Initialization
  *
  * @param[in] osi_core: OSI core private data structure.
- * @param[in] tx_fifo_size: MTL TX FIFO size
- * @param[in] rx_fifo_size: MTL RX FIFO size
  *
  * @retval 0 on success
  * @retval -1 on failure.
@@ -303,10 +301,9 @@ static void ivc_macsec_read_mmc(struct osi_core_priv_data *const osi_core)
  * @brief ivc_get_sc_lut_key_index - Macsec get Key_index
  *
  * @param[in] osi_core: OSI Core private data structure.
- * @param[in] sc: Secure Channel info.
- * @param[in] enable: enable or disable.
+ * @param[in] sci: Secure Channel info.
+ * @param[out] key_index: Key table index to program SAK.
  * @param[in] ctlr: Controller instance.
- * @param[[out] kt_idx: Key table index to program SAK.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -341,7 +338,7 @@ static nve32_t ivc_get_sc_lut_key_index(struct osi_core_priv_data *const osi_cor
  * @param[in] sc: Secure Channel info.
  * @param[in] enable: enable or disable.
  * @param[in] ctlr: Controller instance.
- * @param[[out] kt_idx: Key table index to program SAK.
+ * @param[out] kt_idx: Key table index to program SAK.
  *
  * @retval 0 on Success
  * @retval -1 on Failure
@@ -556,7 +553,7 @@ static nve32_t ivc_macsec_deinit(struct osi_core_priv_data *const osi_core)
  * @brief ivc_macsec_init -Initialize.
  *
  * @param[in] osi_core: OSI Core private data structure.
- * @param[in] genl_info: Generic netlink information structure.
+ * @param[in] mtu: mtu to be set.
  *
  * @retval 0 on Success
  * @retval -1 on Failure

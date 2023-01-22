@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -158,9 +158,9 @@
 #define EQOS_MTL_FRP_IE2_DCH_SHIFT		24U
 #define EQOS_DMA_ISR_MTLIS			OSI_BIT(16)
 /**
- * @addtogroup EQOS-MTL FRP Indirect Access register defines
+ * @addtogroup EQOS-MTL-FRP FRP Indirect Access register defines
  *
- * @brief EQOS MTL register offsets
+ * @brief EQOS MTL FRP register defines
  * @{
  */
 #define EQOS_MTL_FRP_READ_UDELAY		1U

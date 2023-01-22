@@ -249,9 +249,9 @@
 						 OSI_BIT(5) | OSI_BIT(4))
 
 /**
- * @addtogroup MGBE-MTL FRP Indirect Access register defines
+ * @addtogroup MGBE-MTL-FRP FRP Indirect Access register defines
  *
- * @brief MGBE MTL register offsets
+ * @brief MGBE MTL FRP register defines
  * @{
  */
 #define MGBE_MTL_FRP_READ_UDELAY		1U
@@ -390,7 +390,7 @@
 
 
 /**
- * @addtogroup MGBE MAC Mode Select Group
+ * @addtogroup MGBE-MAC-MODE MAC Mode Select Group
  *
  * @brief MGBE MAC Indirect Access control and status for
  * Mode Select type defines.
@@ -416,7 +416,7 @@
 /** @} */
 
 /**
- * @addtogroup MGBE MAC L3L4 defines
+ * @addtogroup MGBE-L3L4 MAC L3L4 defines
  *
  * @brief MGBE L3L4 Address Control register
  * IDDR filter filed type defines
@@ -742,7 +742,7 @@
 #define TX_FIFO_SZ	(((((128U * 1024U)/OSI_MGBE_MAX_NUM_QUEUES)) / 256U) - 1U)
 
 /**
- * @addtogroup MGBE-MAC MGBE MAC HW feature registers
+ * @addtogroup MGBE-MAC-HWFR MGBE MAC HW feature registers
  *
  * @brief Helps in identifying the features that are set in MAC HW
  * @{

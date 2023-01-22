@@ -153,9 +153,9 @@
 /** @} */
 
 /**
- * @addtogroup Helper Helper MACROS
+ * @addtogroup Generic helper MACROS
  *
- * @brief EQOS generic helper MACROS.
+ * @brief These are Generic helper macros used at various places.
  * @{
  */
 #define OSI_UCHAR_MAX			(0xFFU)
@@ -253,6 +253,7 @@
 #define OSI_DEBUG_TYPE_REG		2U
 #define OSI_DEBUG_TYPE_STRUCTS		3U
 #endif /* OSI_DEBUG */
+/** @} */
 
 /**
  * @brief unused function attribute

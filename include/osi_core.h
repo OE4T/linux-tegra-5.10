@@ -155,7 +155,7 @@ typedef my_lint_64		nvel64_t;
 /** @} */
 
 /**
- * @addtogroup Helper Helper MACROS
+ * @addtogroup Helper MACROS
  *
  * @brief EQOS generic helper MACROS.
  * @{
@@ -311,7 +311,7 @@ typedef my_lint_64		nvel64_t;
 #define OSI_DELAY_1US		1U
 
 /**
- * @addtogroup PTP related information
+ * @addtogroup PTP PTP related information
  *
  * @brief PTP SSINC values
  * @{
@@ -1396,8 +1396,6 @@ struct osi_core_priv_data {
  *  - Invokes EQOS MAC, MTL and common DMA register init code.
  *
  * @param[in, out] osi_core: OSI core private data structure.
- * @param[in] tx_fifo_size: OSI core private data structure.
- * @param[in] rx_fifo_size: OSI core private data structure.
  *
  * @pre
  * - MAC should be out of reset. See osi_poll_for_mac_reset_complete()

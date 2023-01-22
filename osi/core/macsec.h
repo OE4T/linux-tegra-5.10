@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -381,15 +381,7 @@
 #define EQOS_MACSEC_SOT_DELAY	0x4EU
 
 /**
- * @addtogroup TX/RX_BYP/SCI_LUT_VALID register
- *
- * @brief Bit definitions of LUT_VALID registers
- * @{
- */
-/** @} */
-
-/**
- * @addtogroup TX/RX LUT bit fields in LUT_DATA registers
+ * @addtogroup MACSEC-LUT TX/RX LUT bit fields in LUT_DATA registers
  *
  * @brief Helper macros for LUT data programming
  * @{

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 #include <osi_common.h>
 
 /**
- * @addtogroup Generic helper macros
+ * @addtogroup Generic helper MACROS
  *
  * @brief These are Generic helper macros used at various places.
  * @{
@@ -54,8 +54,9 @@
  * a condition is met or a timeout occurs
  *
  * @param[in] addr: Memory mapped address.
+ * @param[in] fn: function to be used.
  * @param[in] val: Variable to read the value.
- * @param[in] cond: Break condition (usually involving @val).
+ * @param[in] cond: Break condition.
  * @param[in] delay_us: Maximum time to sleep between reads in us.
  * @param[in] retry: Retry count.
 
@@ -240,7 +241,8 @@ static inline void osi_writela(OSI_UNUSED void *priv, nveu32_t val, void *addr)
  * @brief validate_mac_ver_update_chans - Validates mac version and update chan
  *
  * @param[in] mac_ver: MAC version read.
- * @param[out] max_chans: Maximum channel number.
+ * @param[out] num_max_chans: Maximum channel number.
+ * @param[out] l_mac_ver: local mac version.
  *
  * @note MAC has to be out of reset.
  *

@@ -4927,7 +4927,7 @@ static void copy_rev_order(nveu8_t *dst_buff, const nveu8_t *src_buff, nveu16_t 
  *  - TraceID: ***********
  *
  * @param[in] osi_core: OSI core private data structure. used param macsec_base
- * @param[in] error_mask: Error mask that indicate which LUTs need to be cleared
+ * @param[in] mask: Error mask that indicate which LUTs need to be cleared
  * @param[in] ctlr: Controller to be selected
  * @param[in] sc: Pointer to the SC that was intended to be added
  *
@@ -5339,6 +5339,7 @@ exit:
  *
  * @param[in] osi_core: OSI core private data structure. used param macsec_base
  * @param[in] sc: Pointer to the sc that need to be added/deleted/updated
+ * @param[in] enable: enable or disable
  * @param[in] ctlr: Controller to be selected
  * @param[out] kt_idx: Key index to be passed to osd
  *
@@ -5899,6 +5900,7 @@ exit:
  *
  * @param[in] osi_core: OSI core private data structure
  * @param[in] sc: Pointer to the sc that needs to be added/deleted/updated
+ * @param[in] enable: enable or disable
  * @param[in] ctlr: Controller selected
  * @param[out] kt_idx: Pointer to the kt_index passed to OSD
  *

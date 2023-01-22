@@ -613,7 +613,7 @@ fail:
  * @brief hw_est_read - indirect read the GCL to Software own list
  * (SWOL)
  *
- * @param[in] base: MAC base IOVA address.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] addr_val: Address offset for indirect write.
  * @param[in] data: Data to be written at offset.
  * @param[in] gcla: Gate Control List Address, 0 for ETS register.
@@ -677,6 +677,7 @@ err:
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] est: Configuration input argument.
+ * @param[in] btr: Base time register value.
  * @param[in] mac: MAC index
  *
  * @note MAC should be init and started. see osi_start_mac()
@@ -858,7 +859,7 @@ done:
  * @brief hw_est_write - indirect write the GCL to Software own list
  * (SWOL)
  *
- * @param[in] base: MAC base IOVA address.
+ * @param[in] osi_core: OSI core private data structure.
  * @param[in] addr_val: Address offset for indirect write.
  * @param[in] data: Data to be written at offset.
  * @param[in] gcla: Gate Control List Address, 0 for ETS register.
@@ -1732,7 +1733,8 @@ static void prepare_l4_port_register(const struct osi_l3_l4_filter *const l3_l4,
  *
  * @param[in] osi_core: OSI core private data structure.
  * @param[in] l3_l4: Pointer to l3 l4 filter structure (#osi_l3_l4_filter)
- * @param[out] l4_addr_reg: Pointer to L3 ADDR0 register value
+ * @param[out] l3_addr1_reg: Pointer to L3 ADDR1 register value
+ * @param[out] ctr_reg: Pointer to L3L4 CTR register value
  *
  * @note 1) MAC should be init and started. see osi_start_mac()
  *	 2) osi_core->osd should be populated
