@@ -24,7 +24,6 @@
 #include <ivc_core.h>
 #include "core_local.h"
 #include "../osi/common/common.h"
-#include "vlan_filter.h"
 #include "core_common.h"
 #include "eqos_core.h"
 #include "mgbe_core.h"
@@ -32,7 +31,9 @@
 #ifdef OSI_DEBUG
 #include "debug.h"
 #endif /* OSI_DEBUG */
-
+#ifndef OSI_STRIPPED_LIB
+#include "vlan_filter.h"
+#endif
 /**
  * @brief g_ops - Static core operations array.
  */

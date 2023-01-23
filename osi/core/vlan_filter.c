@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef OSI_STRIPPED_LIB
 #include "../osi/common/common.h"
 #include "vlan_filter.h"
 
-#ifndef OSI_STRIPPED_LIB
 /**
  * @brief get_vlan_filter_idx - Get VLAN HW filter index which match vlan_id
  *

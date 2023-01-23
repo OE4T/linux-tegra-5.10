@@ -30,18 +30,16 @@ NV_COMPONENT_STRICT_WARNINGS_qnx_64 := 1
 NV_COMPONENT_NAME              := nvethernetrm
 NV_COMPONENT_OWN_INTERFACE_DIR := .
 NV_COMPONENT_SOURCES           := \
-	eqos_core.c \
-	eqos_mmc.c \
-	osi_core.c \
-	vlan_filter.c \
-	osi_hal.c \
-	ivc_core.c \
-	frp.c \
-	mgbe_core.c \
-	xpcs.c \
-	mgbe_mmc.c \
-	debug.c \
-	core_common.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/eqos_core.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/eqos_mmc.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/osi_core.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/osi_hal.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/ivc_core.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/frp.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/mgbe_core.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/xpcs.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/mgbe_mmc.c \
+	$(NV_SOURCE)/nvethernetrm/osi/core/core_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c \
 	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c \
@@ -52,6 +50,15 @@ NV_COMPONENT_INCLUDES          := \
 	$(NV_SOURCE)/nvethernetrm/osi/common/include
 
 include $(NV_SOURCE)/nvethernetrm/include/config.tmk
+
+ifeq ($(OSI_DEBUG),1)
+NV_COMPONENT_SOURCES		+= $(NV_SOURCE)/nvethernetrm/osi/core/debug.c
+endif
+
+ifeq ($(OSI_STRIPPED_LIB),0)
+NV_COMPONENT_SOURCES		+= \
+	$(NV_SOURCE)/nvethernetrm/osi/core/vlan_filter.c
+endif
 
 include $(NV_BUILD_STATIC_LIBRARY)
 endif

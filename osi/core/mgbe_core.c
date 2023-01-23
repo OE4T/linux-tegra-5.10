@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,6 @@
 #include "core_local.h"
 #include "xpcs.h"
 #include "mgbe_mmc.h"
-#include "vlan_filter.h"
 #include "core_common.h"
 #include "macsec.h"
 
