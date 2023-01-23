@@ -20,7 +20,7 @@
 / {
 	overlay-name = "Jetson Camera e3653-dual-Hawk module";
 	jetson-header-name = "Jetson AGX CSI Connector";
-	compatible = "nvidia,p3737-0000+p3701-0000";
+	compatible = "nvidia,p3737-0000+p3701-0000", "nvidia,p3737-0000+p3701-0004";
 
 	/* VI number of channels */
 	fragment@0 {
