@@ -127,6 +127,7 @@ struct osi_core_priv_data *osi_get_core(void)
 	g_core[i].pps_freq = OSI_DISABLE;
 
 	osi_core = &g_core[i].osi_core;
+	osi_memset(osi_core, 0, sizeof(struct osi_core_priv_data));
 fail:
 	return osi_core;
 }

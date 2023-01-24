@@ -540,8 +540,6 @@ static nve32_t osi_hal_hw_core_init(struct osi_core_priv_data *const osi_core)
 #ifndef OSI_STRIPPED_LIB
 	init_vlan_filters(osi_core);
 
-	/* Init FRP */
-	init_frp(osi_core);
 #endif /* !OSI_STRIPPED_LIB */
 
 	ret = l_core->ops_p->core_init(osi_core);
@@ -2205,11 +2203,18 @@ static void cfg_ptp(struct core_local *l_core)
 	(void)osi_handle_ioctl(osi_core, &ioctl_data);
 }
 
+static void cfg_frp(struct core_local *l_core)
+{
+	struct osi_core_priv_data *osi_core = (struct osi_core_priv_data *)(void *)l_core;
+
+	(void)frp_hw_write(osi_core, l_core->ops_p);
+}
+
 static void apply_dynamic_cfg(struct osi_core_priv_data *osi_core)
 {
 	struct core_local *l_core = (struct core_local *)(void *)osi_core;
 	typedef void (*cfg_fn)(struct core_local *local_core);
-	const cfg_fn fn[10] = {
+	const cfg_fn fn[11] = {
 		[DYNAMIC_CFG_L3_L4_IDX] = cfg_l3_l4_filter,
 		[DYNAMIC_CFG_L2_IDX] = cfg_l2_filter,
 		[DYNAMIC_CFG_RXCSUM_IDX] = cfg_rxcsum,
@@ -2221,7 +2226,8 @@ static void apply_dynamic_cfg(struct osi_core_priv_data *osi_core)
 		[DYNAMIC_CFG_AVB_IDX] = cfg_avb,
 		[DYNAMIC_CFG_EST_IDX] = cfg_est,
 		[DYNAMIC_CFG_FPE_IDX] = cfg_fpe,
-		[DYNAMIC_CFG_PTP_IDX] = cfg_ptp
+		[DYNAMIC_CFG_PTP_IDX] = cfg_ptp,
+		[DYNAMIC_CFG_FRP_IDX] = cfg_frp
 	};
 	nveu32_t flags = l_core->cfg.flags;
 	nveu32_t i = 0U;
@@ -2783,6 +2789,7 @@ static nve32_t osi_hal_handle_ioctl(struct osi_core_priv_data *osi_core,
 #endif /* !OSI_STRIPPED_LIB */
 	case OSI_CMD_CONFIG_FRP:
 		ret = configure_frp(osi_core, &data->frp_cmd);
+		l_core->cfg.flags |= DYNAMIC_CFG_FRP;
 		break;
 
 	case OSI_CMD_CONFIG_EST:

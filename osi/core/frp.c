@@ -379,8 +379,8 @@ done:
  * @retval 0 on success.
  * @retval -1 on failure.
  */
-static nve32_t frp_hw_write(struct osi_core_priv_data *const osi_core,
-			    struct core_ops *const ops_p)
+nve32_t frp_hw_write(struct osi_core_priv_data *const osi_core,
+		     struct core_ops *const ops_p)
 {
 	nve32_t ret = 0;
 	nve32_t tmp = 0;
@@ -885,21 +885,4 @@ nve32_t setup_frp(struct osi_core_priv_data *const osi_core,
 	}
 
 	return ret;
-}
-
-/**
- * @brief init_frp - Initialize FRP.
- *
- * Algorithm: Reset all the data in the FRP table Initialize FRP count to zero.
- *
- * @param[in] osi_core: OSI core private data structure.
- *
- */
-void init_frp(struct osi_core_priv_data *const osi_core)
-{
-	/* Reset the NVE count to zero */
-	osi_core->frp_cnt = 0U;
-	/* Clear all instruction of FRP */
-	osi_memset(osi_core->frp_table, 0U,
-		   (sizeof(struct osi_core_frp_entry) * OSI_FRP_MAX_ENTRY));
 }
