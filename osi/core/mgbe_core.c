@@ -1200,8 +1200,8 @@ static nve32_t mgbe_configure_mtl_queue(struct osi_core_priv_data *osi_core,
 		FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(2U), FIFO_SZ(16U),
 	};
 	const nveu32_t tx_fifo_sz[OSI_MGBE_MAX_NUM_QUEUES] = {
-		FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U),
-		FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U), FIFO_SZ(12U),
+		TX_FIFO_SZ, TX_FIFO_SZ, TX_FIFO_SZ, TX_FIFO_SZ, TX_FIFO_SZ,
+		TX_FIFO_SZ, TX_FIFO_SZ, TX_FIFO_SZ, TX_FIFO_SZ, TX_FIFO_SZ,
 	};
 	const nveu32_t rfd_rfa[OSI_MGBE_MAX_NUM_QUEUES] = {
 		FULL_MINUS_32_K,

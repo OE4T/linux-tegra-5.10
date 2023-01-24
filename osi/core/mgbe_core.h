@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -737,6 +737,9 @@
 					 OSI_MGBE_MAX_MAC_ADDRESS_FILTER + 1U))
 /** @} */
 #endif /* !OSI_STRIPPED_LIB */
+
+/* TXQ Size 128KB is divided equally across 10 MTL Queues*/
+#define TX_FIFO_SZ	(((((128U * 1024U)/OSI_MGBE_MAX_NUM_QUEUES)) / 256U) - 1U)
 
 /**
  * @addtogroup MGBE-MAC MGBE MAC HW feature registers
