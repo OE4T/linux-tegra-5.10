@@ -43,6 +43,9 @@
 		reg = <0x0 0x0f400000 0x0 0x00010000    /* GICD */
 		       0x0 0x0f440000 0x0 0x00200000>;  /* GICR CPU 0-15 */
 		ranges;
+		interrupts = <GIC_PPI 9
+			(GIC_CPU_MASK_SIMPLE(8) | IRQ_TYPE_LEVEL_HIGH)>;
+		interrupt-parent = <&intc>;
 		status = "disabled";
 
 		gic_v2m: v2m@f410000 {
