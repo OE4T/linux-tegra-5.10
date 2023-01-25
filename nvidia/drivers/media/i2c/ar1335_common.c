@@ -692,7 +692,7 @@ static int mcu_stream_config(struct i2c_client *client, uint32_t format,
 		goto exit;
 	}
 
-	for (loop = 0;(&priv->streamdb[loop]) != NULL; loop++) {
+	for (loop = 0; loop < s_data->numfmts; loop++) {
 		if (priv->streamdb[loop] == mode) {
 			index = loop + frate_index;
 			break;
@@ -2094,7 +2094,7 @@ unsigned short int mcu_bload_calc_crc16(unsigned char *buf, int len)
 	unsigned short int crc = 0;
 	int i = 0;
 
-	if (!buf || !(buf + len))
+	if (!buf)
 		return 0;
 
 	for (i = 0; i < len; i++) {
@@ -2109,7 +2109,7 @@ unsigned char mcu_bload_inv_checksum(unsigned char *buf, int len)
 	unsigned int checksum = 0x00;
 	int i = 0;
 
-	if (!buf || !(buf + len))
+	if (!buf)
 		return 0;
 
 	for (i = 0; i < len; i++) {
