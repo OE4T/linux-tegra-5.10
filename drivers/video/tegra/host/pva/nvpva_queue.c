@@ -75,6 +75,7 @@ static int nvpva_queue_task_pool_alloc(struct platform_device *pdev,
 	u64 mem_size;
 
 	task_pool = queue->task_pool;
+	memset(task_pool->kmem_addr, 0, sizeof(task_pool->kmem_addr));
 
 	/* Allocate the kernel memory needed for the task */
 	if (queue->task_kmem_size) {
