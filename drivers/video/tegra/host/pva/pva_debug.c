@@ -29,6 +29,7 @@
 #include "pva.h"
 #include <uapi/linux/nvpva_ioctl.h>
 #include "pva_vpu_ocd.h"
+#include "pva-fw-address-map.h"
 
 static void pva_read_crashdump(struct seq_file *s, struct pva_seg_info *seg_info)
 {
@@ -78,6 +79,100 @@ static const struct file_operations pva_crashdump_fops = {
 	.release = single_release,
 };
 
+struct pva_fw_debug_log_iter {
+	struct pva *pva;
+	u8 *buffer;
+	loff_t pos;
+	size_t size;
+};
+
+static void *log_seq_start(struct seq_file *s, loff_t *pos)
+{
+	struct pva_fw_debug_log_iter *iter;
+
+	iter = s->private;
+	if (*pos >= iter->size)
+		return NULL;
+
+	iter->pos = *pos;
+	return iter;
+}
+
+static void log_seq_stop(struct seq_file *s, void *v)
+{
+}
+
+static void *log_seq_next(struct seq_file *s, void *v, loff_t *pos)
+{
+	struct pva_fw_debug_log_iter *iter = v;
+
+	iter->pos += 1;
+	*pos = iter->pos;
+
+	if (iter->pos >= iter->size)
+		return NULL;
+
+	return iter;
+}
+
+static int log_seq_show(struct seq_file *s, void *v)
+{
+	struct pva_fw_debug_log_iter *iter = v;
+
+	seq_putc(s, iter->buffer[iter->pos]);
+	return 0;
+}
+
+static struct seq_operations const log_seq_ops = { .start = log_seq_start,
+						   .stop = log_seq_stop,
+						   .next = log_seq_next,
+						   .show = log_seq_show };
+
+static int fw_debug_log_open(struct inode *inode, struct file *file)
+{
+	struct pva_fw_debug_log_iter *iter =
+		__seq_open_private(file, &log_seq_ops, sizeof(*iter));
+	int err = 0;
+	struct pva *pva = inode->i_private;
+
+	if (IS_ERR_OR_NULL(iter)) {
+		err = -ENOMEM;
+		goto err_out;
+	}
+
+	iter->pva = pva;
+
+	if (pva->booted) {
+		err = nvhost_module_busy(pva->pdev);
+		if (err) {
+			nvpva_err(&pva->pdev->dev, "err in powering up pva");
+			err = -EIO;
+			goto free_iter;
+		}
+
+		save_fw_debug_log(pva);
+
+		nvhost_module_idle(pva->pdev);
+	}
+
+	iter->buffer = pva->fw_debug_log.saved_log;
+	iter->size =
+		strnlen(pva->fw_debug_log.saved_log, pva->fw_debug_log.size);
+	iter->pos = 0;
+
+	return 0;
+free_iter:
+	kfree(iter);
+err_out:
+	return err;
+}
+
+static const struct file_operations pva_fw_debug_log_fops = {
+	.open = fw_debug_log_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = seq_release_private
+};
 
 static inline void print_version(struct seq_file *s,
 				 const char *version_str,
@@ -300,16 +395,19 @@ static const struct file_operations pva_vpu_ocd_fops = {
 
 void pva_debugfs_deinit(struct pva *pva)
 {
+	if (pva->vpu_util_info.stats_fw_buffer_va != NULL) {
+		dma_free_coherent(&pva->aux_pdev->dev,
+				  sizeof(struct pva_vpu_stats_s),
+				  pva->vpu_util_info.stats_fw_buffer_va,
+				  pva->vpu_util_info.stats_fw_buffer_iova);
+		pva->vpu_util_info.stats_fw_buffer_va = 0;
+		pva->vpu_util_info.stats_fw_buffer_iova = 0;
+	}
 
-	if (pva->vpu_util_info.stats_fw_buffer_va == 0)
-		return;
-
-	dma_free_coherent(&pva->aux_pdev->dev,
-			  sizeof(struct pva_vpu_stats_s),
-			  pva->vpu_util_info.stats_fw_buffer_va,
-			  pva->vpu_util_info.stats_fw_buffer_iova);
-	pva->vpu_util_info.stats_fw_buffer_va = 0;
-	pva->vpu_util_info.stats_fw_buffer_iova = 0;
+	if (pva->fw_debug_log.saved_log != NULL) {
+		mutex_destroy(&pva->fw_debug_log.saved_log_lock);
+		kfree(pva->fw_debug_log.saved_log);
+	}
 }
 
 void pva_debugfs_init(struct platform_device *pdev)
@@ -355,11 +453,23 @@ void pva_debugfs_init(struct platform_device *pdev)
 	debugfs_create_bool("stats_enabled", 0644, de, &pva->stats_enabled);
 	debugfs_create_file("vpu_stats", 0644, de, pva, &pva_stats_fops);
 
-	pva->vpu_util_info.stats_fw_buffer_va =
-					dma_alloc_coherent(&pva->aux_pdev->dev,
-					sizeof(struct pva_vpu_stats_s),
-					&pva->vpu_util_info.stats_fw_buffer_iova,
-					GFP_KERNEL);
+	mutex_init(&pva->fw_debug_log.saved_log_lock);
+	pva->fw_debug_log.size = FW_DEBUG_LOG_BUFFER_SIZE;
+	pva->fw_debug_log.saved_log =
+		kzalloc(FW_DEBUG_LOG_BUFFER_SIZE, GFP_KERNEL);
+	if (IS_ERR_OR_NULL(pva->fw_debug_log.saved_log)) {
+		dev_err(&pva->pdev->dev,
+			"failed to allocate memory for saving debug log");
+		pva->fw_debug_log.saved_log = NULL;
+		mutex_destroy(&pva->fw_debug_log.saved_log_lock);
+	} else {
+		debugfs_create_file("fw_debug_log", 0444, de, pva,
+				    &pva_fw_debug_log_fops);
+	}
+
+	pva->vpu_util_info.stats_fw_buffer_va = dma_alloc_coherent(
+		&pva->aux_pdev->dev, sizeof(struct pva_vpu_stats_s),
+		&pva->vpu_util_info.stats_fw_buffer_iova, GFP_KERNEL);
 	if (IS_ERR_OR_NULL(pva->vpu_util_info.stats_fw_buffer_va)) {
 		err = PTR_ERR(pva->vpu_util_info.stats_fw_buffer_va);
 		dev_err(&pva->pdev->dev,

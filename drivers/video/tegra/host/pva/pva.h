@@ -239,6 +239,14 @@ struct pva_trace_log {
 	u32 offset;
 };
 
+struct pva_fw_debug_log {
+	void *addr;
+	u32 size;
+	struct mutex saved_log_lock;
+	u8 *saved_log;
+};
+void save_fw_debug_log(struct pva *pva);
+
 /*
  * @brief	stores address and other attributes of the vpu function table
  *
@@ -419,6 +427,7 @@ struct pva {
 	atomic_t n_pending_tasks;
 	struct workqueue_struct *task_status_workqueue;
 	struct pva_trace_log pva_trace;
+	struct pva_fw_debug_log fw_debug_log;
 	u32 submit_task_mode;
 	u32 submit_cmd_mode;
 

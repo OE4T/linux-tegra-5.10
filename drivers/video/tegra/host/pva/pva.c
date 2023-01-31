@@ -594,6 +594,11 @@ static int pva_read_ucode(struct platform_device *pdev, const char *fw_name,
 	pva->pva_trace.addr = fw_info->priv2_buffer.va;
 	pva->pva_trace.size = FW_TRACE_BUFFER_SIZE;
 	pva->pva_trace.offset = 0L;
+
+	/* setup FW debug log buffer */
+	pva->fw_debug_log.addr = fw_info->priv2_buffer.va +
+				 FW_TRACE_BUFFER_SIZE +
+				 FW_CODE_COVERAGE_BUFFER_SIZE;
 out:
 	return err;
 }
@@ -858,6 +863,17 @@ err_poweron:
 	return err;
 }
 
+void save_fw_debug_log(struct pva *pva)
+{
+	if (pva->fw_debug_log.saved_log != NULL &&
+	    pva->fw_debug_log.addr != NULL) {
+		mutex_lock(&pva->fw_debug_log.saved_log_lock);
+		memcpy(pva->fw_debug_log.saved_log, pva->fw_debug_log.addr,
+		       pva->fw_debug_log.size);
+		mutex_unlock(&pva->fw_debug_log.saved_log_lock);
+	}
+}
+
 int pva_prepare_poweroff(struct platform_device *pdev)
 {
 	struct nvhost_device_data *pdata = platform_get_drvdata(pdev);
@@ -879,6 +895,7 @@ int pva_prepare_poweroff(struct platform_device *pdev)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0)
 	reset_control_release(pdata->reset_control);
 #endif
+	save_fw_debug_log(pva);
 	pva->booted = false;
 	pva_free_fw(pdev, pva);
 
