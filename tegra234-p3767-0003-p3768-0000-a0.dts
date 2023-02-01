@@ -17,6 +17,7 @@
 
 #include "tegra234-p3767-0000-p3768-0000-a0.dts"
 #include <t234-common-cvm/tegra234-cpufreq-pair-cooling.dtsi>
+#include <t234-common-cvm/tegra234-p3767-pcie-max-speed-gen3.dtsi>
 
 / {
 	nvidia,dtsfilename = __FILE__;
