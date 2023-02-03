@@ -842,20 +842,23 @@ pva_eventlib_record_r5_states(struct platform_device *pdev,
 	struct nvhost_pva_task_state state;
 	struct nvdev_fence post_fence;
 	struct nvpva_submit_fence *fence;
+	u8 i;
 
 	if ((task->pva->profiling_level == 0) || (!pdata->eventlib_id))
 		return;
 
 	/* Record task postfences */
-	fence = &(task->pva_fence_actions[NVPVA_FENCE_POST][0].fence);
-	pva_eventlib_fill_fence(&post_fence, fence);
-	nvhost_eventlib_log_fences(pdev,
-				   syncpt_id,
-				   syncpt_thresh,
-				   &post_fence,
-				   1,
-				   NVDEV_FENCE_KIND_POST,
-				   stats->complete_time);
+	for (i = 0 ; i < task->num_pva_fence_actions[NVPVA_FENCE_POST]; i++) {
+		fence = &(task->pva_fence_actions[NVPVA_FENCE_POST][i].fence);
+		pva_eventlib_fill_fence(&post_fence, fence);
+		nvhost_eventlib_log_fences(pdev,
+					   syncpt_id,
+					   syncpt_thresh,
+					   &post_fence,
+					   1,
+					   NVDEV_FENCE_KIND_POST,
+					   stats->complete_time);
+	}
 
 	state.class_id		= pdata->class;
 	state.syncpt_id		= syncpt_id;
