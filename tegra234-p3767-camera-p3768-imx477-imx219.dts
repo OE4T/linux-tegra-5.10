@@ -13,7 +13,9 @@
 / {
 	overlay-name = "Camera IMX477-A and IMX219-C";
 	jetson-header-name = "Jetson 24pin CSI Connector";
-	compatible = "nvidia,p3768-0000+p3767-0000";
+        compatible = "nvidia,p3768-0000+p3767-0000",
+                        "nvidia,p3768-0000+p3767-0003",
+                        "nvidia,p3768-0000+p3767-0005";
 
 	/* IMX77 sensor module on CSI PORT A and IMX219 sensor module on CSI PORT B  */
 	fragment@0 {
