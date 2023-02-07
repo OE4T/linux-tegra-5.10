@@ -760,6 +760,11 @@ int ether_conf_eee(struct ether_priv_data *pdata, unsigned int tx_lpi_enable)
 	unsigned int enable = tx_lpi_enable;
 	struct osi_ioctl ioctl_data = {};
 
+	if (!phydev) {
+		dev_err(pdata->dev, "%s() phydev is NULL\n", __func__);
+		return -ENODEV;
+	}
+
 	if (tx_lpi_enable) {
 		/* phy_init_eee() returns 0 if EEE is supported by the PHY */
 		if (phy_init_eee(phydev,
