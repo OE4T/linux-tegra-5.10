@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -32,7 +32,6 @@ enum dce_fsm_event_id_type {
 	EVENT_ID_DCE_ADMIN_IPC_MSG_RECEIVED,
 	EVENT_ID_DCE_SC7_ENTER_REQUESTED,
 	EVENT_ID_DCE_SC7_ENTERED_RECEIVED,
-	EVENT_ID_DCE_SC7_EXIT_RECEIVED,
 	EVENT_ID_DCE_LOG_REQUESTED,
 	EVENT_ID_DCE_LOG_READY_RECEIVED,
 	EVENT_ID_DCE_ABORT_RECEIVED,

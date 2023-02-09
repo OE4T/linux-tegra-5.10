@@ -35,7 +35,6 @@ tegra-dce-$(CONFIG_TEGRA_DCE) += \
 	dce-ipc-signal.o \
 	dce-client-ipc.o \
 	dce-module.o \
-	dce-pm.o \
 	dce-util-common.o
 
 ifeq ($(CONFIG_DEBUG_FS),y)

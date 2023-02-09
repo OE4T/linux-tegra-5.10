@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,7 +25,6 @@
 #include <dce-thread.h>
 #include <dce-worker.h>
 #include <dce-fsm.h>
-#include <dce-pm.h>
 #include <dce-mailbox.h>
 #include <dce-client-ipc-internal.h>
 #include <dce-workqueue.h>
@@ -149,14 +148,6 @@ struct tegra_dce {
 	 * dce_fsm_bootstrap_work : dce work to be executed to start FSM flow
 	 */
 	struct dce_work_struct dce_fsm_bootstrap_work;
-	/**
-	 * dce_resume_work : dce work to executed dce resume flow
-	 */
-	struct dce_work_struct dce_resume_work;
-	/**
-	 * dce_sc7_state : structure to save/restore state during sc7 enter/exit
-	 */
-	struct dce_sc7_state sc7_state;
 	/**
 	 * dce_wait_info - Data structure to manage wait for different event types
 	 */
@@ -405,10 +396,6 @@ int dce_admin_get_ipc_channel_info(struct tegra_dce *d,
 					struct dce_ipc_queue_info *q_info);
 int dce_admin_send_cmd_echo(struct tegra_dce *d,
 			    struct dce_ipc_message *msg);
-int dce_admin_send_prepare_sc7(struct tegra_dce *d,
-			       struct dce_ipc_message *msg);
-int dce_admin_send_enter_sc7(struct tegra_dce *d,
-			     struct dce_ipc_message *msg);
 int dce_admin_handle_ipc_requested_event(struct tegra_dce *d, void *params);
 int dce_admin_handle_ipc_received_event(struct tegra_dce *d, void *params);
 int dce_admin_ipc_wait(struct tegra_dce *d, u32 w_type);

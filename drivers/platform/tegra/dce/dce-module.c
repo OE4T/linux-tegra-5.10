@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -254,18 +254,11 @@ static int tegra_dce_remove(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_PM
-extern const struct dev_pm_ops dce_pm_ops;
-#endif
-
 static struct platform_driver tegra_dce_driver = {
 	.driver = {
 		.name   = "tegra-dce",
 		.of_match_table =
 			of_match_ptr(tegra_dce_of_match),
-#ifdef CONFIG_PM
-		.pm	= &dce_pm_ops,
-#endif
 	},
 	.probe = tegra_dce_probe,
 	.remove = tegra_dce_remove,
