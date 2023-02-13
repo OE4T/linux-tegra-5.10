@@ -1073,7 +1073,7 @@
 			        <&mc TEGRA234_MEMORY_CLIENT_NVDISPLAYR1>;
 		interconnect-names = "dma-mem", "read-1";
 #endif
-
+		iommu-direct-regions = <&fb0_reserved>;
 		iommus = <&smmu_iso TEGRA_SID_ISO_NVDISPLAY>;
 		non-coherent;
 		nvdisplay-niso {
