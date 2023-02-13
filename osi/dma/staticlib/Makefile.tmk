@@ -1,6 +1,6 @@
 ################################### tell Emacs this is a -*- makefile-gmake -*-
 #
-# Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+# Copyright (c) 2019-2022, NVIDIA CORPORATION. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,18 +20,35 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 #
-# libnvethernetrm interface makefile fragment
-#
 ###############################################################################
 
-ifdef NV_INTERFACE_FLAG_STATIC_LIBRARY_SECTION
-NV_COMPONENT_NAME := nvethernetrm
-NV_INTERFACE_COMPONENT_DIR := .
-NV_INTERFACE_PUBLIC_INCLUDES := \
-	./include
+ifdef NV_COMPONENT_FLAG_STATIC_LIBRARY_SECTION
+include $(NV_BUILD_START_COMPONENT)
+
+NV_COMPONENT_STRICT_WARNINGS_qnx_64 := 1
+
+NV_COMPONENT_NAME              := nvethernetcl
+NV_COMPONENT_OWN_INTERFACE_DIR := .
+NV_COMPONENT_SOURCES           := \
+	$(NV_SOURCE)/nvethernetrm/osi/dma/eqos_dma.c \
+	$(NV_SOURCE)/nvethernetrm/osi/dma/osi_dma.c \
+	$(NV_SOURCE)/nvethernetrm/osi/dma/osi_dma_txrx.c \
+	$(NV_SOURCE)/nvethernetrm/osi/dma/mgbe_dma.c \
+	$(NV_SOURCE)/nvethernetrm/osi/dma/eqos_desc.c \
+	$(NV_SOURCE)/nvethernetrm/osi/dma/mgbe_desc.c \
+	$(NV_SOURCE)/nvethernetrm/osi/dma/debug.c \
+	$(NV_SOURCE)/nvethernetrm/osi/common/osi_common.c \
+	$(NV_SOURCE)/nvethernetrm/osi/common/eqos_common.c \
+	$(NV_SOURCE)/nvethernetrm/osi/common/mgbe_common.c
+
+NV_COMPONENT_INCLUDES          := \
+	$(NV_SOURCE)/nvethernetrm/include \
+	$(NV_SOURCE)/nvethernetrm/osi/common/include
+
+ifeq ($(NV_BUILD_CONFIGURATION_IS_SAFETY),0)
+	NV_COMPONENT_CFLAGS            += -DOSI_DEBUG
+else
+	NV_COMPONENT_CFLAGS            += -DOSI_STRIPPED_LIB
 endif
-# Local Variables:
-# indent-tabs-mode: t
-# tab-width: 8
-# End:
-# vi: set tabstop=8 noexpandtab:
+include $(NV_BUILD_STATIC_LIBRARY)
+endif

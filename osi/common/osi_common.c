@@ -31,7 +31,7 @@ void common_get_systime_from_mac(void *addr, nveu32_t mac, nveu32_t *sec,
 	nveu64_t remain;
 	nveul64_t ns;
 	typedef nveul64_t (*get_time)(void *addr);
-	get_time i_ops[MAX_MAC_IP_TYPES] = {
+	const get_time i_ops[MAX_MAC_IP_TYPES] = {
 		eqos_get_systime_from_mac, mgbe_get_systime_from_mac
 	};
 
@@ -53,7 +53,7 @@ void common_get_systime_from_mac(void *addr, nveu32_t mac, nveu32_t *sec,
 nveu32_t common_is_mac_enabled(void *addr, nveu32_t mac)
 {
 	typedef nveu32_t (*mac_enable_arr)(void *addr);
-	mac_enable_arr i_ops[MAX_MAC_IP_TYPES] = {
+	const mac_enable_arr i_ops[MAX_MAC_IP_TYPES] = {
 		eqos_is_mac_enabled, mgbe_is_mac_enabled
 	};
 
