@@ -1665,6 +1665,7 @@ static const struct gops_fuse ga10b_ops_fuse = {
 	.is_opt_feature_override_disable = ga10b_fuse_is_opt_feature_override_disable,
 	.fuse_status_opt_fbio = ga10b_fuse_status_opt_fbio,
 	.fuse_status_opt_fbp = ga10b_fuse_status_opt_fbp,
+	.fuse_status_opt_emc = ga10b_fuse_status_opt_emc,
 	.fuse_status_opt_l2_fbp = ga10b_fuse_status_opt_l2_fbp,
 	.fuse_status_opt_tpc_gpc = ga10b_fuse_status_opt_tpc_gpc,
 	.fuse_status_opt_pes_gpc = ga10b_fuse_status_opt_pes_gpc,

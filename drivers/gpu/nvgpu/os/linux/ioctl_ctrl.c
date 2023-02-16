@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2022, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2011-2023, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -492,6 +492,9 @@ static long gk20a_ctrl_ioctl_gpu_characteristics(
 	gpu.num_ltc = nvgpu_ltc_get_ltc_count(g);
 	gpu.lts_per_ltc = nvgpu_ltc_get_slices_per_ltc(g);
 	gpu.cbc_cache_line_size = nvgpu_ltc_get_cacheline_size(g);
+	if (g->ops.fuse.fuse_status_opt_emc) {
+		gpu.emc_en_mask = g->ops.fuse.fuse_status_opt_emc(g);
+	}
 
 	/*
 	 * TODO : Need to replace with proper HAL.
