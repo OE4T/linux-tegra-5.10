@@ -1,7 +1,7 @@
 /*
  * Tegra234 MC StreamID configuration
  *
- * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -25,6 +25,7 @@
 #include <linux/platform_device.h>
 
 #include <linux/platform/tegra/tegra-mc-sid.h>
+#include <dt-bindings/memory/tegra234-smmu-streamid.h>
 
 enum override_id {
 	HDAR,
@@ -112,6 +113,7 @@ enum override_id {
 	EQOSW,
 	UFSHCR,
 	UFSHCW,
+	NVDISPLAYR,
 	BPMPR,
 	BPMPW,
 	BPMPDMAR,
@@ -126,6 +128,7 @@ enum override_id {
 	SCEDMAW,
 	APEDMAR,
 	APEDMAW,
+	NVDISPLAYR1,
 	VICSRD1,
 	VIFALR,
 	VIFALW,
@@ -259,6 +262,7 @@ static struct sid_override_reg sid_override_reg[] = {
 	DEFREG(EQOSW,       0x478),
 	DEFREG(UFSHCR,      0x480),
 	DEFREG(UFSHCW,      0x488),
+	DEFREG(NVDISPLAYR,  0x490),
 	DEFREG(BPMPR,       0x498),
 	DEFREG(BPMPW,       0x4a0),
 	DEFREG(BPMPDMAR,    0x4a8),
@@ -273,6 +277,7 @@ static struct sid_override_reg sid_override_reg[] = {
 	DEFREG(SCEDMAW,     0x4f0),
 	DEFREG(APEDMAR,     0x4f8),
 	DEFREG(APEDMAW,     0x500),
+	DEFREG(NVDISPLAYR1, 0x508),
 	DEFREG(VICSRD1,     0x510),
 	DEFREG(VIFALR,      0x5e0),
 	DEFREG(VIFALW,      0x5e8),
@@ -320,7 +325,18 @@ static struct sid_override_reg sid_override_reg[] = {
 };
 
 static struct sid_to_oids sid_to_oids[] = {
+	{
+		.sid	= TEGRA_SID_ISO_NVDISPLAY,
+		.noids	= 2,
+		.oid	= {
+			NVDISPLAYR,
+			NVDISPLAYR1,
+		},
+		.ord = OVERRIDE,
+		.name = "NVDISPLAY",
+	},
 };
+
 
 static const struct tegra_mc_sid_soc_data tegra234_mc_soc_data = {
 	.sid_override_reg = sid_override_reg,
