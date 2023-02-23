@@ -264,24 +264,23 @@ struct PVA_PACKED pva_td_s {
 /** @addtogroup PVA_TASK_FL
  * @{
  */
-
-/** Flag to allow VPU debugger attach for the task */
-#define PVA_TASK_FL_VPU_DEBUG		PVA_BIT(0U)
-
-/** Flag to request masking of illegal instruction error for the task */
-#define PVA_TASK_FL_ERR_MASK_ILLEGAL_INSTR	PVA_BIT(1U)
-
-/** Flag to request masking of divide by zero error for the task */
-#define PVA_TASK_FL_ERR_MASK_DIVIDE_BY_0	PVA_BIT(2U)
-
-/** Flag to request masking of floating point NAN error for the task */
-#define PVA_TASK_FL_ERR_MASK_FP_NAN		PVA_BIT(3U)
-
 /** Schedule on VPU0 only */
-#define PVA_TASK_FL_VPU0 PVA_BIT(8U)
+#define PVA_TASK_FL_VPU0 PVA_BIT(0U)
 
 /** Schedule on VPU1 only */
-#define PVA_TASK_FL_VPU1 PVA_BIT(9U)
+#define PVA_TASK_FL_VPU1 PVA_BIT(1U)
+
+/** Flag to allow VPU debugger attach for the task */
+#define PVA_TASK_FL_VPU_DEBUG		PVA_BIT(2U)
+
+/** Flag to request masking of illegal instruction error for the task */
+#define PVA_TASK_FL_ERR_MASK_ILLEGAL_INSTR	PVA_BIT(3U)
+
+/** Flag to request masking of divide by zero error for the task */
+#define PVA_TASK_FL_ERR_MASK_DIVIDE_BY_0	PVA_BIT(4U)
+
+/** Flag to request masking of floating point NAN error for the task */
+#define PVA_TASK_FL_ERR_MASK_FP_NAN		PVA_BIT(5U)
 
 /** Schedule next task in list immediately on this VPU.
  *
