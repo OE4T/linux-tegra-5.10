@@ -1,0 +1,74 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms and conditions of the GNU General Public License,
+ * version 2, as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	overlay-name = "P3767 Overlay Support";
+	compatible = "nvidia,tegra23x";
+	nvidia,dtsfilename = __FILE__;
+	nvidia,dtbbuildtime = __DATE__, __TIME__;
+
+	/*For 8GB modules decrease CMA to 64MB*/
+	fragment@0 {
+		target-path = "/";
+		board_config {
+			ids = "3767-0001-*","3767-0003-*","3767-0005-*";
+		};
+		__overlay__ {
+			reserved-memory {
+				#address-cells = <2>;
+				#size-cells = <2>;
+				ranges;
+
+				linux,cma { /* Needed for nvgpu comptags */
+					compatible = "shared-dma-pool";
+					reusable;
+					size = <0x0 0x4000000>; /* 64MB */
+					alignment = <0x0 0x10000>;
+					linux,cma-default;
+					status = "okay";
+				};
+			};
+		};
+	};
+
+	/*For 4GB modules decrease CMA to 32MB*/
+	fragment@1 {
+		target-path = "/";
+		board_config {
+			ids = "3767-0004-*";
+		};
+		__overlay__ {
+			reserved-memory {
+				#address-cells = <2>;
+				#size-cells = <2>;
+				ranges;
+
+				linux,cma { /* Needed for nvgpu comptags */
+					compatible = "shared-dma-pool";
+					reusable;
+					size = <0x0 0x2000000>; /* 32MB */
+					alignment = <0x0 0x10000>;
+					linux,cma-default;
+					status = "okay";
+				};
+			};
+		};
+	};
+};
