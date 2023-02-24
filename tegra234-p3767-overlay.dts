@@ -71,4 +71,52 @@
 			};
 		};
 	};
+
+	fragment@2 {
+		target-path = "/host1x@13e00000";
+		board_config {
+			fuse-info = "fuse-disable-nvenc";
+		};
+		__overlay__ {
+			nvenc@154c0000 {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@3 {
+		target-path = "/host1x@13e00000";
+		board_config {
+			fuse-info = "fuse-disable-pva";
+		};
+		__overlay__ {
+			pva0 {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@4 {
+		target-path = "/host1x@13e00000";
+		board_config {
+			fuse-info = "fuse-disable-dla0";
+		};
+		__overlay__ {
+			nvdla0@15880000 {
+				status = "disabled";
+			};
+		};
+	};
+
+	fragment@5 {
+		target-path = "/host1x@13e00000";
+		board_config {
+			fuse-info = "fuse-disable-dla1";
+		};
+		__overlay__ {
+			nvdla1@158c0000 {
+				status = "disabled";
+			};
+		};
+	};
 };
