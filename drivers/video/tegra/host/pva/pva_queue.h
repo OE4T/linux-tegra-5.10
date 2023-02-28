@@ -123,6 +123,7 @@ struct pva_submit_task {
 	u64 desc_hwseq_frm;
 	u32 syncpt_thresh;
 	u32 fence_num;
+	u32 local_sync_counter;
 
 	u32 sem_thresh;
 	u32 sem_num;

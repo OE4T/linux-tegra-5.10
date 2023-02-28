@@ -1020,7 +1020,7 @@ static void update_one_task(struct pva *pva)
 	trace_nvhost_pva_task_timestamp(dev_name(&pdev->dev),
 				    pdata->class,
 				    queue->syncpt_id,
-				    task->syncpt_thresh,
+				    task->local_sync_counter,
 				    stats->vpu_assigned_time,
 				    stats->complete_time);
 	nvpva_dbg_info(pva, "Completed task %p (0x%llx), "
@@ -1046,12 +1046,12 @@ prof:
 
 	nvhost_eventlib_log_task(pdev,
 				 queue->syncpt_id,
-				 task->syncpt_thresh,
+				 task->local_sync_counter,
 				 stats->vpu_assigned_time,
 				 stats->complete_time);
 	pva_eventlib_record_r5_states(pdev,
 				      queue->syncpt_id,
-				      task->syncpt_thresh,
+				      task->local_sync_counter,
 				      stats,
 				      task);
 out:
@@ -1218,7 +1218,7 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 						&task->prefences[j]);
 			nvhost_eventlib_log_fences(task->pva->pdev,
 						   queue->syncpt_id,
-						   task->syncpt_thresh,
+						   task->local_sync_counter,
 						   &pre_fence,
 						   1,
 						   NVDEV_FENCE_KIND_PRE,
@@ -1227,7 +1227,7 @@ static int pva_task_submit(const struct pva_submit_tasks *task_header)
 
 		nvhost_eventlib_log_submit(task->pva->pdev,
 					   queue->syncpt_id,
-					   task->syncpt_thresh,
+					   task->local_sync_counter,
 					   timestamp);
 	}
 out:
@@ -1389,7 +1389,8 @@ static int pva_queue_submit(struct nvpva_queue *queue, void *args)
 
 		thresh = task->syncpt_thresh;
 		sem_thresh = task->sem_thresh;
-
+		queue->local_sync_counter += (1 +  task->fence_num);
+		task->local_sync_counter = queue->local_sync_counter;
 		if (prev_hw_task)
 			prev_hw_task->task.next = task->dma_addr;
 

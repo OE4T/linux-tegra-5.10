@@ -82,6 +82,7 @@ struct nvpva_queue {
 	struct platform_device *vm_pprim_dev;
 	struct platform_device *vm_paux_dev;
 	u32 syncpt_id;
+	u32 local_sync_counter;
 	atomic_t syncpt_maxval;
 
 	size_t task_dma_size;
