@@ -1,7 +1,7 @@
 /*
  * Tegra PVA Driver ioctls
  *
- * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -87,8 +87,10 @@ enum nvpva_vpu_elf_symbol_type_e {
 	NVPVA_SYMBOL_TYPE_POINTER = 3U,
 	/** Symbol type System */
 	NVPVA_SYMBOL_TYPE_SYSTEM = 4U,
+	/** Symbol type Pointer which uses extended address apace */
+	NVPVA_SYMBOL_TYPE_POINTER_EX = 5U,
 	/** Symbol type upper limit */
-	NVPVA_SYMBOL_TYPE_MAX = 5U
+	NVPVA_SYMBOL_TYPE_MAX = 6U
 };
 /*
  * VPU SYMBOL command details
@@ -224,6 +226,7 @@ enum nvpva_fence_obj_type {
 enum nvpva_symbol_config {
 	NVPVA_SYMBOL_PARAM = 0U,
 	NVPVA_SYMBOL_POINTER = 1U,
+	NVPVA_SYMBOL_POINTER_EX = 2U,
 };
 
 enum nvpva_hwseq_trigger_mode {
@@ -295,6 +298,18 @@ struct nvpva_pointer_symbol {
 	uint32_t size;
 };
 
+struct nvpva_pointer_symbol_ex {
+	/* Base address of pinned area, where
+	 * lower 32bits filled with pin_id by UMD and
+	 * at KMD will replace it with actual base address.
+	 */
+	uint64_t base;
+	/* Offset in pinned area */
+	uint64_t offset;
+	/* Size of pinned area, filled by KMD */
+	uint64_t size;
+};
+
 /* Used to pass both param and pointer type symbols.
  * Based on nvpva_symbol_config selection the data in payload
  * pointed by offset will differ.
@@ -318,10 +333,10 @@ struct nvpva_dma_descriptor {
 	uint32_t srcPtr;
 	uint32_t dstPtr;
 	uint32_t dst2Ptr;
-	uint32_t src_offset;
-	uint32_t dst_offset;
-	uint32_t dst2Offset;
-	uint32_t surfBLOffset;
+	uint64_t src_offset;
+	uint64_t dst_offset;
+	uint64_t dst2Offset;
+	uint64_t surfBLOffset;
 	uint16_t tx;
 	uint16_t ty;
 	uint16_t srcLinePitch;

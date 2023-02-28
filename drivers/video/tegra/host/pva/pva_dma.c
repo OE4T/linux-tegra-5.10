@@ -111,7 +111,13 @@ static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
 	}
 
 	/* check for out of range access */
-	if ((max_size > UINT_MAX) || !(((offset + start) >= 0)
+	if (((int64_t) max_size) < 0) {
+		pr_err("max_size too large");
+		err = -EINVAL;
+		goto out;
+	}
+
+	if (!(((offset + start) >= 0)
 	    && ((offset + end) < (int64_t)max_size))) {
 		pr_err("ERROR: Out of range detected");
 		err = -EINVAL;
@@ -124,7 +130,7 @@ static int32_t check_address_range(struct nvpva_dma_descriptor const *desc,
 			err = -EINVAL;
 		}
 	}
-
+out:
 	return err;
 }
 
@@ -180,6 +186,11 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		u32 addr = 0;
 		u32 size = 0;
 
+		if (umd_dma_desc->src_offset > U32_MAX) {
+			err = -EINVAL;
+			goto out;
+		}
+
 		err = pva_get_sym_offset(&task->client->elf_ctx, task->exe_id,
 					 umd_dma_desc->srcPtr, &addr, &size);
 		if (err) {
@@ -211,7 +222,8 @@ patch_dma_desc_address(struct pva_submit_task *task,
 
 		/* dest must be null*/
 		if ((umd_dma_desc->dstPtr != NVPVA_INVALID_SYMBOL_ID)
-		   || (umd_dma_desc->dst2Ptr != NVPVA_INVALID_SYMBOL_ID)) {
+		   || (umd_dma_desc->dst2Ptr != NVPVA_INVALID_SYMBOL_ID)
+		   || (umd_dma_desc->src_offset > U32_MAX)) {
 			task_err(task, "ERROR: Invalid VPUC");
 			err = -EINVAL;
 			goto out;
@@ -352,6 +364,12 @@ patch_dma_desc_address(struct pva_submit_task *task,
 		u32 addr2 = 0;
 		u32 size2 = 0;
 		bool check_size2 = false;
+
+		if ((umd_dma_desc->dst_offset > U32_MAX)
+		   || (umd_dma_desc->dst2Offset > U32_MAX)) {
+			err = -EINVAL;
+			goto out;
+		}
 
 		err = pva_get_sym_offset(&task->client->elf_ctx, task->exe_id,
 					 umd_dma_desc->dstPtr, &addr, &size);

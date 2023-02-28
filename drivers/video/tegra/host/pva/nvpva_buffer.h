@@ -1,7 +1,7 @@
 /*
  * NVPVA Buffer Management Header
  *
- * Copyright (c) 2016-2022, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2016-2023, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -167,7 +167,7 @@ int nvpva_buffer_submit_pin_id(struct nvpva_buffers *nvpva_buffers,
 			       u32 count,
 			       struct dma_buf **dmabuf,
 			       dma_addr_t *paddr,
-			       size_t *psize,
+			       u64 *psize,
 			       enum nvpva_buffers_heap *heap);
 
 /**

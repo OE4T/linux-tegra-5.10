@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -596,8 +596,8 @@ static int32_t update_exports_symbol(void *elf, const struct elf_section_header 
 		if (data == NULL)
 			return -EINVAL;
 		symID->type = *(uint32_t *)&data[symOffset];
-		if ((symID->type > (uint32_t)VMEM_TYPE_SYSTEM) ||
-		    (symID->type == (uint32_t)VMEM_TYPE_INVALID))
+		if ((symID->type == (uint8_t)VMEM_TYPE_INVALID)
+		   || (symID->type >= (uint8_t)VMEM_TYPE_MAX))
 			return -EINVAL;
 		symID->addr = *(uint32_t *)&data[symOffset + sizeof(uint32_t)];
 		symID->size = *(uint32_t *)&data[symOffset + (2UL * sizeof(uint32_t))];

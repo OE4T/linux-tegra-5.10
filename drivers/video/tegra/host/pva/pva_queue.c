@@ -542,7 +542,8 @@ pva_task_write_vpu_parameter(struct pva_submit_task *task,
 {
 	int err = 0;
 	struct pva_elf_image *elf = NULL;
-	struct nvpva_pointer_symbol *ptrSym = NULL;
+	struct nvpva_pointer_symbol *sym_ptr = NULL;
+	struct nvpva_pointer_symbol_ex *sym_ptr_ex = NULL;
 	u32 symbolId = 0U;
 	dma_addr_t symbol_payload = 0U;
 	u32 size = 0U;
@@ -595,8 +596,8 @@ pva_task_write_vpu_parameter(struct pva_submit_task *task,
 
 			memcpy(headPtr, (task->symbol_payload + task->symbols[i].offset),
 				sizeof(struct nvpva_pointer_symbol));
-			ptrSym = (struct nvpva_pointer_symbol *)(headPtr);
-			mem = pva_task_pin_mem(task, ptrSym->base);
+			sym_ptr = (struct nvpva_pointer_symbol *)(headPtr);
+			mem = pva_task_pin_mem(task, PVA_LOW32(sym_ptr->base));
 			if (IS_ERR(mem)) {
 				err = PTR_ERR(mem);
 				task_err(task, "failed to pin symbol pointer");
@@ -604,9 +605,26 @@ pva_task_write_vpu_parameter(struct pva_submit_task *task,
 				goto out;
 			}
 
-			ptrSym->base = mem->dma_addr;
-			ptrSym->size = mem->size;
+			sym_ptr->base = mem->dma_addr;
+			sym_ptr->size = mem->size;
 			size = sizeof(struct nvpva_pointer_symbol);
+		} else if (task->symbols[i].config == NVPVA_SYMBOL_POINTER_EX) {
+			struct pva_pinned_memory *mem;
+
+			memcpy(headPtr, (task->symbol_payload + task->symbols[i].offset),
+				sizeof(struct nvpva_pointer_symbol_ex));
+			sym_ptr_ex = (struct nvpva_pointer_symbol_ex *)(headPtr);
+			mem = pva_task_pin_mem(task, PVA_LOW32(sym_ptr_ex->base));
+			if (IS_ERR(mem)) {
+				err = PTR_ERR(mem);
+				task_err(task, "failed to pin symbol pointer");
+				err = -EINVAL;
+				goto out;
+			}
+
+			sym_ptr_ex->base = mem->dma_addr;
+			sym_ptr_ex->size = mem->size;
+			size = sizeof(struct nvpva_pointer_symbol_ex);
 		} else if (size < PVA_DMA_VMEM_COPY_THRESHOLD) {
 			(void)memcpy(headPtr,
 				(task->symbol_payload + task->symbols[i].offset),

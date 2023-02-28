@@ -32,10 +32,10 @@ struct dma_buf;
 extern struct nvpva_queue_ops pva_queue_ops;
 
 struct pva_pinned_memory {
-	int id;
+	u64 size;
 	dma_addr_t dma_addr;
-	size_t size;
 	struct dma_buf *dmabuf;
+	int id;
 	enum nvpva_buffers_heap heap;
 };
 
