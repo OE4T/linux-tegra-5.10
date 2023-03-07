@@ -17,8 +17,14 @@
 #include <dt-bindings/gpio/tegra234-gpio.h>
 
 #define JETSON_COMPATIBLE       "nvidia,p3509-0000+p3767-0000", \
+                                "nvidia,p3509-0000+p3767-0001", \
+                                "nvidia,p3509-0000+p3767-0003", \
+                                "nvidia,p3509-0000+p3767-0004", \
+                                "nvidia,p3509-0000+p3767-0005", \
                                 "nvidia,p3768-0000+p3767-0000", \
+                                "nvidia,p3768-0000+p3767-0001", \
                                 "nvidia,p3768-0000+p3767-0003", \
+                                "nvidia,p3768-0000+p3767-0004", \
                                 "nvidia,p3768-0000+p3767-0005"
 /* SoC function name for clock signal on 40-pin header pin 7 */
 #define HDR40_CLK	"aud"
