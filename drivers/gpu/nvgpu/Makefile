@@ -617,6 +617,7 @@ endif
 nvgpu-$(CONFIG_TEGRA_L1SS_SUPPORT) += \
 	os/linux/cic/l1ss_report_err.o \
 	hal/cic/mon/init_gv11b_non_fusa.o \
+	hal/cic/mon/lut_gv11b_non_fusa.o \
 
 nvgpu-y += \
 	common/mm/allocators/nvgpu_allocator.o \

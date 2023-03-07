@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, NVIDIA CORPORATION.  All Rights Reserved.
+# Copyright (c) 2019-2023, NVIDIA CORPORATION.  All Rights Reserved.
 #
 # HAL units. These are the units that have access to HW.
 #
@@ -1031,6 +1031,7 @@ cic:
              hal/cic/mon/cic_gv11b.h,
              hal/cic/mon/init_ga10b_fusa.c,
              hal/cic/mon/lut_ga10b_fusa.c,
+             hal/cic/mon/lut_gv11b_non_fusa.c,
              hal/cic/mon/cic_ga10b.h ]
 
 grmgr:
