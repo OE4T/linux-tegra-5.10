@@ -24,55 +24,7 @@
 	nvidia,dtsfilename = __FILE__;
 	nvidia,dtbbuildtime = __DATE__, __TIME__;
 
-	/*For 8GB modules decrease CMA to 64MB*/
 	fragment@0 {
-		target-path = "/";
-		board_config {
-			ids = "3767-0001-*","3767-0003-*","3767-0005-*";
-		};
-		__overlay__ {
-			reserved-memory {
-				#address-cells = <2>;
-				#size-cells = <2>;
-				ranges;
-
-				linux,cma { /* Needed for nvgpu comptags */
-					compatible = "shared-dma-pool";
-					reusable;
-					size = <0x0 0x4000000>; /* 64MB */
-					alignment = <0x0 0x10000>;
-					linux,cma-default;
-					status = "okay";
-				};
-			};
-		};
-	};
-
-	/*For 4GB modules decrease CMA to 32MB*/
-	fragment@1 {
-		target-path = "/";
-		board_config {
-			ids = "3767-0004-*";
-		};
-		__overlay__ {
-			reserved-memory {
-				#address-cells = <2>;
-				#size-cells = <2>;
-				ranges;
-
-				linux,cma { /* Needed for nvgpu comptags */
-					compatible = "shared-dma-pool";
-					reusable;
-					size = <0x0 0x2000000>; /* 32MB */
-					alignment = <0x0 0x10000>;
-					linux,cma-default;
-					status = "okay";
-				};
-			};
-		};
-	};
-
-	fragment@2 {
 		target-path = "/host1x@13e00000";
 		board_config {
 			fuse-info = "fuse-disable-nvenc";
@@ -84,7 +36,7 @@
 		};
 	};
 
-	fragment@3 {
+	fragment@1 {
 		target-path = "/host1x@13e00000";
 		board_config {
 			fuse-info = "fuse-disable-pva";
@@ -96,7 +48,7 @@
 		};
 	};
 
-	fragment@4 {
+	fragment@2 {
 		target-path = "/host1x@13e00000";
 		board_config {
 			fuse-info = "fuse-disable-dla0";
@@ -108,7 +60,7 @@
 		};
 	};
 
-	fragment@5 {
+	fragment@3 {
 		target-path = "/host1x@13e00000";
 		board_config {
 			fuse-info = "fuse-disable-dla1";
