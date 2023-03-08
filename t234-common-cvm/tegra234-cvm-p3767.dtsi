@@ -184,7 +184,7 @@
 			status = "okay";
 		};
 		linux,cma {
-			size = <0x0 0x8000000>; /* 128MB */
+			size = <0x0 0x10000000>; /* 256 MB */
 			status = "okay";
 		};
 		vpr-carveout {
