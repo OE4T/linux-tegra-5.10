@@ -64,9 +64,9 @@ void *pva_dmabuf_vmap(struct dma_buf *dmabuf)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 18, 0)
-	struct iosys_map map;
+	struct iosys_map map = {0};
 #else
-	struct dma_buf_map map;
+	struct dma_buf_map map = {0};
 #endif
 	/* Linux v5.11 and later kernels */
 	if (dma_buf_vmap(dmabuf, &map))
