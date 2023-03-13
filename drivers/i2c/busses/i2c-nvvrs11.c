@@ -2,7 +2,7 @@
 /*
  * Voltage Regulator Specification: VRS11 High Current Voltage Regulator
  *
- * Copyright (C) 2022 NVIDIA CORPORATION. All rights reserved.
+ * Copyright (C) 2022-2023 NVIDIA CORPORATION. All rights reserved.
  */
 
 #include <linux/i2c.h>
@@ -14,6 +14,7 @@
 #include <linux/regmap.h>
 #include <linux/slab.h>
 #include <linux/err.h>
+#include <linux/version.h>
 
 #define VOLTAGE_OFFSET		200 // 0.2V
 #define VOLTAGE_SCALE		5   // 5mV
@@ -279,11 +280,18 @@ exit:
 	return ret;
 }
 
+#if KERNEL_VERSION(6, 1, 0) <= LINUX_VERSION_CODE
+static void nvvrs11_remove(struct i2c_client *client)
+{
+	nvvrs11_delete_sys_files(&client->dev);
+}
+#else
 static int nvvrs11_remove(struct i2c_client *client)
 {
 	nvvrs11_delete_sys_files(&client->dev);
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_PM_SLEEP
 static int nvvrs11_i2c_suspend(struct device *dev)
