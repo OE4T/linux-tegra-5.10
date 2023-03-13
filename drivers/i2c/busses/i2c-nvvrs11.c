@@ -218,8 +218,12 @@ static int nvvrs11_vendor_info(struct nvvrs11_chip *chip)
 	return 0;
 }
 
+#if KERNEL_VERSION(6, 3, 0) <= LINUX_VERSION_CODE
+static int nvvrs11_probe(struct i2c_client *client)
+#else
 static int nvvrs11_probe(struct i2c_client *client,
 			  const struct i2c_device_id *id)
+#endif
 {
 	const struct regmap_config *rmap_config;
 	struct nvvrs11_chip *nvvrs_chip;
