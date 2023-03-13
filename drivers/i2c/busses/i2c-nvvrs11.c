@@ -317,6 +317,7 @@ static const struct of_device_id nvvrs_dt_match[] = {
 	{ .compatible = "nvidia,vrs11" },
 	{}
 };
+MODULE_DEVICE_TABLE(of, nvvrs_dt_match);
 
 static struct i2c_driver nvvrs11_driver = {
 	.driver = {
