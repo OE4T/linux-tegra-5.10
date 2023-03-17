@@ -192,6 +192,11 @@
 		};
 	};
 
+	tegra-carveouts {
+		memory-region = <&vpr>;
+		status = "okay";
+	};
+
 	tegra-cache {
 		status = "okay";
 	};
