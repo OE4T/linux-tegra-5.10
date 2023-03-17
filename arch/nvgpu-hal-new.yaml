@@ -485,7 +485,9 @@ mm:
       sources: [ hal/mm/mm_gp10b_fusa.c,
                  hal/mm/mm_gp10b.h,
                  hal/mm/mm_gv11b_fusa.c,
-                 hal/mm/mm_gv11b.h]
+                 hal/mm/mm_gv11b.h,
+                 hal/mm/mm_ga10b_fusa.c,
+                 hal/mm/mm_ga10b.h]
     mm:
       safe: no
       sources: [ hal/mm/mm_gk20a.c,

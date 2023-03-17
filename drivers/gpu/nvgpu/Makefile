@@ -735,6 +735,7 @@ nvgpu-$(CONFIG_NVGPU_REMAP) += \
 nvgpu-y += \
 	hal/mm/mm_gv11b_fusa.o \
 	hal/mm/mm_gp10b_fusa.o \
+	hal/mm/mm_ga10b_fusa.o \
 	hal/mm/gmmu/gmmu_gv11b_fusa.o \
 	hal/mm/gmmu/gmmu_gp10b_fusa.o \
 	hal/mm/gmmu/gmmu_gk20a_fusa.o \
