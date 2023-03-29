@@ -36,6 +36,11 @@
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/nvhost.h>
 #include <linux/interrupt.h>
+#if KERNEL_VERSION(5, 14, 0) > LINUX_VERSION_CODE
+#include <linux/tegra-ivc.h>
+#else
+#include <soc/tegra/virt/hv-ivc.h>
+#endif
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
@@ -1051,13 +1056,11 @@ static int pva_probe(struct platform_device *pdev)
 	memset(&pva->vpu_util_info, 0, sizeof(pva->vpu_util_info));
 	pva->syncpts.syncpts_mapped_r = false;
 	pva->syncpts.syncpts_mapped_rw = false;
-	if (strncmp(match->compatible, "nvidia,tegra234-pva-hv", 22) == 0) {
-		nvpva_dbg_fn(pva, "match. compatible = %s", match->compatible);
+	nvpva_dbg_fn(pva, "match. compatible = %s", match->compatible);
+	if (is_tegra_hypervisor_mode())
 		pva->map_co_needed = false;
-	} else {
-		nvpva_dbg_fn(pva, "no match. compatible = %s", match->compatible);
+	else
 		pva->map_co_needed = true;
-	}
 
 #ifdef CONFIG_PVA_CO_DISABLED
 	pva->boot_from_file = true;
