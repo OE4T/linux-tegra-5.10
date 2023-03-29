@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Suresh Mangipudi <smangipudi@nvidia.com>
  *
@@ -395,14 +395,18 @@ static int tegra186_dpaux_pinctrl_probe(struct platform_device *pdev)
 
 	tdpaux_ctl->dpaux_clk = devm_clk_get(&pdev->dev, NULL);
 	if (IS_ERR(tdpaux_ctl->dpaux_clk)) {
-		dev_err(&pdev->dev, "can not get clock\n");
-		return PTR_ERR(tdpaux_ctl->dpaux_clk);
+		ret = PTR_ERR(tdpaux_ctl->dpaux_clk);
+		if (ret != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "can not get clock, err=%d\n", ret);
+		return ret;
 	}
 
 	rst = devm_reset_control_get(&pdev->dev, NULL);
 	if (IS_ERR(rst)) {
-		dev_err(&pdev->dev, "can not get reset\n");
-		return PTR_ERR(rst);
+		ret = PTR_ERR(rst);
+		if (ret != -EPROBE_DEFER)
+			dev_err(&pdev->dev, "can not get reset, err=%d\n", ret);
+		return ret;
 	}
 
 	reset_control_deassert(rst);
