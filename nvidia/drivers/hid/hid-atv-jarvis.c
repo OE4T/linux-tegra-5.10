@@ -2089,7 +2089,7 @@ static void atvr_remove(struct hid_device *hdev)
 		device_remove_file(&hdev->dev, &dev_attr_timeout);
 	}
 
-	if (hdev->product == USB_DEVICE_ID_NVIDIA_THUNDERSTRIKE && hdev->uniq) {
+	if (hdev->product == USB_DEVICE_ID_NVIDIA_THUNDERSTRIKE) {
 		if (shdr_dev->last_ljsx == 0 || shdr_dev->last_ljsx == 0xffff ||
 		    shdr_dev->last_ljsy == 0 || shdr_dev->last_ljsy == 0xffff ||
 		    shdr_dev->last_rjsx == 0 || shdr_dev->last_rjsx == 0xffff ||
