@@ -43,6 +43,7 @@
 
 #define DPAUX_HYBRID_SPARE		0x134
 #define PAD_PWR				BIT(0)
+#define RCV_33_18_SEL			BIT(1)
 
 struct tegra_dpaux_function {
 	const char *name;
@@ -260,6 +261,25 @@ static int tegra_dpaux_pinctrl_set_mode(struct tegra_dpaux_pinctl *tdpaux_ctl,
 	return ret;
 }
 
+static int tegra_dpaux_pinctrl_set_rcv_detect_3_3v(
+				struct tegra_dpaux_pinctl *tdpaux_ctl)
+{
+	int ret = 0;
+
+	ret = clk_prepare_enable(tdpaux_ctl->dpaux_clk);
+	if (ret) {
+		dev_err(tdpaux_ctl->dev, "clock enabled failed: %d\n", ret);
+		return ret;
+	}
+
+	tegra_dpaux_update(tdpaux_ctl, DPAUX_HYBRID_SPARE, RCV_33_18_SEL,
+			RCV_33_18_SEL);
+
+	clk_disable_unprepare(tdpaux_ctl->dpaux_clk);
+
+	return ret;
+}
+
 static int tegra_dpaux_pinctrl_get_groups_count(struct pinctrl_dev *pctldev)
 {
 	struct tegra_dpaux_pinctl *padctl = pinctrl_dev_get_drvdata(pctldev);
@@ -335,6 +355,47 @@ static const struct pinmux_ops tegra_dpaux_pinmux_ops = {
 	.set_mux = tegra_dpaux_pinctrl_set_mux,
 };
 
+enum tegra_dpaux_pinctrl_pinconf_params {
+	PIN_CONFIG_RCV_SEL_3_3V = PIN_CONFIG_END + 1,
+};
+
+static const struct pinconf_generic_params tegra_dpaux_pinctrl_cfg_params[] = {
+	{
+		.property = "nvidia,set-rcv-det-3.3v-signal",
+		.param = PIN_CONFIG_RCV_SEL_3_3V,
+	},
+};
+
+static int tegra_dpaux_pinctrl_pinconf_set(struct pinctrl_dev *pctl_dev,
+				unsigned int pin, unsigned long *configs,
+				unsigned int num_configs)
+{
+	struct tegra_dpaux_pinctl *padctl = pinctrl_dev_get_drvdata(pctl_dev);
+	u16 param;
+	unsigned int i;
+	int err;
+
+	for (i = 0; i < num_configs; ++i) {
+		param = pinconf_to_config_param(configs[i]);
+
+		switch (param) {
+		case PIN_CONFIG_RCV_SEL_3_3V:
+			err = tegra_dpaux_pinctrl_set_rcv_detect_3_3v(padctl);
+			if (err)
+				return err;
+			break;
+		default:
+			return -EINVAL;
+		}
+	}
+
+	return 0;
+}
+
+static const struct pinconf_ops tegra_dpaux_pinconf_ops = {
+	.pin_config_set = tegra_dpaux_pinctrl_pinconf_set,
+};
+
 static int tegra186_dpaux_pinctrl_probe(struct platform_device *pdev)
 {
 	struct tegra_dpaux_chip_data *cdata;
@@ -375,6 +436,10 @@ static int tegra186_dpaux_pinctrl_probe(struct platform_device *pdev)
 	tdpaux_ctl->desc.npins = tdpaux_ctl->npins;
 	tdpaux_ctl->desc.pctlops = &tegra_dpaux_pinctrl_ops;
 	tdpaux_ctl->desc.pmxops = &tegra_dpaux_pinmux_ops;
+	tdpaux_ctl->desc.confops = &tegra_dpaux_pinconf_ops;
+	tdpaux_ctl->desc.custom_params = tegra_dpaux_pinctrl_cfg_params;
+	tdpaux_ctl->desc.num_custom_params =
+				ARRAY_SIZE(tegra_dpaux_pinctrl_cfg_params);
 	tdpaux_ctl->desc.owner = THIS_MODULE;
 	tdpaux_ctl->powergate_id = cdata->powergate_id;
 	platform_set_drvdata(pdev, tdpaux_ctl);
