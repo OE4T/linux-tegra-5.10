@@ -1,7 +1,7 @@
 /*
  * PVA Application Specific Virtual Memory
  *
- * Copyright (c) 2022, NVIDIA Corporation.  All rights reserved.
+ * Copyright (c) 2022-2023, NVIDIA Corporation.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -116,10 +116,10 @@ struct platform_device
 			    && (strncmp(ctx->pdev->name, identifier, len) == 0))
 				ctx_new = ctx;
 
-		if (ctx_new && !shared && ctx->allocated)
+		if (ctx_new && !shared && ctx_new->allocated)
 			ctx_new = NULL;
 
-		if (ctx_new && shared && (ctx->allocated && !ctx->shared))
+		if (ctx_new && shared && (ctx_new->allocated && !ctx_new->shared))
 			ctx_new = NULL;
 	}
 
