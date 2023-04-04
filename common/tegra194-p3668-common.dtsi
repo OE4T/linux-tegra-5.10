@@ -272,6 +272,7 @@
 				dpaux3_pins {
 					pins = "dpaux3-3";
 					function = "i2c";
+					nvidia,set-rcv-det-3.3v-signal;
 				};
 			};
 		};
