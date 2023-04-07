@@ -22,4 +22,5 @@
 	nvidia,dtbbuildtime = __DATE__, __TIME__;
 
 	compatible = "nvidia,p3737-0000+p3701-0008", "nvidia,tegra234", "nvidia,tegra23x";
+	model = "Jetson AGX Orin Industrial";
 };
