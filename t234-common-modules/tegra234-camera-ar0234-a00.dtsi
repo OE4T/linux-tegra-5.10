@@ -168,6 +168,7 @@
 				sensor_model ="ar0234";
 				sync_sensor = "HAWK1";
 				sync_sensor_index = <1>;
+				supports-alt-exp = "true";
 
 				/* Defines number of frames to be dropped by driver internally after applying */
 				/* sensor crop settings. Some sensors send corrupt frames after applying */
@@ -336,6 +337,7 @@
 
 				sync_sensor = "HAWK1";
 				sync_sensor_index = <2>;
+				supports-alt-exp = "true";
 				/* Defines number of frames to be dropped by driver internally after applying */
 				/* sensor crop settings. Some sensors send corrupt frames after applying */
 				/* crop co-ordinates */
@@ -502,7 +504,7 @@
 				sensor_model ="ar0234";
 				sync_sensor = "HAWK2";
 				sync_sensor_index = <1>;
-
+				supports-alt-exp = "true";
 				/* Defines number of frames to be dropped by driver internally after applying */
 				/* sensor crop settings. Some sensors send corrupt frames after applying */
 				/* crop co-ordinates */
@@ -669,6 +671,7 @@
 
 				sync_sensor = "HAWK2";
 				sync_sensor_index = <2>;
+				supports-alt-exp = "true";
 				/* Defines number of frames to be dropped by driver internally after applying */
 				/* sensor crop settings. Some sensors send corrupt frames after applying */
 				/* crop co-ordinates */

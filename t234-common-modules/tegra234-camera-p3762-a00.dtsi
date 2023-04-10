@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -289,6 +289,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "HAWK1";
 			sync_sensor_index = <1>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
@@ -442,6 +443,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "HAWK1";
 			sync_sensor_index = <2>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
@@ -510,6 +512,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "HAWK2";
 			sync_sensor_index = <1>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
@@ -578,6 +581,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "HAWK2";
 			sync_sensor_index = <2>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
@@ -648,6 +652,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "OWL1";
 			sync_sensor_index = <1>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
@@ -716,6 +721,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "OWL2";
 			sync_sensor_index = <1>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
@@ -784,6 +790,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "OWL3";
 			sync_sensor_index = <1>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
@@ -852,6 +859,7 @@
 			sensor_model ="ar0234";
 			sync_sensor = "OWL4";
 			sync_sensor_index = <1>;
+			supports-alt-exp = "true";
 			/* Defines number of frames to be dropped by driver internally after applying */
 			/* sensor crop settings. Some sensors send corrupt frames after applying */
 			/* crop co-ordinates */
