@@ -26,6 +26,7 @@
 
 #include <linux/platform/tegra/tegra-mc-sid.h>
 #include <dt-bindings/memory/tegra234-smmu-streamid.h>
+#include <dt-bindings/memory/tegra234-mc.h>
 
 enum override_id {
 	HDAR,
@@ -326,14 +327,24 @@ static struct sid_override_reg sid_override_reg[] = {
 
 static struct sid_to_oids sid_to_oids[] = {
 	{
+		.client_id = TEGRA234_MEMORY_CLIENT_NVDISPLAYR,
 		.sid	= TEGRA_SID_ISO_NVDISPLAY,
-		.noids	= 2,
+		.noids	= 1,
 		.oid	= {
 			NVDISPLAYR,
+		},
+		.ord = OVERRIDE,
+		.name = "NVDISPLAYR",
+	},
+	{
+		.client_id = TEGRA234_MEMORY_CLIENT_NVDISPLAYR1,
+		.sid	= TEGRA_SID_ISO_NVDISPLAY,
+		.noids	= 1,
+		.oid	= {
 			NVDISPLAYR1,
 		},
 		.ord = OVERRIDE,
-		.name = "NVDISPLAY",
+		.name = "NVDISPLAYR1",
 	},
 };
 
