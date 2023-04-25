@@ -6,7 +6,6 @@
  */
 
 #include <linux/i2c.h>
-#include <linux/i2c-nvvrs11.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/of.h>
@@ -14,10 +13,35 @@
 #include <linux/regmap.h>
 #include <linux/slab.h>
 #include <linux/err.h>
+#include <linux/types.h>
 #include <linux/version.h>
 
 #define VOLTAGE_OFFSET		200 // 0.2V
 #define VOLTAGE_SCALE		5   // 5mV
+
+/* Vendor ID */
+#define NVVRS11_REG_VENDOR_ID		0x00
+#define NVVRS11_REG_MODEL_REV		0x01
+
+/* Voltage Output registers */
+#define NVVRS11_REG_VOUT_A		0x30
+#define NVVRS11_REG_VOUT_B		0x33
+
+/* Current Output registers */
+#define NVVRS11_REG_IOUT_A		0x31
+#define NVVRS11_REG_IOUT_B		0x34
+
+/* Temperature registers */
+#define NVVRS11_REG_TEMP_A		0x32
+#define NVVRS11_REG_TEMP_B		0x35
+
+struct nvvrs11_chip {
+	struct device *dev;
+	struct regmap *rmap;
+	struct i2c_client *client;
+	const char *loopA_rail_name;
+	const char *loopB_rail_name;
+};
 
 static const struct regmap_range nvvrs11_readable_ranges[] = {
 	regmap_reg_range(NVVRS11_REG_VENDOR_ID, NVVRS11_REG_MODEL_REV),
