@@ -23,6 +23,7 @@
 #include <linux/pm_runtime.h>
 #include <linux/of_platform.h>
 #include <uapi/linux/nvgpu.h>
+#include <linux/devfreq.h>
 
 #include <nvgpu/defaults.h>
 #include <nvgpu/kmem.h>
@@ -43,6 +44,7 @@
 #include "os_linux.h"
 #include "sysfs.h"
 #include "ioctl.h"
+#include "scale.h"
 
 #define EMC3D_DEFAULT_RATIO 750
 
@@ -69,6 +71,32 @@ void nvgpu_read_support_gpu_tools(struct gk20a *g)
 			g->support_gpu_tools = 1;
 		} else {
 			g->support_gpu_tools = 0;
+		}
+	}
+}
+
+void nvgpu_read_devfreq_timer(struct gk20a *g)
+{
+	struct device_node *np;
+	int ret = 0;
+	const char *timer;
+
+	np = nvgpu_get_node(g);
+	ret = of_property_read_string(np, "devfreq-timer", &timer);
+	if (ret != 0) {
+		nvgpu_log_info(g, "GPU devfreq monitor uses default timer");
+	} else {
+		if (strncmp(timer, "deferrable",
+					sizeof("deferrable") - 1) == 0) {
+			g->scale_profile->devfreq_profile.timer =
+						DEVFREQ_TIMER_DEFERRABLE;
+		} else if (strncmp(timer, "delayed",
+					sizeof("delayed") - 1) == 0) {
+			g->scale_profile->devfreq_profile.timer =
+						DEVFREQ_TIMER_DELAYED;
+		} else {
+			nvgpu_err(g, "dt specified "
+				"invalid devfreq timer for GPU: %s", timer);
 		}
 	}
 }
