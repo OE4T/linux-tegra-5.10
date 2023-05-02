@@ -813,6 +813,7 @@
 		dma-coherent;
 		nvidia,bpmp = <&bpmp>;
 		support-gpu-tools = <1>;
+		devfreq-timer = "delayed";
 		status = "disabled";
 	};
 
