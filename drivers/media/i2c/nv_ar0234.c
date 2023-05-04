@@ -1,7 +1,7 @@
 /*
  * ar0234.c - ar0234 sensor driver
  *
- * Copyright (c) 2018-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2018-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -37,6 +37,8 @@
 #define MAX_TANGENTIAL_COEFFICIENTS     2
 #define MAX_FISHEYE_COEFFICIENTS        6
 #define CAMERA_MAX_SN_LENGTH 32
+#define LEOP_CAMERA_MAX_SN_LENGTH 10
+
 #define MAX_RLS_COLOR_CHANNELS 4
 #define MAX_RLS_BREAKPOINTS 6
 
@@ -135,6 +137,12 @@ typedef struct
 	float tx, ty, tz;
 } camera_extrinsics;
 
+/*
+ * IMU parameters used by HAWK 1.0. HAWK 1.0 did not have IMU noise model parameters
+ * in EEPROM. To preserve backward compatibility with HAWK 1.0, the EEPROM data is arranged
+ * in a certain way which requires tracking the imu noise model parameters in a
+ * separate structure.
+ */
 typedef struct
 {
 	// 3D vector to add to accelerometer readings
@@ -145,13 +153,29 @@ typedef struct
 	float gravity_acceleration[3];
 	// Extrinsic structure for IMU device
 	camera_extrinsics extr;
-	// Noise model parameters
+
+} imu_params_v1;
+
+typedef struct {
+	/*
+	 *Noise model parameters
+	 */
+
 	float update_rate;
 	float linear_acceleration_noise_density;
 	float linear_acceleration_random_walk;
 	float angular_velocity_noise_density;
 	float angular_velocity_random_walk;
-} imu_params;
+
+} imu_params_noise_m;
+
+/*
+ * Combined IMU calibration data structure
+ */
+typedef struct {
+	imu_params_v1 imu_data_v1;
+	imu_params_noise_m nm;
+} imu_params_v2;
 
 typedef struct {
 	// Image height
@@ -196,7 +220,7 @@ typedef struct
 	u8 imu_present;
 
 	// Intrinsic structure for IMU
-	imu_params imu;
+	imu_params_v2 imu;
 
 	// HAWK module serial number
 	u8 serial_number[CAMERA_MAX_SN_LENGTH];
@@ -232,10 +256,14 @@ typedef struct
 	/**
 	 * Intrinsic structure for IMU
 	 */
-	imu_params imu;
+	imu_params_v1 imu;
+
+	u8 tmp[16];
 
 	// HAWK module serial number
-	u8 serial_number[CAMERA_MAX_SN_LENGTH];
+	u8 serial_number[LEOP_CAMERA_MAX_SN_LENGTH];
+
+	imu_params_noise_m nm;
 
 	// Radial Lens Shading Correction parameters
 	radial_lsc_params left_rls;
@@ -666,10 +694,9 @@ static int ar0234_fill_eeprom(struct tegracam_device *tc_dev,
 			}
 			priv->EepromCalib.cam_extr = tmp.cam_extr;
 			priv->EepromCalib.imu_present = tmp.imu_present;
-			priv->EepromCalib.imu = tmp.imu;
-			memcpy(priv->EepromCalib.serial_number, tmp.serial_number,
-				CAMERA_MAX_SN_LENGTH);
-
+			priv->EepromCalib.imu.imu_data_v1 = tmp.imu;
+			priv->EepromCalib.imu.nm = tmp.nm;
+			memcpy(priv->EepromCalib.serial_number, tmp.serial_number, 8);
 			if (priv->sync_sensor_index == 1)
 				priv->EepromCalib.rls = tmp.left_rls;
 			else if (priv->sync_sensor_index == 2)
