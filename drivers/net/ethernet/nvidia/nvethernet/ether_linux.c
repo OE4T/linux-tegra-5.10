@@ -1130,8 +1130,8 @@ static void ether_adjust_link(struct net_device *dev)
 		}
 	}
 
-	/* Configure EEE if it is enabled */
-	if (pdata->eee_enabled && pdata->tx_lpi_enabled) {
+	/* Configure EEE if it is enabled and link is up*/
+	if (pdata->eee_enabled && pdata->tx_lpi_enabled && phydev->link) {
 		eee_enable = OSI_ENABLE;
 	}
 
