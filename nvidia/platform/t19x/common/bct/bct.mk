@@ -1,4 +1,4 @@
-BCT_FILES_PATH := hardware/nvidia/platform/t19x/common/bct
+BCT_FILES_PATH := nvidia/platform/t19x/common/bct
 
 PRODUCT_COPY_FILES += \
     $(BCT_FILES_PATH)/device/tegra19x-mb1-bct-device-sdmmc.cfg:tegra19x-mb1-bct-device-sdmmc.cfg \

@@ -1,4 +1,4 @@
-#include "../../../../../../../hardware/nvidia/platform/t18x/quill/kernel-dts/tegra186-quill-p3310-1000-c03-00-base.dts"
+#include "../../../../../../../nvidia/platform/t18x/quill/kernel-dts/tegra186-quill-p3310-1000-c03-00-base.dts"
 #include "tegra186-quill-p3310-override.dtsi"
 / {
 	gpio-keys {

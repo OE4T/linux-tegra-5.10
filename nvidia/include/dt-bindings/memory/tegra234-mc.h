@@ -17,7 +17,7 @@
 /*
  * This file contains list of Memory Controller Client IDs used in Tegra234.
  * There is duplicate copy of this file present in
- * hardware/nvidia/soc/t23x/kernel-include/dt-bindings/memory/tegra234-mc.h
+ * nvidia/soc/t23x/kernel-include/dt-bindings/memory/tegra234-mc.h
  * make sure to update both to keep it in sync.
  */
 

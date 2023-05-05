@@ -1,4 +1,4 @@
-#include "../../../../../../../hardware/nvidia/platform/t210/jetson/kernel-dts/tegra210-jetson-cv-base-p2597-2180-a00.dts"
+#include "../../../../../../../nvidia/platform/t210/jetson/kernel-dts/tegra210-jetson-cv-base-p2597-2180-a00.dts"
 
 / {
         pcie@1003000 {
