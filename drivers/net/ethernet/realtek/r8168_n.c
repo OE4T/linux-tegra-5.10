@@ -25300,7 +25300,7 @@ rtl8168_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
 
         netif_carrier_off(dev);
 
-        printk("%s", GPL_CLAIM);
+	printk(KERN_INFO "%s", GPL_CLAIM);
 
 out:
         return rc;
