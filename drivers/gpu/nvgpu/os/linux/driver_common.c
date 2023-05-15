@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -187,7 +187,8 @@ static void nvgpu_init_timeslice(struct gk20a *g)
 
 static void nvgpu_init_pm_vars(struct gk20a *g)
 {
-	struct gk20a_platform *platform = dev_get_drvdata(dev_from_gk20a(g));
+	struct device *dev = dev_from_gk20a(g);
+	struct gk20a_platform *platform = dev_get_drvdata(dev);
 
 	/*
 	 * Set up initial power settings. For non-slicon platforms, disable
@@ -239,6 +240,17 @@ static void nvgpu_init_pm_vars(struct gk20a *g)
 		/* Always enable railgating on simulation platform */
 		platform->can_railgate_init = nvgpu_platform_is_simulation(g) ?
 			true : platform->can_railgate_init;
+
+		/*
+		 * Disable railgating if GPU power domain node is not defined
+		 * in the DT as bpmp will not powergate/ungate the GPU on
+		 * suspend/resume and can lead to ACR failure on resume
+		 * as it expects GPU to be reset on every resume.
+		 */
+		if (!of_property_read_bool(dev->of_node, "power-domains")) {
+			platform->can_railgate_init = false;
+		}
+
 		nvgpu_set_enabled(g, NVGPU_CAN_RAILGATE,
 				platform->can_railgate_init);
 	}
