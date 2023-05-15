@@ -36,11 +36,6 @@
 #include <linux/platform/tegra/emc_bwmgr.h>
 #include <linux/nvhost.h>
 #include <linux/interrupt.h>
-#if KERNEL_VERSION(5, 14, 0) > LINUX_VERSION_CODE
-#include <linux/tegra-ivc.h>
-#else
-#include <soc/tegra/virt/hv-ivc.h>
-#endif
 #include <dt-bindings/interconnect/tegra_icc_id.h>
 #if KERNEL_VERSION(4, 15, 0) > LINUX_VERSION_CODE
 #include <soc/tegra/chip-id.h>
@@ -77,13 +72,8 @@ static u32 vm_regs_sid_idx_t19x[] = {0, 0, 0, 0, 0, 0, 0, 0,
 				     0, 0, 0, 0, 0, 0, 0, 0};
 static u32 vm_regs_reg_idx_t19x[] = {0, 1, 1, 0, 0, 0, 0, 0,
 				     0, 0, 0, 0, 0, 0, 0, 0};
-#ifdef CONFIG_PVA_CO_DISABLED
 static u32 vm_regs_sid_idx_t234[] = {1, 2, 3, 4, 5, 6, 7, 7,
 				     8, 8, 8, 8, 8, 0, 0, 0};
-#else
-static u32 vm_regs_sid_idx_t234[] = {1, 2, 3, 4, 5, 6, 7, 7,
-				     8, 0, 8, 8, 8, 0, 0, 0};
-#endif
 static u32 vm_regs_reg_idx_t234[] = {0, 1, 2, 3, 4, 5, 6, 7,
 				     8, 8, 8, 9, 9, 0, 0, 0};
 static char *aux_dev_name = "16000000.pva0:pva0_niso1_ctx7";
@@ -438,7 +428,7 @@ static int pva_init_fw(struct platform_device *pdev)
 	nvpva_dbg_fn(pva, "PVA boot returned: %d", err);
 
 	pva_reset_task_status_buffer(pva);
-	err = nvpva_set_task_status_buffer(pva);
+
 wait_timeout:
 out:
 	return err;
@@ -448,21 +438,9 @@ static int pva_free_fw(struct platform_device *pdev, struct pva *pva)
 {
 	struct pva_fw *fw_info = &pva->fw_info;
 
-	if (pva->boot_from_file) {
-		if (pva->priv1_dma.va)
-			dma_free_coherent(&pva->aux_pdev->dev, pva->priv1_dma.size,
-					  pva->priv1_dma.va, pva->priv1_dma.pa);
-	} else {
-		if (pva->map_co_needed && (pva->priv1_dma.pa != 0)) {
-			nvpva_unmap_region(&pdev->dev,
-					   pva->priv1_dma.pa,
-					   pva->co->size,
-					   DMA_BIDIRECTIONAL);
-		}
-
-		pva->co->base_pa = 0;
-		pva->co->base_va = 0;
-	}
+	if (pva->priv1_dma.va)
+		dma_free_coherent(&pva->aux_pdev->dev, pva->priv1_dma.size,
+				  pva->priv1_dma.va, pva->priv1_dma.pa);
 
 	pva->priv1_dma.pa = 0;
 	if (pva->priv2_dma.va) {
@@ -534,48 +512,13 @@ clean_up:
 	return err;
 }
 
-static int pva_read_ucode_co(struct platform_device *pdev,
-			     struct pva *pva)
-{
-	int err = 0;
-	struct pva_fw *fw_info = &pva->fw_info;
-
-	if (pva->map_co_needed) {
-		err = nvpva_map_region(&pdev->dev,
-				       pva->co->base,
-				       pva->co->size,
-				       &pva->priv1_dma.pa,
-				       DMA_BIDIRECTIONAL);
-		if (err) {
-			err = -ENOMEM;
-			goto out;
-		}
-	} else {
-		pva->priv1_dma.pa = pva->co->base;
-		pva->priv1_dma.va = 0;
-	}
-
-	fw_info->priv1_buffer.va = pva->priv1_dma.va;
-	fw_info->priv1_buffer.pa = pva->priv1_dma.pa;
-	fw_info->priv1_buffer.size = pva->co->size;
-	pva->priv1_dma.size = pva->co->size;
-
-out:
-	return err;
-}
-
 static int pva_read_ucode(struct platform_device *pdev, const char *fw_name,
 			  struct pva *pva)
 {
 	int err = 0;
 	struct pva_fw *fw_info = &pva->fw_info;
 
-	if (pva->boot_from_file)
-		err = pva_read_ucode_file(pdev, fw_name, pva);
-	else
-		err = pva_read_ucode_co(pdev, pva);
-
-	nvpva_dbg_fn(pva, "co iova = %llx\n", pva->priv1_dma.pa);
+	err = pva_read_ucode_file(pdev, fw_name, pva);
 
 	fw_info->priv2_buffer.size = FW_DEBUG_DATA_TOTAL_SIZE;
 
@@ -802,19 +745,6 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	timestamp = nvpva_get_tsc_stamp();
 
 	nvpva_dbg_fn(pva, "");
-	if (!pva->boot_from_file) {
-		nvpva_dbg_fn(pva, "boot from co");
-		pva->co = pva_fw_co_get_info(pva);
-
-		if (pva->co == NULL) {
-			nvpva_dbg_fn(pva, "failed to get carveout");
-			err = -ENOMEM;
-			goto err_poweron;
-		}
-
-		nvpva_dbg_fn(pva, "CO base = %llx, CO size = %llu\n",
-			  (u64)pva->co->base, (u64)pva->co->size);
-	}
 
 	/* Enable LIC_INTERRUPT line for HSP1, H1X and WDT */
 	if (pva->version == PVA_HW_GEN1) {
@@ -831,10 +761,7 @@ int pva_finalize_poweron(struct platform_device *pdev)
 	}
 
 	nvpva_write_hwid(pdev);
-	if (!pva->boot_from_file)
-		err = pva_load_fw(pdev, pva);
-	else
-		err = pva_load_fw(pva->aux_pdev, pva);
+	err = pva_load_fw(pva->aux_pdev, pva);
 
 	if (err < 0) {
 		nvpva_err(&pdev->dev, " pva fw failed to load\n");
@@ -1057,19 +984,6 @@ static int pva_probe(struct platform_device *pdev)
 	pva->syncpts.syncpts_mapped_r = false;
 	pva->syncpts.syncpts_mapped_rw = false;
 	nvpva_dbg_fn(pva, "match. compatible = %s", match->compatible);
-	if (is_tegra_hypervisor_mode())
-		pva->map_co_needed = false;
-	else
-		pva->map_co_needed = true;
-
-#ifdef CONFIG_PVA_CO_DISABLED
-	pva->boot_from_file = true;
-#else
-	if (pdata->version == PVA_HW_GEN1)
-		pva->boot_from_file = true;
-	else
-		pva->boot_from_file = false;
-#endif
 
 #ifdef __linux__
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
