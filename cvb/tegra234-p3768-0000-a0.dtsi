@@ -277,7 +277,7 @@
 
 	host1x@13e00000 {
 		nvcsi@15a00000 {
-			csi_chan0 {
+			channel@0 {
 				ports {
 					port@0 {
 						endpoint@0 {
