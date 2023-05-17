@@ -369,10 +369,15 @@ static int tegra234_mc_sid_probe(struct platform_device *pdev)
 	return err;
 }
 
+static const struct dev_pm_ops tegra234_mc_sid_pm_ops = {
+	.resume_early = tegra_mc_sid_resume_early,
+};
+
 static const struct of_device_id tegra234_mc_sid_of_match[] = {
 	{ .compatible = "nvidia,tegra234-mc-sid", },
 	{},
 };
+
 MODULE_DEVICE_TABLE(of, tegra234_mc_sid_of_match);
 
 static struct platform_driver tegra234_mc_sid_driver = {
@@ -381,6 +386,7 @@ static struct platform_driver tegra234_mc_sid_driver = {
 	.driver	= {
 		.owner	= THIS_MODULE,
 		.name	= "tegra234-mc-sid",
+		.pm     = &tegra234_mc_sid_pm_ops,
 		.of_match_table	= of_match_ptr(tegra234_mc_sid_of_match),
 	},
 };
