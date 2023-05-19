@@ -44,6 +44,9 @@
 #define MAX_RLS_BREAKPOINTS             6
 #define OWL_CHANNEL			1
 #define HAWK_CHANNEL			0
+#define EXTERNAL_FSYNC			1
+#define INTERNAL_FSYNC			2
+
 
 extern int max96712_write_reg_Dser(int slaveAddr,int channel,
 		u16 addr, u8 val);
@@ -59,6 +62,9 @@ extern int max96712_read_reg_Dser(int slaveAddr,int channel,
 #define AR0234_CTX_CONTROL_REG_ADDR	0x3034
 #define AR0234_CTX_WR_DATA_REG_ADDR	0x3066
 #define AR0234_ANALOG_GAIN    0x3060
+
+int owl_links;
+int hawk_links;
 
 static const struct of_device_id ar0234_of_match[] = {
 	{.compatible = "nvidia,ar0234_hawk_owl",},
@@ -517,38 +523,38 @@ static int ar0234_hawk_owl_i2ctrans(struct ar0234 *priv)
 			}
 		}
 	} else if(ar0234_hawk_link_check(priv) == 2) {
-                if ((1 == priv->channel)) {
-                        err = ar0234_write_table(priv, i2c_address_trans_Dual_owl);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                } else if ((!priv->channel) || (2 == priv->sync_sensor_index)) {
-                        err = ar0234_write_table(priv, i2c_address_trans_Dual_hawk);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                }
-        } else if(ar0234_hawk_link_check(priv) == 1) {
-                if ((1 == priv->channel)) {
-                        err = ar0234_write_table(priv, i2c_address_trans_Single_owl);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                } else if ((!priv->channel) || (2 == priv->sync_sensor_index)) {
-                        err = ar0234_write_table(priv, i2c_address_trans_Single_hawk);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                }
-        }
+		if ((1 == priv->channel)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Dual_owl);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+		} else if ((!priv->channel) || (2 == priv->sync_sensor_index)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Dual_hawk);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+		}
+	} else if(ar0234_hawk_link_check(priv) == 1) {
+		if ((1 == priv->channel)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Single_owl);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+		} else if ((!priv->channel) || (2 == priv->sync_sensor_index)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Single_hawk);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+		}
+	}
 
 	return err;
 }
@@ -585,24 +591,24 @@ static int ar0234_enable_pwdn_gpio(struct camera_common_data *s_data)
 			haw_flag++;
 		}
 	} else if(ar0234_hawk_link_check(priv) == 3) {
-		                if ((1 == priv->channel) && !owl_flag) {
-                        err = ar0234_write_table(priv, i2c_address_trans_owl_Triple_ser);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                        owl_flag++;
+		if ((1 == priv->channel) && !owl_flag) {
+			err = ar0234_write_table(priv, i2c_address_trans_owl_Triple_ser);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+			owl_flag++;
 
-                } else if ((!priv->channel) && !haw_flag) {
-                        err = ar0234_write_table(priv, i2c_address_trans_hawk_Triple_ser);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                        haw_flag++;
-                }
+		} else if ((!priv->channel) && !haw_flag) {
+			err = ar0234_write_table(priv, i2c_address_trans_hawk_Triple_ser);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+			haw_flag++;
+		}
 	} else if(ar0234_hawk_link_check(priv) == 2) {
 		if ((1 == priv->channel) && !owl_flag) {
 			err = ar0234_write_table(priv, i2c_address_trans_owl_Dual_ser);
@@ -623,26 +629,25 @@ static int ar0234_enable_pwdn_gpio(struct camera_common_data *s_data)
 			haw_flag++;
 		}
 	} else if(ar0234_hawk_link_check(priv) == 1) {
-                if ((1 == priv->channel) && !owl_flag) {
-                        err = ar0234_write_table(priv, i2c_address_trans_owl_Single_ser);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                        owl_flag++;
+		if ((1 == priv->channel) && !owl_flag) {
+			err = ar0234_write_table(priv, i2c_address_trans_owl_Single_ser);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+			owl_flag++;
 
-                } else if ((!priv->channel) && !haw_flag) {
-                        err = ar0234_write_table(priv, i2c_address_trans_hawk_Single_ser);
-                        if (err) {
-                                pr_err("%s: Failed to do i2c address trans..\n",__func__);
-                        } else {
-                                pr_err("%s: Successfully done I2c address trans..\n",__func__);
-                        }
-                        haw_flag++;
-                }
-        }
-
+		} else if ((!priv->channel) && !haw_flag) {
+			err = ar0234_write_table(priv, i2c_address_trans_hawk_Single_ser);
+			if (err) {
+				pr_err("%s: Failed to do i2c address trans..\n",__func__);
+			} else {
+				pr_err("%s: Successfully done I2c address trans..\n",__func__);
+			}
+			haw_flag++;
+		}
+	}
 	return err;
 }
 
@@ -672,7 +677,7 @@ static int ar0234_power_on(struct camera_common_data *s_data)
 
 	/*i2c address trans for Hawk & Owl*/
 	err = ar0234_hawk_owl_i2ctrans(priv);
-	return 0;
+	return err;
 }
 
 static int ar0234_power_off(struct camera_common_data *s_data)
@@ -1278,6 +1283,394 @@ error:
 	return err;
 }
 
+static int ar0234_hawk_owl_EEPROM_address_trans(struct ar0234 *priv)
+{
+	int err = 0;
+
+	/* i2c address trans for EEPROM access */
+	if(ar0234_hawk_link_check(priv) == 4) {
+		if ((1 == priv->channel)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Quad_owl_eeprom);
+			if (err) {
+				pr_err("Owl camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Owl camera Eeprom i2c address trans success!!!\n");
+			}
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Quad_hawk_eeprom);
+			if (err) {
+				pr_err("Hawk camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Hawk camera Eeprom i2c address trans success!!!\n");
+			}
+		}
+	} else if(ar0234_hawk_link_check(priv) == 3) {
+		if ((1 == priv->channel)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Triple_owl_eeprom);
+			if (err) {
+				pr_err("Owl camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Owl camera Eeprom i2c address trans success!!!\n");
+			}
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Triple_hawk_eeprom);
+			if (err) {
+				pr_err("Hawk camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Hawk camera Eeprom i2c address trans success!!!\n");
+			}
+		}
+	} else if(ar0234_hawk_link_check(priv) == 2) {
+		if ((1 == priv->channel)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Dual_owl_eeprom);
+			if (err) {
+				pr_err("Owl camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Owl camera Eeprom i2c address trans success!!!\n");
+			}
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Dual_hawk_eeprom);
+			if (err) {
+				pr_err("Hawk camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Hawk camera Eeprom i2c address trans success!!!\n");
+			}
+		}
+	} else if(ar0234_hawk_link_check(priv) == 1) {
+		if ((1 == priv->channel)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Single_owl_eeprom);
+			if (err) {
+				pr_err("Owl camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Owl camera Eeprom i2c address trans success!!!\n");
+			}
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Single_hawk_eeprom);
+			if (err) {
+				pr_err("Hawk camera Eeprom i2c address trans error\n");
+				return err;
+			} else {
+				pr_err("Hawk camera Eeprom i2c address trans success!!!\n");
+			}
+		}
+	}
+	return err;
+}
+
+static int max96712_fsync_program(const struct index_reg_8 table[], int channel)
+{
+	int ret = 0;
+	int i = 0;
+	int retry = 5;
+
+	while (table[i].source != 0x00) {
+retry_serdes:
+		ret = max96712_write_reg_Dser(table[i].source,
+				channel, table[i].addr, (u8)table[i].val);
+		if (ret && (table[i].addr != 0x0000))
+		{
+			retry--;
+			if (retry > 0) {
+				pr_err("max96712_write_reg_Dser: try %d\n", retry);
+				msleep(4);
+				goto retry_serdes;
+			}
+			return -1;
+		}
+		if (0x0010 == table[i].addr || 0x0000 == table[i].addr ||
+				0x0006 == table[i].addr || 0x0018 == table[i].addr)
+			msleep(300);
+		else
+			msleep(10);
+		i++;
+	}
+	return ret;
+}
+
+static int owl_internal_fsync(void)
+{
+	int err = 0;
+
+	switch(owl_links) {
+		case QUAD_LINK:
+			err = max96712_fsync_program(Owl_QuadLink_Dser_InFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for OWL\n",__func__);
+			break;
+		case TRIPLE_LINK:
+			err = max96712_fsync_program(Owl_TripleLink_Dser_InFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for OWL\n",__func__);
+			break;
+		case DUAL_LINK:
+			err = max96712_fsync_program(Owl_DualLink_Dser_InFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for OWL\n",__func__);
+			break;
+		case SINGLE_LINK:
+			err = max96712_fsync_program(Owl_SingleLink_Dser_InFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for OWL\n",__func__);
+			break;
+		default:
+			pr_err("%s: not matching to any link type %d\n", __func__, owl_links);
+			break;
+	}
+	return err;
+}
+
+static int owl_external_fsync(void)
+{
+	int err = 0;
+
+	switch(owl_links) {
+		case QUAD_LINK:
+			err = max96712_fsync_program(Owl_QuadLink_Dser_ExFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for OWL\n",__func__);
+			break;
+		case TRIPLE_LINK:
+			err = max96712_fsync_program(Owl_TripleLink_Dser_ExFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for OWL\n",__func__);
+			break;
+		case DUAL_LINK:
+			err = max96712_fsync_program(Owl_DualLink_Dser_ExFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for OWL\n",__func__);
+			break;
+		case SINGLE_LINK:
+			err = max96712_fsync_program(Owl_SingleLink_Dser_ExFsync, OWL_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for OWL\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for OWL\n",__func__);
+			break;
+		default:
+			pr_err("%s: not matching to any link type %d\n", __func__, owl_links);
+			break;
+	}
+	return err;
+}
+
+static int hawk_internal_fsync(void)
+{
+	int err = 0;
+
+	switch(hawk_links) {
+		case QUAD_LINK:
+			err = max96712_fsync_program(Hawk_QuadLink_Dser_InFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for HAWK\n",__func__);
+			break;
+		case TRIPLE_LINK:
+			err = max96712_fsync_program(Hawk_TripleLink_Dser_InFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for HAWK\n",__func__);
+			break;
+		case DUAL_LINK:
+			err = max96712_fsync_program(Hawk_DualLink_Dser_InFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for HAWK\n",__func__);
+			break;
+		case SINGLE_LINK:
+			err = max96712_fsync_program(Hawk_SingleLink_Dser_InFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set internal fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set internal fsync for HAWK\n",__func__);
+			break;
+		default:
+			pr_err("%s: not matching to any link type %d\n", __func__, hawk_links);
+			break;
+	}
+
+	return err;
+}
+
+static int hawk_external_fsync(void)
+{
+	int err = 0;
+
+	switch (hawk_links) {
+		case QUAD_LINK:
+			err = max96712_fsync_program(Hawk_QuadLink_Dser_ExFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for HAWK\n",__func__);
+			break;
+		case TRIPLE_LINK:
+			err = max96712_fsync_program(Hawk_TripleLink_Dser_ExFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for HAWK\n",__func__);
+			break;
+		case DUAL_LINK:
+			err = max96712_fsync_program(Hawk_DualLink_Dser_ExFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for HAWK\n",__func__);
+			break;
+		case SINGLE_LINK:
+			err = max96712_fsync_program(Hawk_SingleLink_Dser_ExFsync, HAWK_CHANNEL);
+			if (err)
+				pr_err("%s: Failed to set external fsync for HAWK\n",__func__);
+			else
+				pr_info("%s: Successfully set external fsync for HAWK\n",__func__);
+			break;
+		default:
+			pr_err("%s: not matching to any link type %d\n", __func__, hawk_links);
+			break;
+
+	}
+	return err;
+}
+
+int Hawk_Owl_Fsync_program(int fsync_type)
+{
+	int err = 0;
+
+	switch (fsync_type)
+	{
+		case EXTERNAL_FSYNC:
+			err = owl_external_fsync();
+			if (err)
+				pr_err("%s: Failed to set external fsync for OWLs!! err = %d\n", __func__,err);
+			err = hawk_external_fsync();
+			if (err)
+				pr_err("%s: Failed to set external fsync for HAWKS!! err = %d\n", __func__,err);
+			break;
+		case INTERNAL_FSYNC:
+			err = owl_internal_fsync();
+			if (err)
+				pr_err("%s: Failed to set internal fsync for OWLs!! err = %d\n", __func__,err);
+			err = hawk_internal_fsync();
+			if (err)
+				pr_err("%s: Failed to set internal fsync for HAWKS!! err = %d\n", __func__,err);
+			break;
+		default:
+			pr_err("%s: not supported fsync_type = %d\n", __func__, fsync_type);
+			break;
+	}
+
+	return err;
+}
+EXPORT_SYMBOL(Hawk_Owl_Fsync_program);
+
+static int ar0234_hawk_owl_deser_ser_program(struct ar0234 *priv)
+{
+	int err = 0;
+	static int hawk_flag = 0, owl_flag = 0;
+
+	if(ar0234_hawk_link_check(priv) == 4) {
+		if ((1 == priv->channel) && (!owl_flag)) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_QUADLINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do OWL mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
+			owl_flag++;
+			owl_links = QUAD_LINK;
+		}
+		if ((!priv->channel) && !hawk_flag) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_QUADLINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
+			hawk_flag++;
+			hawk_links = QUAD_LINK;
+		}
+	} else if(ar0234_hawk_link_check(priv) == 3) {
+		if ((1 == priv->channel) && (!owl_flag)) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_TRIPLELINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do OWL mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
+			owl_flag++;
+			owl_links = TRIPLE_LINK;
+		}
+		if ((!priv->channel) && !hawk_flag) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_TRIPLELINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
+			hawk_flag++;
+			hawk_links = TRIPLE_LINK;
+		}
+	} else if(ar0234_hawk_link_check(priv) == 2) {
+		if ((1 == priv->channel) && (!owl_flag)) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_DUALLINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do OWL mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
+			owl_flag++;
+			owl_links = DUAL_LINK;
+		}
+		if ((!priv->channel) && !hawk_flag) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_DUALLINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
+			hawk_flag++;
+			hawk_links = DUAL_LINK;
+		}
+	} else if(ar0234_hawk_link_check(priv) == 1) {
+		if ((1 == priv->channel) && (!owl_flag)) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_SINGLELINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do OWL mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
+			owl_flag++;
+			owl_links = SINGLE_LINK;
+		}
+		if ((!priv->channel) && !hawk_flag) {
+			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_SINGLELINK_DSER_SER]);
+			if (err)
+				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
+			else
+				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
+			hawk_flag++;
+			hawk_links = SINGLE_LINK;
+		}
+	}
+	return err;
+}
 
 static int ar0234_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)
@@ -1288,7 +1681,6 @@ static int ar0234_probe(struct i2c_client *client,
 	struct ar0234 *priv;
 	const char *str;
 	int err;
-	static int hawk_flag = 0, owl_flag = 0;
 
 	dev_info(dev, "probing v4l2 sensor.\n");
 
@@ -1336,166 +1728,43 @@ static int ar0234_probe(struct i2c_client *client,
 	tegracam_set_privdata(tc_dev, (void *)priv);
 
 	/*Power down gpio enable */
-	ar0234_enable_pwdn_gpio(tc_dev->s_data);
-	ar0234_power_on(tc_dev->s_data);
+	err = ar0234_enable_pwdn_gpio(tc_dev->s_data);
+	if (err) {
+		dev_err(&client->dev,"Failed to enable gpio/ to do serializer i2c address trans\n");
+		goto un_register;
+	}
+	err = ar0234_power_on(tc_dev->s_data);
+	if (err) {
+		dev_err(&client->dev,"Failed to power on\n");
+		goto un_register;
+	}
 	msleep(100);
 
 	err = ar0234_write_table(priv, mode_table[AR0234_MODE_STOP_STREAM]);
 	if (err) {
 		dev_err(&client->dev,"ar0234 detect error\n");
-		return err;
+		goto un_register;
 	}
 	msleep(100);
+
 	/* Deser/ser programming */
-	if(ar0234_hawk_link_check(priv) == 4) {
-		if ((1 == priv->channel) && (!owl_flag)) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_QUADLINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do OWL mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
-			owl_flag++;
-		}
-		if ((!priv->channel) && !hawk_flag) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_QUADLINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
-			hawk_flag++;
-		}
-	} else if(ar0234_hawk_link_check(priv) == 3) {
-		if ((1 == priv->channel) && (!owl_flag)) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_TRIPLELINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do OWL mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
-			owl_flag++;
-		}
-		if ((!priv->channel) && !hawk_flag) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_TRIPLELINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
-			hawk_flag++;
-		}
-	} else if(ar0234_hawk_link_check(priv) == 2) {
-		if ((1 == priv->channel) && (!owl_flag)) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_DUALLINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do OWL mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
-			owl_flag++;
-		}
-		if ((!priv->channel) && !hawk_flag) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_DUALLINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
-			hawk_flag++;
-		}
-	} else if(ar0234_hawk_link_check(priv) == 1) {
-		if ((1 == priv->channel) && (!owl_flag)) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_OWL_SINGLELINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do OWL mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done OWL mode table ..\n",__func__);
-			owl_flag++;
-		}
-		if ((!priv->channel) && !hawk_flag) {
-			err = ar0234_write_table(priv, mode_table[AR0234_MODE_HAWK_SINGLELINK_DSER_SER]);
-			if (err)
-				pr_err("%s: Failed to do Hawk  mode table..\n",__func__);
-			else
-				pr_err("%s: Successfully done Hawk mode table ..\n",__func__);
-			hawk_flag++;
-		}
+	err = ar0234_hawk_owl_deser_ser_program(priv);
+	if (err) {
+		dev_err(&client->dev,"Failed to program deser/ser\n");
+		goto un_register;
 	}
 
 	/* i2c address trans for EEPROM access */
-	if(ar0234_hawk_link_check(priv) == 4) {
-		if ((1 == priv->channel)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Quad_owl_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
-			}
-		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Quad_hawk_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans success!!!\n");
-			}
-		}
-	} else if(ar0234_hawk_link_check(priv) == 3) {
-		if ((1 == priv->channel)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Triple_owl_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
-			}
-		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Triple_hawk_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans success!!!\n");
-			}
-		}
-	} else if(ar0234_hawk_link_check(priv) == 2) {
-		if ((1 == priv->channel)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Dual_owl_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
-			}
-		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Dual_hawk_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans success!!!\n");
-			}
-		}
-	} else if(ar0234_hawk_link_check(priv) == 1) {
-		if ((1 == priv->channel)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Single_owl_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
-			}
-		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
-			err = ar0234_write_table(priv, i2c_address_trans_Single_hawk_eeprom);
-			if (err) {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
-				return err;
-			} else {
-				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans success!!!\n");
-			}
-		}
+	err = ar0234_hawk_owl_EEPROM_address_trans(priv);
+	if (err) {
+		dev_err(&client->dev,"Failed to do EEPROM i2c address trans\n");
+		goto un_register;
 	}
 
 	err = ar0234_board_setup(priv);
 	if (err) {
 		dev_err(dev, "board setup failed\n");
-		return err;
+		goto release_eeprom;
 	}
 
 	/* Un-register i2c client for EEPROM,
@@ -1506,18 +1775,29 @@ static int ar0234_probe(struct i2c_client *client,
 	err = ar0234_hawk_owl_i2ctrans(priv);
 	if (err) {
 		dev_err(dev, "failed to do re-i2c address translation\n");
-		return err;
+		goto un_register;
+	}
+
+	/* Set Internal fsync as default mode */
+	err = Hawk_Owl_Fsync_program(INTERNAL_FSYNC);
+	if (err) {
+		dev_err(dev, "Failed to set Internal Fsync !!\n");
 	}
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {
 		dev_err(dev, "tegra camera subdev registration failed\n");
-		return err;
+		goto un_register;
 	}
 
 	dev_err(&client->dev, "Detected AR0234 sensor\n");
 
 	return 0;
+release_eeprom:
+	ar0234_eeprom_device_release(priv);
+un_register:
+	tegracam_device_unregister(tc_dev);
+	return err;
 }
 
 static int ar0234_remove(struct i2c_client *client)

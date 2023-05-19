@@ -87,9 +87,14 @@
 /* Time (ms) offset for the TSC signal generators */
 #define TSC_GENX_START_OFFSET_MS		(100)
 
+#define EXTERNAL_FSYNC			1
+#define INTERNAL_FSYNC			2
+
 static int majorNumber;
 static struct class* tsc_charClass = NULL;
 static struct device* tsc_charDevice = NULL;
+extern int Hawk_Owl_Fsync_program(int fsync_type);
+
 /**
  * struct tsc_signal_controller_features: TSC signal controller SW feature support.
  * @rational_locking:
@@ -464,12 +469,18 @@ static void cdi_tsc_debugfs_remove(struct tsc_signal_controller *controller)
 static int cdi_tsc_chardev_open(struct inode* inode, struct file* file)
 {
     pr_info("%s:Device opened\n",__func__);
+    /* Set External Fsync */
+    Hawk_Owl_Fsync_program(EXTERNAL_FSYNC);
     return 0;
 }
 
 static int cdi_tsc_chardev_release(struct inode* inode, struct file* file)
 {
+
 	pr_info("%s:Device closed\n",__func__);
+	/* Set back to Internal Fsync */
+	Hawk_Owl_Fsync_program(INTERNAL_FSYNC);
+
 	return 0;
 }
 

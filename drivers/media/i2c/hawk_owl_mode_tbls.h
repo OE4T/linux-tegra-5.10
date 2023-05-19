@@ -29,10 +29,10 @@
 #define AR0234_GAIN_TABLE_SIZE 255
 
 #define AR0234_EEPROM_ADDRESS		0x38
-#define AR0234_EEPROM_ADDRESS_R         0x58
-#define AR0234_EEPROM_SIZE              512
-#define AR0234_EEPROM_STR_SIZE          (AR0234_EEPROM_SIZE * 2)
-#define AR0234_EEPROM_BLOCK_SIZE        (1 << 8)
+#define AR0234_EEPROM_ADDRESS_R		0x58
+#define AR0234_EEPROM_SIZE		512
+#define AR0234_EEPROM_STR_SIZE		(AR0234_EEPROM_SIZE * 2)
+#define AR0234_EEPROM_BLOCK_SIZE	(1 << 8)
 #define AR0234_EEPROM_NUM_BLOCKS \
 	(AR0234_EEPROM_SIZE / AR0234_EEPROM_BLOCK_SIZE)
 
@@ -409,7 +409,7 @@ static struct index_reg_8 ar0234_Hawk_SingleLink_Dser_Ser[] = {
 
 	/*Tuned params to fix streaming issues */
 	{0x52, 0x00F0, 0x01}, // Link A ID 0 to pipe 0 // Link A ID 1 to pipe 1
-	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2  // Link B ID 1 to pipe 3
+	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2 // Link B ID 1 to pipe 3
 	{0x52, 0x00F2, 0x89},
 	{0x52, 0x00F3, 0Xcd},
 
@@ -463,23 +463,6 @@ static struct index_reg_8 ar0234_Hawk_SingleLink_Dser_Ser[] = {
 	{0x94, 0x02d6, 0x90}, // Enable sensor power down pin.
 	{0x94, 0x02d7, 0x60}, // Enable sensor reset pin.
 
-	/* Enable internal Fsync */
-	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
-	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
-	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
-	{0x52, 0x04AA, 0x00}, // OVLP window = 0
-	{0x52, 0x04AB, 0x00},
-	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
-	{0x52, 0x04A6, 0xB7},
-	{0x52, 0x04A7, 0x0C},
-
-	{0x94, 0x02D9, 0x04}, //MFP9 for FSIN
-	{0x94, 0x02DB, 0x08},
-	{0x94, 0x02Dc, 0x04}, //MFP10 for FSIN
-	{0x94, 0x02De, 0x08},
-
-	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
-
 	{0x00,AR0234_TABLE_END,0x00}
 };
 
@@ -513,7 +496,7 @@ static struct index_reg_8 ar0234_Hawk_DualLink_Dser_Ser[] = {
 
 	/*Tuned params to fix streaming issues */
 	{0x52, 0x00F0, 0x01}, // Link A ID 0 to pipe 0 // Link A ID 1 to pipe 1
-	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2  // Link B ID 1 to pipe 3
+	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2 // Link B ID 1 to pipe 3
 	{0x52, 0x00F2, 0x89},
 	{0x52, 0x00F3, 0Xcd},
 
@@ -593,29 +576,6 @@ static struct index_reg_8 ar0234_Hawk_DualLink_Dser_Ser[] = {
 	{0x96, 0x02d4, 0x60}, // Enable sensor reset pin.
 	{0x96, 0x02d6, 0x90}, // Enable sensor power down pin.
 	{0x96, 0x02d7, 0x60}, // Enable sensor reset pin.
-
-	/* Enable internal Fsync */
-	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
-	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
-	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
-	{0x52, 0x04AA, 0x00}, // OVLP window = 0
-	{0x52, 0x04AB, 0x00},
-	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
-	{0x52, 0x04A6, 0xB7},
-	{0x52, 0x04A7, 0x0C},
-
-	{0x94, 0x02D9, 0x04}, //MFP9 for FSIN
-	{0x94, 0x02DB, 0x08},
-	{0x94, 0x02Dc, 0x04}, //MFP10 for FSIN
-	{0x94, 0x02De, 0x08},
-
-	{0x96, 0x02D9, 0x04}, //MFP9 for FSIN
-	{0x96, 0x02DB, 0x08},
-	{0x96, 0x02Dc, 0x04}, //MFP10 for FSIN
-	{0x96, 0x02De, 0x08}, 
-
-	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
-
 	{0x00,AR0234_TABLE_END,0x00}
 };
 
@@ -652,7 +612,7 @@ static struct index_reg_8 ar0234_Hawk_TripleLink_Dser_Ser[] = {
 
 	/*Tuned params to fix streaming issues */
 	{0x52, 0x00F0, 0x01}, // Link A ID 0 to pipe 0 // Link A ID 1 to pipe 1
-	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2  // Link B ID 1 to pipe 3
+	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2 // Link B ID 1 to pipe 3
 	{0x52, 0x00F2, 0x89},
 	{0x52, 0x00F3, 0Xcd},
 
@@ -760,33 +720,6 @@ static struct index_reg_8 ar0234_Hawk_TripleLink_Dser_Ser[] = {
 	{0x98, 0x02d6, 0x90}, // Enable sensor power down pin.
 	{0x98, 0x02d7, 0x60}, // Enable sensor reset pin.
 
-	/* Enable internal Fsync */
-	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
-	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
-	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
-	{0x52, 0x04AA, 0x00}, // OVLP window = 0
-	{0x52, 0x04AB, 0x00},
-	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
-	{0x52, 0x04A6, 0xB7},
-	{0x52, 0x04A7, 0x0C},
-
-	{0x94, 0x02D9, 0x04}, //MFP9 for FSIN
-	{0x94, 0x02DB, 0x08},
-	{0x94, 0x02Dc, 0x04}, //MFP10 for FSIN
-	{0x94, 0x02De, 0x08}, 
-
-	{0x96, 0x02D9, 0x04}, //MFP9 for FSIN
-	{0x96, 0x02DB, 0x08},
-	{0x96, 0x02Dc, 0x04}, //MFP10 for FSIN 
-	{0x96, 0x02De, 0x08}, 
-
-	{0x98, 0x02D9, 0x04}, //MFP9 for FSIN
-	{0x98, 0x02DB, 0x08},
-	{0x98, 0x02Dc, 0x04}, //MFP10 for FSIN
-	{0x98, 0x02De, 0x08}, 
-
-	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
-
 	{0x00,AR0234_TABLE_END,0x00}
 };
 
@@ -831,7 +764,7 @@ static struct index_reg_8 ar0234_Hawk_QuadLink_Dser_Ser[] = {
 
 	/*Tuned params to fix streaming issues */
 	{0x52, 0x00F0, 0x01}, // Link A ID 0 to pipe 0 // Link A ID 1 to pipe 1
-	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2  // Link B ID 1 to pipe 3
+	{0x52, 0x00F1, 0x45}, // Link B ID 0 to pipe 2 // Link B ID 1 to pipe 3
 	{0x52, 0x00F2, 0x89},
 	{0x52, 0x00F3, 0Xcd},
 
@@ -966,6 +899,58 @@ static struct index_reg_8 ar0234_Hawk_QuadLink_Dser_Ser[] = {
 	{0x9a, 0x02d6, 0x90}, // Enable sensor power down pin.
 	{0x9a, 0x02d7, 0x60}, // Enable sensor reset pin.
 
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+/* Internal Fsync for Hawk */
+static struct index_reg_8 Hawk_SingleLink_Dser_InFsync[] = {
+	/* Enable internal Fsync */
+	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
+	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
+	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
+	{0x52, 0x04AA, 0x00}, // OVLP window = 0
+	{0x52, 0x04AB, 0x00},
+	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
+	{0x52, 0x04A6, 0xB7},
+	{0x52, 0x04A7, 0x0C},
+
+	{0x94, 0x02D9, 0x04}, //MFP9 for FSIN
+	{0x94, 0x02DB, 0x08},
+	{0x94, 0x02Dc, 0x04}, //MFP10 for FSIN
+	{0x94, 0x02De, 0x08},
+
+	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
+
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+static struct index_reg_8 Hawk_DualLink_Dser_InFsync[] = {
+	/* Enable internal Fsync */
+	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
+	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
+	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
+	{0x52, 0x04AA, 0x00}, // OVLP window = 0
+	{0x52, 0x04AB, 0x00},
+	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
+	{0x52, 0x04A6, 0xB7},
+	{0x52, 0x04A7, 0x0C},
+
+	{0x94, 0x02D9, 0x04}, //MFP9 for FSIN
+	{0x94, 0x02DB, 0x08},
+	{0x94, 0x02Dc, 0x04}, //MFP10 for FSIN
+	{0x94, 0x02De, 0x08},
+
+	{0x96, 0x02D9, 0x04}, //MFP9 for FSIN
+	{0x96, 0x02DB, 0x08},
+	{0x96, 0x02Dc, 0x04}, //MFP10 for FSIN
+	{0x96, 0x02De, 0x08},
+
+	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
+
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+static struct index_reg_8 Hawk_TripleLink_Dser_InFsync[] = {
 	/* Enable internal Fsync */
 	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
 	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
@@ -989,17 +974,166 @@ static struct index_reg_8 ar0234_Hawk_QuadLink_Dser_Ser[] = {
 	{0x98, 0x02D9, 0x04}, //MFP9 for FSIN
 	{0x98, 0x02DB, 0x08},
 	{0x98, 0x02Dc, 0x04}, //MFP10 for FSIN
-	{0x98, 0x02De, 0x08}, 
-
-	{0x9a, 0x02D9, 0x04}, //MFP9 for FSIN
-	{0x9a, 0x02DB, 0x08},
-	{0x9a, 0x02Dc, 0x04}, //MFP10 for FSIN
-	{0x9a, 0x02De, 0x08}, 
+	{0x98, 0x02De, 0x08},
 
 	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
 
 	{0x00,AR0234_TABLE_END,0x00}
 };
+
+static struct index_reg_8 Hawk_QuadLink_Dser_InFsync[] = {
+	/* Enable internal Fsync */
+	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
+	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
+	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
+	{0x52, 0x04AA, 0x00}, // OVLP window = 0
+	{0x52, 0x04AB, 0x00},
+	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
+	{0x52, 0x04A6, 0xB7},
+	{0x52, 0x04A7, 0x0C},
+
+	{0x94, 0x02D9, 0x04}, //MFP9 for FSIN
+	{0x94, 0x02DB, 0x08},
+	{0x94, 0x02Dc, 0x04}, //MFP10 for FSIN
+	{0x94, 0x02De, 0x08},
+
+	{0x96, 0x02D9, 0x04}, //MFP9 for FSIN
+	{0x96, 0x02DB, 0x08},
+	{0x96, 0x02Dc, 0x04}, //MFP10 for FSIN
+	{0x96, 0x02De, 0x08},
+
+	{0x98, 0x02D9, 0x04}, //MFP9 for FSIN
+	{0x98, 0x02DB, 0x08},
+	{0x98, 0x02Dc, 0x04}, //MFP10 for FSIN
+	{0x98, 0x02De, 0x08},
+
+	{0x9A, 0x02D9, 0x04}, //MFP9 for FSIN
+	{0x9A, 0x02DB, 0x08},
+	{0x9A, 0x02Dc, 0x04}, //MFP10 for FSIN
+	{0x9A, 0x02De, 0x08},
+
+	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
+
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+/* External Fsync for Hawk */
+static struct index_reg_8 Hawk_SingleLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x94, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+static struct index_reg_8 Hawk_DualLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x94, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x96, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x96, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x96, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x96, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+	{0x96, 0x0010, 0x21},
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+static struct index_reg_8 Hawk_TripleLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x94, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x96, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x96, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x96, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x96, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x98, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x98, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x98, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x98, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+	{0x96, 0x0010, 0x21},
+	{0x98, 0x0010, 0x21},
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+static struct index_reg_8 Hawk_QuadLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x94, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x94, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x96, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x96, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x96, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x96, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x98, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x98, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x98, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x98, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x9A, 0x02D9, 0x84}, //Config SER MFP9 to forward GPIO from the MAX96712/722
+	{0x9A, 0x02DB, 0x02}, //Update SER MFP9 RX ID = 2 to match MFP2 of MAX96712/722
+	{0x9A, 0x02DC, 0x84}, //Config SER MFP10 to forward GPIO from the MAX96712/722
+	{0x9A, 0x02DE, 0x02}, //Update SER MFP10 RX ID = 2 to match MFP2 of MAX96712/722
+
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+	{0x96, 0x0010, 0x21},
+	{0x98, 0x0010, 0x21},
+	{0x9A, 0x0010, 0x21},
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
 
 static struct index_reg_8 ar0234_Owl_SingleLink_Dser_Ser[] = {
 	{0x52, 0x1458, 0x28},
@@ -1022,7 +1156,7 @@ static struct index_reg_8 ar0234_Owl_SingleLink_Dser_Ser[] = {
 
 	{0x52, 0x00F4, 0x0f},// Enable pipe 0 -3
 	{0x52, 0x00F0, 0x51},// Link A ID 1 to pipe 0 // Link B ID 1 to pipe 1
-	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2  // Link D ID 1 to pipe 3
+	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2	// Link D ID 1 to pipe 3
 
 	{0x52, 0x08A0, 0x01},// CSI output is 2x4
 	{0x52, 0x08A3, 0x44},// Default 4x2 lane mapping
@@ -1077,6 +1211,7 @@ static struct index_reg_8 ar0234_Owl_SingleLink_Dser_Ser[] = {
 	{0x00, AR0234_TABLE_END, 0x00}
 };
 
+
 static struct index_reg_8 ar0234_Owl_DualLink_Dser_Ser[] = {
 	{0x52, 0x1458, 0x28},
 	{0x52, 0x1459, 0x68},
@@ -1104,7 +1239,7 @@ static struct index_reg_8 ar0234_Owl_DualLink_Dser_Ser[] = {
 
 	{0x52, 0x00F4, 0x0f},// Enable pipe 0 -3
 	{0x52, 0x00F0, 0x51},// Link A ID 1 to pipe 0 // Link B ID 1 to pipe 1
-	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2  // Link D ID 1 to pipe 3
+	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2	// Link D ID 1 to pipe 3
 
 	{0x52, 0x08A0, 0x01},// CSI output is 2x4
 	{0x52, 0x08A3, 0x44},// Default 4x2 lane mapping
@@ -1155,26 +1290,9 @@ static struct index_reg_8 ar0234_Owl_DualLink_Dser_Ser[] = {
 	{0x96, 0x02ca, 0x80}, // Enable sensor power down pin.
 	{0x96, 0x02cb, 0x60}, // Enable sensor reset pin.
 	{0x96, 0x03F1, 0x00},
-
-	/* Enable internal Fsync */
-	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
-	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
-	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
-	{0x52, 0x04AA, 0x00}, // OVLP window = 0
-	{0x52, 0x04AB, 0x00},
-	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
-	{0x52, 0x04A6, 0xB7},
-	{0x52, 0x04A7, 0x0C},
-
-	{0x94, 0x02C7, 0x04}, //MFP3 for FSIN
-	{0x94, 0x02C9, 0x08},
-
-	{0x96, 0x02C7, 0x04}, //MFP3 for FSIN
-	{0x96, 0x02C9, 0x08},
-
-	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
 	{0x00,AR0234_TABLE_END,0x00}
 };
+
 
 static struct index_reg_8 ar0234_Owl_TripleLink_Dser_Ser[] = {
 	{0x52, 0x1458, 0x28},
@@ -1209,7 +1327,7 @@ static struct index_reg_8 ar0234_Owl_TripleLink_Dser_Ser[] = {
 
 	{0x52, 0x00F4, 0x0f},// Enable pipe 0 -3
 	{0x52, 0x00F0, 0x51},// Link A ID 1 to pipe 0 // Link B ID 1 to pipe 1
-	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2  // Link D ID 1 to pipe 3
+	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2	// Link D ID 1 to pipe 3
 
 	{0x52, 0x08A0, 0x01},// CSI output is 2x4
 	{0x52, 0x08A3, 0x44},// Default 4x2 lane mapping
@@ -1273,28 +1391,6 @@ static struct index_reg_8 ar0234_Owl_TripleLink_Dser_Ser[] = {
 	{0x98, 0x02ca, 0x80}, // Enable sensor power down pin.
 	{0x98, 0x02cb, 0x60}, // Enable sensor reset pin.
 	{0x98, 0x03F1, 0x00},
-
-	/* Enable internal Fsync */
-	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
-	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
-	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
-	{0x52, 0x04AA, 0x00}, // OVLP window = 0
-	{0x52, 0x04AB, 0x00},
-	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
-	{0x52, 0x04A6, 0xB7},
-	{0x52, 0x04A7, 0x0C},
-
-	{0x94, 0x02C7, 0x04}, //MFP3 for FSIN
-	{0x94, 0x02C9, 0x08},
-
-	{0x96, 0x02C7, 0x04}, //MFP3 for FSIN
-	{0x96, 0x02C9, 0x08},
-
-	{0x98, 0x02C7, 0x04}, //MFP3 for FSIN
-	{0x98, 0x02C9, 0x08},
-
-	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
-
 	{0x00, AR0234_TABLE_END, 0x00}
 };
 
@@ -1337,7 +1433,7 @@ static struct index_reg_8 ar0234_Owl_QuadLink_Dser_Ser[] = {
 
 	{0x52, 0x00F4, 0x0f},// Enable pipe 0 -3
 	{0x52, 0x00F0, 0x51},// Link A ID 1 to pipe 0 // Link B ID 1 to pipe 1
-	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2  // Link D ID 1 to pipe 3
+	{0x52, 0x00F1, 0xD9}, // Link c ID 1 to pipe 2	// Link D ID 1 to pipe 3
 
 	{0x52, 0x08A0, 0x01},// CSI output is 2x4
 	{0x52, 0x08A3, 0x44},// Default 4x2 lane mapping
@@ -1394,7 +1490,6 @@ static struct index_reg_8 ar0234_Owl_QuadLink_Dser_Ser[] = {
 	{0x52, 0x09D1, 0x01}, // Input FE, VC0
 	{0x52, 0x09D2, 0xc1}, // Output FE, VC3
 	{0x52, 0x08A2, 0xF0},
-
 	{0x94, 0x02be, 0x90}, // Enable sensor power down pin. Put imager in ,Active mode
 	{0x94, 0x02ca, 0x80}, // Enable sensor power down pin.
 	{0x94, 0x02cb, 0x60}, // Enable sensor reset pin.
@@ -1414,7 +1509,11 @@ static struct index_reg_8 ar0234_Owl_QuadLink_Dser_Ser[] = {
 	{0x9A, 0x02ca, 0x80}, // Enable sensor power down pin.
 	{0x9A, 0x02cb, 0x60}, // Enable sensor reset pin.
 	{0x9A, 0x03F1, 0x00},
+	{0x00, AR0234_TABLE_END, 0x00 }
+};
 
+/*Internal Fsync for OWL */
+static struct index_reg_8 Owl_QuadLink_Dser_InFsync[] = {
 	/* Enable internal Fsync */
 	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
 	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
@@ -1438,10 +1537,170 @@ static struct index_reg_8 ar0234_Owl_QuadLink_Dser_Ser[] = {
 	{0x9A, 0x02C9, 0x08},
 
 	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
-
 	{0x00, AR0234_TABLE_END, 0x00 }
 };
 
+static struct index_reg_8 Owl_TripleLink_Dser_InFsync[] = {
+	/* Enable internal Fsync */
+	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
+	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
+	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
+	{0x52, 0x04AA, 0x00}, // OVLP window = 0
+	{0x52, 0x04AB, 0x00},
+	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
+	{0x52, 0x04A6, 0xB7},
+	{0x52, 0x04A7, 0x0C},
+
+	{0x94, 0x02C7, 0x04}, //MFP3 for FSIN
+	{0x94, 0x02C9, 0x08},
+
+	{0x96, 0x02C7, 0x04}, //MFP3 for FSIN
+	{0x96, 0x02C9, 0x08},
+
+	{0x98, 0x02C7, 0x04}, //MFP3 for FSIN
+	{0x98, 0x02C9, 0x08},
+
+	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
+	{0x00, AR0234_TABLE_END, 0x00}
+};
+
+static struct index_reg_8 Owl_DualLink_Dser_InFsync[] = {
+	/* Enable internal Fsync */
+	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
+	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
+	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
+	{0x52, 0x04AA, 0x00}, // OVLP window = 0
+	{0x52, 0x04AB, 0x00},
+	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
+	{0x52, 0x04A6, 0xB7},
+	{0x52, 0x04A7, 0x0C},
+
+	{0x94, 0x02C7, 0x04}, //MFP3 for FSIN
+	{0x94, 0x02C9, 0x08},
+
+	{0x96, 0x02C7, 0x04}, //MFP3 for FSIN
+	{0x96, 0x02C9, 0x08},
+
+	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
+	{0x00,AR0234_TABLE_END,0x00}
+};
+
+static struct index_reg_8 Owl_SingleLink_Dser_InFsync[] = {
+	/* Enable internal Fsync */
+	{0x52, 0x04AF, 0xC0}, // AUTO_FS_LINKS = 0, FS_USE_XTAL = 1, FS_LINK_[3:0] = 0
+	{0x52, 0x04A0, 0x00}, // Manual frame sync, no pin output
+	{0x52, 0x04A2, 0x00}, // Turn off auto master link selection
+	{0x52, 0x04AA, 0x00}, // OVLP window = 0
+	{0x52, 0x04AB, 0x00},
+	{0x52, 0x04A5, 0x35}, // 30Hz FSYNC
+	{0x52, 0x04A6, 0xB7},
+	{0x52, 0x04A7, 0x0C},
+
+	{0x94, 0x02C7, 0x04}, //MFP3 for FSIN
+	{0x94, 0x02C9, 0x08},
+
+	{0x52, 0x04B1, 0x40}, // FSYNC TX ID is 8
+	{0x00, AR0234_TABLE_END, 0x00}
+};
+
+/* External Fsync for OWL */
+static struct index_reg_8 Owl_QuadLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x94, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x96, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x96, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x98, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x98, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x9A, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x9A, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+	{0x96, 0x0010, 0x21},
+	{0x98, 0x0010, 0x21},
+	{0x9A, 0x0010, 0x21},
+
+	{0x00, AR0234_TABLE_END, 0x00}
+};
+
+static struct index_reg_8 Owl_TripleLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x94, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x96, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x96, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x98, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x98, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+	{0x96, 0x0010, 0x21},
+	{0x98, 0x0010, 0x21},
+
+	{0x00, AR0234_TABLE_END, 0x00}
+};
+
+static struct index_reg_8 Owl_DualLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x94, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+
+	{0x96, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x96, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+	{0x96, 0x0010, 0x21},
+
+	{0x00, AR0234_TABLE_END, 0x00}
+};
+
+static struct index_reg_8 Owl_SingleLink_Dser_ExFsync[] = {
+	/* External Fsync */
+	{0x94, 0x02C7, 0x84}, //Config SER MFP3 to forward GPIO from the MAX96712/722
+	{0x94, 0x02C9, 0x02}, //Update SER MFP3 RX ID = 2 to match MFP2 of MAX96712/722
+	/* Set Internal FSYNC off, GPIO is used for FSYNC, type = GMSL2 */
+	{0x52, 0x04A0, 0x08},
+	{0x52, 0x04AF, 0x9F},
+	/* Config MAX96712/722 MFP2 to receive external FSYNC signal for each link */
+	{0x52, 0x0306, 0x83},
+	{0x52, 0x033D, 0x22},
+	{0x52, 0x0374, 0x22},
+	{0x52, 0x03AA, 0x22},
+	/* reset the link & ensure GPIO's sync'd */
+	{0x94, 0x0010, 0x21},
+
+	{0x00, AR0234_TABLE_END, 0x00}
+};
 
 static struct index_reg_8 ar0234_1920x1080_crop_30fps[] = {
 	{0x06, 0x301A, 0x00D9},
@@ -1768,6 +2027,13 @@ static struct index_reg_8 tp_colorbars[] = {
 	{0x06,0x3070, 0x2},
 
 	{0x00,AR0234_TABLE_END, 0x00},
+};
+
+enum {
+	SINGLE_LINK = 1,
+	DUAL_LINK,
+	TRIPLE_LINK,
+	QUAD_LINK
 };
 
 enum {
