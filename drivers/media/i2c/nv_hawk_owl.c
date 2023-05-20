@@ -960,6 +960,12 @@ static struct camera_common_pdata *ar0234_parse_dt(struct tegracam_device *tc_de
 
 	board_priv_pdata->has_eeprom =
 		of_property_read_bool(node, "has-eeprom");
+
+	if (board_priv_pdata->has_eeprom) {
+		err = of_property_read_u32(node, "eeprom-addr", &board_priv_pdata->eeprom_id_addr);
+		if (err)
+			dev_err(dev, "Failed to read eeprom addr\n");
+	}
 	return board_priv_pdata;
 }
 
@@ -1076,7 +1082,6 @@ static int ar0234_eeprom_device_init(struct ar0234 *priv)
 	};
 	int i;
 	int err;
-	static int eeprom_addr = AR0234_EEPROM_ADDRESS;
 
 	if (!pdata->has_eeprom)
 		return -EINVAL;
@@ -1088,11 +1093,8 @@ static int ar0234_eeprom_device_init(struct ar0234 *priv)
 		strncpy(priv->eeprom[i].brd.type, dev_name,
 				sizeof(priv->eeprom[i].brd.type));
 
-		if (priv->sync_sensor_index == 1) {
-				priv->eeprom[i].brd.addr = eeprom_addr + i;
-		}
-		else if (priv->sync_sensor_index == 2)
-			priv->eeprom[i].brd.addr = AR0234_EEPROM_ADDRESS_R + i;
+		/* assign the EEPROM addrs which is read from DT */
+		priv->eeprom[i].brd.addr = pdata->eeprom_id_addr + i;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
 		priv->eeprom[i].i2c_client = i2c_new_device(
 				priv->eeprom[i].adap, &priv->eeprom[i].brd);
@@ -1113,8 +1115,6 @@ static int ar0234_eeprom_device_init(struct ar0234 *priv)
 			return err;
 		}
 	}
-	/* Move to next EEPROM addr */
-	eeprom_addr += 2;
 	return 0;
 }
 
@@ -1329,10 +1329,8 @@ static int ar0234_probe(struct i2c_client *client,
 			} else {
 				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
 			}
-
-		} else if (0 /*(!priv->channel)*/) { /* Fix-me: Currently EEPROM on Hawk is disabled.Will push seprate
-							fix to enable it */
-			err = ar0234_write_table(priv, i2c_address_trans_hawk_eeprom);
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Quad_hawk_eeprom);
 			if (err) {
 				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
 				return err;
@@ -1349,10 +1347,8 @@ static int ar0234_probe(struct i2c_client *client,
 			} else {
 				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
 			}
-
-		} else if (0 /*(!priv->channel)*/) { /* Fix-me: Currently EEPROM on Hawk is disabled.Will push seprate
-							fix to enable it */
-			err = ar0234_write_table(priv, i2c_address_trans_hawk_eeprom);
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Triple_hawk_eeprom);
 			if (err) {
 				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
 				return err;
@@ -1369,10 +1365,8 @@ static int ar0234_probe(struct i2c_client *client,
 			} else {
 				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
 			}
-
-		} else if (0 /*(!priv->channel)*/) { /* Fix-me: Currently EEPROM on Hawk is disabled.Will push seprate
-							fix to enable it */
-			err = ar0234_write_table(priv, i2c_address_trans_hawk_eeprom);
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Dual_hawk_eeprom);
 			if (err) {
 				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
 				return err;
@@ -1389,10 +1383,8 @@ static int ar0234_probe(struct i2c_client *client,
 			} else {
 				dev_err(&client->dev,"Owl camera Eeprom i2c address trans success!!!\n");
 			}
-
-		} else if (0 /*(!priv->channel)*/) { /* Fix-me: Currently EEPROM on Hawk is disabled.Will push seprate
-							fix to enable it */
-			err = ar0234_write_table(priv, i2c_address_trans_hawk_eeprom);
+		} else if ((!priv->channel) || (priv->sync_sensor_index == 2)) {
+			err = ar0234_write_table(priv, i2c_address_trans_Single_hawk_eeprom);
 			if (err) {
 				dev_err(&client->dev,"Hawk camera Eeprom i2c address trans error\n");
 				return err;
@@ -1401,14 +1393,17 @@ static int ar0234_probe(struct i2c_client *client,
 			}
 		}
 	}
-	/*Fixme: EEPROM is not enabled for Hawk */
-	if (/*(!priv->channel) ||*/ (1 == priv->channel)) {
-		err = ar0234_board_setup(priv);
-		if (err) {
-			dev_err(dev, "board setup failed\n");
-			return err;
-		}
+
+	err = ar0234_board_setup(priv);
+	if (err) {
+		dev_err(dev, "board setup failed\n");
+		return err;
 	}
+
+	/* Un-register i2c client for EEPROM,
+	 * so we can re-use i2c address for 2nd sensor of HAWK module */
+	ar0234_eeprom_device_release(priv);
+
 	/* re-i2c address trans for Hawk & Owl sensors */
 	err = ar0234_hawk_owl_i2ctrans(priv);
 	if (err) {
@@ -1418,6 +1413,8 @@ static int ar0234_probe(struct i2c_client *client,
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {
+		dev_err(dev, "tegra camera subdev registration failed\n");
+		return err;
 	}
 
 	dev_err(&client->dev, "Detected AR0234 sensor\n");
