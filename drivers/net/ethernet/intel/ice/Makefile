@@ -5,6 +5,8 @@
 # Makefile for the Intel(R) Ethernet Connection E800 Series Linux Driver
 #
 
+ccflags-y += $(call cc-disable-warning, enum-int-mismatch)
+
 obj-$(CONFIG_ICE) += ice.o
 
 ice-y := ice_main.o	\
