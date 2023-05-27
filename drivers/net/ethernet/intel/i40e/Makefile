@@ -5,7 +5,7 @@
 # Makefile for the Intel(R) Ethernet Connection XL710 (i40e.ko) driver
 #
 
-ccflags-y += -I$(src)
+ccflags-y += -I$(src) $(call cc-disable-warning, enum-int-mismatch)
 subdir-ccflags-y += -I$(src)
 
 obj-$(CONFIG_I40E) += i40e.o
