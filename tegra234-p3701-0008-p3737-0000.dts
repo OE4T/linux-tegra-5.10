@@ -18,6 +18,7 @@
 #include "tegra234-p3701-0000-p3737-0000.dts"
 
 #define TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP 117500
+#define TEGRA234_JAOI_THERMAL_THROTTLE_TEMP 112000
 
 / {
 	nvidia,dtsfilename = __FILE__;
@@ -46,6 +47,10 @@
 				cpu-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
 				};
+
+				cpu-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
+				};
 			};
 		};
 
@@ -53,6 +58,10 @@
 			trips {
 				gpu-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
+				};
+
+				gpu-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
 				};
 			};
 		};
@@ -62,6 +71,10 @@
 				cv0-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
 				};
+
+				cv0-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
+				};
 			};
 		};
 
@@ -69,6 +82,10 @@
 			trips {
 				cv1-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
+				};
+
+				cv1-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
 				};
 			};
 		};
@@ -78,6 +95,10 @@
 				cv2-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
 				};
+
+				cv2-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
+				};
 			};
 		};
 
@@ -85,6 +106,10 @@
 			trips {
 				soc0-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
+				};
+
+				soc0-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
 				};
 			};
 		};
@@ -94,6 +119,10 @@
 				soc1-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
 				};
+
+				soc1-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
+				};
 			};
 		};
 
@@ -101,6 +130,10 @@
 			trips {
 				soc2-sw-shutdown {
 					temperature = <TEGRA234_JAOI_THERMAL_SHUTDOWN_TEMP>;
+				};
+
+				soc2-sw-throttle {
+					temperature = <TEGRA234_JAOI_THERMAL_THROTTLE_TEMP>;
 				};
 			};
 		};
