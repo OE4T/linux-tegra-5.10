@@ -23,6 +23,7 @@
 #include "pva-sys-params.h"
 #include "pva-interface.h"
 #include "pva-task.h"
+#include "pva_hwseq.h"
 
 #define task_err(task, fmt, ...) \
 	dev_err(&task->pva->pdev->dev, fmt, ##__VA_ARGS__)
@@ -50,6 +51,19 @@ struct pva_cb {
 	uint8_t *buffer_va;
 	uint32_t tail;
 	uint32_t size;
+};
+
+/**
+ * @brief	descriptor src/dest buffer inforamtion
+ *
+ * This structure holds information about buffers addressed
+ * by a DMA descriptor. This information is used to imrove
+ * efficiency of bounds checking on DMA access.
+ */
+struct pva_dma_task_buffer_info_s {
+	uint64_t src_buffer_size;
+	uint64_t dst_buffer_size;
+	uint64_t dst2_buffer_size;
 };
 
 /**
@@ -150,6 +164,12 @@ struct pva_submit_task {
 	struct nvpva_fence_action
 		pva_fence_actions[NVPVA_MAX_FENCE_TYPES]
 				 [NVPVA_TASK_MAX_FENCEACTIONS];
+	struct pva_hwseq_priv_s hwseq_info[NVPVA_TASK_MAX_DMA_CHANNELS_T23X];
+	int8_t desc_block_height_log2[NVPVA_TASK_MAX_DMA_DESCRIPTORS];
+	struct pva_dma_task_buffer_info_s task_buff_info[NVPVA_TASK_MAX_DMA_DESCRIPTORS];
+	struct pva_dma_hwseq_desc_entry_s desc_entries[NVPVA_TASK_MAX_DMA_CHANNELS_T23X]
+						      [PVA_HWSEQ_DESC_LIMIT];
+
 	/** Store Suface base address */
 	u64 src_surf_base_addr;
 	u64 dst_surf_base_addr;
