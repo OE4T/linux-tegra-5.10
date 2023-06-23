@@ -6052,6 +6052,17 @@ static int ether_parse_dt(struct ether_priv_data *pdata)
 		osi_core->hsi.err_count_threshold = OSI_HSI_ERR_COUNT_THRESHOLD;
 #endif
 
+	/* Only for orin, Read instance id for the interface, default 0 */
+	if (osi_core->mac_ver > OSI_EQOS_MAC_5_00 ||
+	    osi_core->mac == OSI_MAC_HW_MGBE) {
+		ret = of_property_read_u32(np, "nvidia,instance_id", &osi_core->instance_id);
+		if (ret != 0) {
+			dev_info(dev,
+				 "DT instance_id missing, setting default to MGBE0\n");
+			osi_core->instance_id = 0;
+		}
+	}
+
 exit:
 	return ret;
 }
