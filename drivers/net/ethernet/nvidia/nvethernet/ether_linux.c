@@ -6820,6 +6820,7 @@ static int ether_suspend_noirq(struct device *dev)
 
 	/* stop workqueue */
 	cancel_delayed_work_sync(&pdata->tx_ts_work);
+	cancel_delayed_work_sync(&pdata->set_speed_work);
 
 	/* Stop workqueue while DUT is going to suspend state */
 	ether_stats_work_queue_stop(pdata);
