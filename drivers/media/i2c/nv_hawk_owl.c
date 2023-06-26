@@ -1093,10 +1093,7 @@ static int ar0234_set_mode(struct tegracam_device *tc_dev)
 	if (s_data->mode_prop_idx < 0)
 		return -EINVAL;
 	dev_err(dev, "%s: mode index:%d\n", __func__,s_data->mode_prop_idx);
-	err = ar0234_write_table(priv, mode_table[s_data->mode_prop_idx]);
-	if (err)
-		return err;
-
+	/* Moved the sensor mode table write during probe time, to reduce Stream on time */
 	return 0;
 }
 
@@ -1783,6 +1780,13 @@ static int ar0234_probe(struct i2c_client *client,
 	if (err) {
 		dev_err(dev, "Failed to set Internal Fsync !!\n");
 	}
+
+	/* Fix-me: This change is temp fix.*/
+	/* Once other modes are added will move back to set_mode call */
+	/* Write sensor mode table */
+	err = ar0234_write_table(priv, mode_table[0]);
+	if (err)
+		dev_err(dev, "Failed to write mode table\n");
 
 	err = tegracam_v4l2subdev_register(tc_dev, true);
 	if (err) {
