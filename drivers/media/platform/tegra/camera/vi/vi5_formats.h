@@ -1,7 +1,7 @@
 /*
  * NVIDIA Tegra Video Input Device Driver VI5 formats
  *
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Author: Bhanu Murthy V <bmurthyv@nvidia.com>
  *
@@ -118,7 +118,7 @@ static const struct tegra_video_format vi5_video_formats[] = {
 
 	/* RGB888 */
 	TEGRA_VIDEO_FORMAT(RGB888, 24, RGB888_1X24, 4, 1, T_A8R8G8B8,
-				RGB888, ABGR32, "BGRA-8-8-8-8"),
+				RGB888, RGBA32, "RGBA-8-8-8-8"),
 	TEGRA_VIDEO_FORMAT(RGB888, 24, RGB888_1X32_PADHI, 4, 1, T_A8B8G8R8,
 				RGB888, RGB32, "RGB-8-8-8-8"),
 
