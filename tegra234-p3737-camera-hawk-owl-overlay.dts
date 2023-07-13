@@ -900,7 +900,7 @@
         };
 
 	fragment@87 {
-		target-path = "/i2c@31e0000/ar0234_a@30";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@0/ar0234_a@30";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -909,7 +909,7 @@
 		};
 	};
 	fragment@88 {
-		target-path = "/i2c@31e0000/ar0234_b@31";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@0/ar0234_b@31";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -918,7 +918,7 @@
 		};
 	};
 	fragment@89 {
-		target-path = "/i2c@31e0000/ar0234_c@32";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_c@32";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -927,7 +927,7 @@
 		};
 	};
 	fragment@90 {
-		target-path = "/i2c@31e0000/ar0234_d@33";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_d@33";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -936,7 +936,7 @@
 		};
 	};
 	fragment@91 {
-		target-path = "/i2c@31e0000/ar0234_e@34";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_e@34";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -945,7 +945,7 @@
 		};
 	};
 	fragment@92 {
-		target-path = "/i2c@31e0000/ar0234_f@35";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_f@35";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -955,7 +955,7 @@
 	};
 
 	fragment@93 {
-		target-path = "/i2c@31e0000/ar0234_g@36";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_g@36";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -964,7 +964,7 @@
 		};
 	};
 	fragment@94 {
-		target-path = "/i2c@31e0000/ar0234_h@37";
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_h@37";
 		board_config {
 			sw-modules = "kernel";
 		};
@@ -1160,8 +1160,8 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0030";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_a@30";
+			devname = "ar0234 9-0030";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@0/ar0234_a@30";
 		};
 	};
 
@@ -1186,8 +1186,8 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0031";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_b@31";
+			devname = "ar0234 9-0031";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@0/ar0234_b@31";
 		};
 	};
 
@@ -1212,8 +1212,8 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0032";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_c@32";
+			devname = "ar0234 10-0032";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_c@32";
 		};
 	};
 
@@ -1238,8 +1238,8 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0033";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_d@33";
+			devname = "ar0234 10-0033";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_d@33";
 		};
 	};
 	fragment@117 {
@@ -1262,8 +1262,8 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0034";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_e@34";
+			devname = "ar0234 10-0034";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_e@34";
 		};
 	};
 	fragment@119 {
@@ -1286,8 +1286,8 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0035";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_f@35";
+			devname = "ar0234 10-0035";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_f@35";
 		};
 	};
 	fragment@121 {
@@ -1310,8 +1310,8 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0036";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_g@36";
+			devname = "ar0234 10-0036";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_g@36";
 		};
 	};
 	fragment@123 {
@@ -1334,8 +1334,35 @@
 		__overlay__ {
 			status = "okay";
 			pcl_id = "v4l2_sensor";
-			devname = "ar0234 8-0037";
-			proc-device-tree = "/proc/device-tree/i2c@31e0000/ar0234_h@37";
+			devname = "ar0234 10-0037";
+			proc-device-tree = "/proc/device-tree/i2c@31e0000/virtual_i2c_mux@50/i2c@1/ar0234_h@37";
+		};
+	};
+	fragment@125 {
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50";
+		board_config {
+			sw-modules = "kernel";
+		};
+		__overlay__ {
+			status = "okay";
+		};
+	};
+	fragment@126 {
+		target-path = "/i2c@31e0000/virtual_i2c_mux@50/i2c@0/bmi088_a@69";
+		board_config {
+			sw-modules = "kernel";
+		};
+		__overlay__ {
+			status = "okay";
+		};
+	};
+	fragment@127 {
+		target-path = "/i2c@31e0000";
+		board_config {
+			sw-modules = "kernel";
+		};
+		__overlay__ {
+			clock-frequency = <400000>;
 		};
 	};
 };

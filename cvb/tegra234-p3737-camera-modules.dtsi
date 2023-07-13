@@ -364,29 +364,39 @@
 		hawk_dser: max96712_a@62 {
 			status = "disabled";
 		};
-		hawk_cam0: ar0234_a@30 {
+		virtual_i2c_mux: virtual_i2c_mux@50 {
 			status = "disabled";
-		};
-		hawk_cam1: ar0234_b@31 {
-			status = "disabled";
-		};
-		hawk_cam2: ar0234_c@32 {
-			status = "disabled";
-		};
-		hawk_cam3: ar0234_d@33 {
-			status = "disabled";
-		};
-		hawk_cam4: ar0234_e@34 {
-			status = "disabled";
-		};
-		hawk_cam5: ar0234_f@35 {
-			status = "disabled";
-		};
-		hawk_cam6: ar0234_g@36 {
-			status = "disabled";
-		};
-		hawk_cam7: ar0234_h@37 {
-			status = "disabled";
+			i2c@0 {
+				hawk_bmi: bmi088_a@69 {
+					status = "disabled";
+				};
+				hawk_cam0: ar0234_a@30 {
+					status = "disabled";
+				};
+				hawk_cam1: ar0234_b@31 {
+					status = "disabled";
+				};
+			};
+			i2c@1 {
+				hawk_cam2: ar0234_c@32 {
+					status = "disabled";
+				};
+				hawk_cam3: ar0234_d@33 {
+					status = "disabled";
+				};
+				hawk_cam4: ar0234_e@34 {
+					status = "disabled";
+				};
+				hawk_cam5: ar0234_f@35 {
+					status = "disabled";
+				};
+				hawk_cam6: ar0234_g@36 {
+					status = "disabled";
+				};
+				hawk_cam7: ar0234_h@37 {
+					status = "disabled";
+				};
+			};
 		};
 	};
 	i2c@3180000 {
