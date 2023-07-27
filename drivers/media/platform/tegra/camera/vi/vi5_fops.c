@@ -1,7 +1,7 @@
 /*
  * Tegra Video Input 5 device common APIs
  *
- * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Author: Frank Chen <frank@nvidia.com>
  *
@@ -236,16 +236,14 @@ static int vi5_channel_open(struct tegra_channel *chan, u32 vi_port)
 	bool found = false;
 	char chanFilePath[VI_CHAN_PATH_MAX];
 	int channel = 0;
-	struct file *filp = NULL;
 	long err = 0;
 
 	while (!found) {
 		sprintf(chanFilePath, "%s%u", VI_CHANNEL_DEV, channel);
+		chan->fp[vi_port] = filp_open(chanFilePath, O_RDONLY, 0);
 
-		filp = filp_open(chanFilePath, O_RDONLY, 0);
-
-		if (IS_ERR(filp)) {
-			err = PTR_ERR(filp);
+		if (IS_ERR(chan->fp[vi_port])) {
+			err = PTR_ERR(chan->fp[vi_port]);
 			/* Retry with the next available channel. Opening
 			 * a channel number greater than the ones supported
 			 * by the platform will trigger a ENODEV from the
@@ -267,7 +265,7 @@ static int vi5_channel_open(struct tegra_channel *chan, u32 vi_port)
 	err = 0;
 	chan->vi_channel_id[vi_port] = channel;
 
-	chan->tegra_vi_channel[vi_port] = filp->private_data;
+	chan->tegra_vi_channel[vi_port] = chan->fp[vi_port]->private_data;
 
 	return err;
 }
@@ -605,15 +603,9 @@ static int vi5_channel_error_recover(struct tegra_channel *chan,
 
 	/* stop vi channel */
 	for (vi_port = 0; vi_port < chan->valid_ports; vi_port++) {
-		err = vi_capture_release(chan->tegra_vi_channel[vi_port],
-			CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
-		if (err) {
-			dev_err(&chan->video->dev, "vi capture release failed\n");
-			goto done;
-		}
-		vi_channel_close_ex(chan->vi_channel_id[vi_port],
-					chan->tegra_vi_channel[vi_port]);
+		filp_close(chan->fp[vi_port], NULL);
 		chan->tegra_vi_channel[vi_port] = NULL;
+		kfree(chan->tegra_vi_channel[vi_port]);
 	}
 
 
@@ -925,7 +917,7 @@ static int vi5_channel_start_streaming(struct vb2_queue *vq, u32 count)
 
 		ret = vi5_channel_start_kthreads(chan);
 		if (ret != 0)
-			goto err_start_kthreads;
+			goto err_setup;
 	}
 
 	/* csi stream/sensor devices should be streamon post vi channel setup */
@@ -946,17 +938,10 @@ err_set_stream:
 	if (!chan->bypass)
 		vi5_channel_stop_kthreads(chan);
 
-err_start_kthreads:
-	if (!chan->bypass)
-		for (vi_port = 0; vi_port < chan->valid_ports; vi_port++)
-			vi_capture_release(chan->tegra_vi_channel[vi_port],
-				CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
-
 err_setup:
 	if (!chan->bypass)
 		for (vi_port = 0; vi_port < chan->valid_ports; vi_port++) {
-			vi_channel_close_ex(chan->vi_channel_id[vi_port],
-						chan->tegra_vi_channel[vi_port]);
+			filp_close(chan->fp[vi_port], NULL);
 			chan->tegra_vi_channel[vi_port] = NULL;
 		}
 
@@ -970,7 +955,6 @@ err_open_ex:
 static int vi5_channel_stop_streaming(struct vb2_queue *vq)
 {
 	struct tegra_channel *chan = vb2_get_drv_priv(vq);
-	long err;
 	int vi_port = 0;
 	if (!chan->bypass)
 		vi5_channel_stop_kthreads(chan);
@@ -980,16 +964,9 @@ static int vi5_channel_stop_streaming(struct vb2_queue *vq)
 
 	if (!chan->bypass) {
 		for (vi_port = 0; vi_port < chan->valid_ports; vi_port++) {
-			err = vi_capture_release(chan->tegra_vi_channel[vi_port],
-				CAPTURE_CHANNEL_RESET_FLAG_IMMEDIATE);
-
-			if (err)
-				dev_err(&chan->video->dev,
-					"vi capture release failed\n");
-
-			vi_channel_close_ex(chan->vi_channel_id[vi_port],
-						chan->tegra_vi_channel[vi_port]);
+			filp_close(chan->fp[vi_port], NULL);
 			chan->tegra_vi_channel[vi_port] = NULL;
+			kfree(chan->tegra_vi_channel[vi_port]);
 		}
 
 		/* release all remaining buffers to v4l2 */
