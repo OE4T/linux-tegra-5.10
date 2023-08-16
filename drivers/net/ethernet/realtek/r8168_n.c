@@ -23623,6 +23623,11 @@ rtl8168_hw_phy_config(struct net_device *dev)
                 rtl8168_mdio_write(tp, 0x06, rtl8168_mdio_read(tp, 0x06) & ~BIT_8);
                 rtl8168_mdio_write(tp, 0x1f, 0x0000);
 
+		rtl8168_mdio_write(tp, 0x1f, 0x0007); //nvidia for 8119i 10M_pll_off
+		rtl8168_mdio_write(tp, 0x1e, 0x0023);
+		rtl8168_mdio_write(tp, 0x17, rtl8168_mdio_read(tp, 0x17) & ~BIT_1);
+		rtl8168_mdio_write(tp, 0x1f, 0x0000);
+
                 if (HW_HAS_WRITE_PHY_MCU_RAM_CODE(tp)) {
                         rtl8168_mdio_write(tp, 0x1f, 0x0005);
                         rtl8168_mdio_write(tp, 0x05, 0x8b85);
@@ -23681,6 +23686,11 @@ rtl8168_hw_phy_config(struct net_device *dev)
                 rtl8168_mdio_write(tp, 0x05, 0x8A88);
                 rtl8168_mdio_write(tp, 0x06, rtl8168_mdio_read(tp, 0x06) & ~BIT_8);
                 rtl8168_mdio_write(tp, 0x1f, 0x0000);
+
+		rtl8168_mdio_write(tp, 0x1f, 0x0007); //nvidia for 8119i 10M_pll_off
+		rtl8168_mdio_write(tp, 0x1e, 0x0023);
+		rtl8168_mdio_write(tp, 0x17, rtl8168_mdio_read(tp, 0x17) & ~BIT_1);
+		rtl8168_mdio_write(tp, 0x1f, 0x0000);
 
                 if (HW_HAS_WRITE_PHY_MCU_RAM_CODE(tp)) {
                         rtl8168_mdio_write(tp, 0x1f, 0x0005);
@@ -27158,7 +27168,7 @@ rtl8168_init_one(struct pci_dev *pdev,
 
         netif_carrier_off(dev);
 
-	printk(KERN_INFO "%s", GPL_CLAIM);
+	printk("%s", GPL_CLAIM);
 
 out:
         return rc;
