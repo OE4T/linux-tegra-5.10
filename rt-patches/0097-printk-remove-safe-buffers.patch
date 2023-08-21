@@ -1,7 +1,7 @@
-From a2ce5cc273aaa75bfc5ede8b3e9fc5a9d5727818 Mon Sep 17 00:00:00 2001
+From bcda055699c1da9471d71525e06706b46f1b7279 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:00 +0106
-Subject: [PATCH 097/318] printk: remove safe buffers
+Subject: [PATCH 097/319] printk: remove safe buffers
 
 With @logbuf_lock removed, the high level printk functions for
 storing messages are lockless. Messages can be stored from any

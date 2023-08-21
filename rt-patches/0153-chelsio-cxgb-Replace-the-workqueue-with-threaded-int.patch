@@ -1,7 +1,7 @@
-From 7d61d5f643c84bd7738919074d3be0e5ffd2e5d2 Mon Sep 17 00:00:00 2001
+From d012af48eb78b23bf703c53f2bf971307ca78a2e Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 2 Feb 2021 18:01:03 +0100
-Subject: [PATCH 153/318] chelsio: cxgb: Replace the workqueue with threaded
+Subject: [PATCH 153/319] chelsio: cxgb: Replace the workqueue with threaded
  interrupt
 
 The external interrupt (F_PL_INTR_EXT) needs to be handled in a process

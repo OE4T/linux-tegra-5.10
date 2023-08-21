@@ -1,7 +1,7 @@
-From 36e6c2eb31fb8f44fd6cb17ad93ad81289bbdf1c Mon Sep 17 00:00:00 2001
+From fbf3ff2cfc2d6610d8e362b5b880721b8a642e9a Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:21 +0100
-Subject: [PATCH 032/318] arc/mm/highmem: Use generic kmap atomic
+Subject: [PATCH 032/319] arc/mm/highmem: Use generic kmap atomic
  implementation
 
 Adopt the map ordering to match the other architectures and the generic

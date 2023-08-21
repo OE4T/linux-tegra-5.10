@@ -1,7 +1,7 @@
-From c9aef0557c149c2fb299540b64fd243d98ba3fb6 Mon Sep 17 00:00:00 2001
+From 696f30749d6dc44aae06eea12cc8716e0c0a041a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 27 May 2017 19:02:06 +0200
-Subject: [PATCH 192/318] net/core: disable NET_RX_BUSY_POLL on RT
+Subject: [PATCH 192/319] net/core: disable NET_RX_BUSY_POLL on RT
 
 napi_busy_loop() disables preemption and performs a NAPI poll. We can't acquire
 sleeping locks with disabled preemption so we would have to work around this

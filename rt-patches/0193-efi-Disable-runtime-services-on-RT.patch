@@ -1,7 +1,7 @@
-From b32f747753201822c3fcc0dfbab2d17a0cafcd93 Mon Sep 17 00:00:00 2001
+From 317a1bd34ce888793a530834ad397a2be04a519b Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 26 Jul 2018 15:03:16 +0200
-Subject: [PATCH 193/318] efi: Disable runtime services on RT
+Subject: [PATCH 193/319] efi: Disable runtime services on RT
 
 Based on meassurements the EFI functions get_variable /
 get_next_variable take up to 2us which looks okay.

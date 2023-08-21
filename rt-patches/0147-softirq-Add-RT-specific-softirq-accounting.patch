@@ -1,7 +1,7 @@
-From cef0b91848fe551f7d4156c06d829eec6ab00960 Mon Sep 17 00:00:00 2001
+From 6d81b02ca97b99fdf74864946f15641d941c619e Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:55:53 +0100
-Subject: [PATCH 147/318] softirq: Add RT specific softirq accounting
+Subject: [PATCH 147/319] softirq: Add RT specific softirq accounting
 
 RT requires the softirq processing and local bottomhalf disabled regions to
 be preemptible. Using the normal preempt count based serialization is
@@ -56,10 +56,10 @@ index 69cc8b64aa3a..9881eac0698f 100644
  
  /*
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 9599a71cea6d..2a486e1e1e27 100644
+index 628187c96b76..0e7ff0054650 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -1047,6 +1047,9 @@ struct task_struct {
+@@ -1043,6 +1043,9 @@ struct task_struct {
  	int				softirq_context;
  	int				irq_config;
  #endif

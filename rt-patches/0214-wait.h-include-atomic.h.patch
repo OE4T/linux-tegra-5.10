@@ -1,7 +1,7 @@
-From 72bec9b91eca643a38aa71dcad834a852ee7082f Mon Sep 17 00:00:00 2001
+From facd1d7d347646b55eb93486996ed6c437a8ed91 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 28 Oct 2013 12:19:57 +0100
-Subject: [PATCH 214/318] wait.h: include atomic.h
+Subject: [PATCH 214/319] wait.h: include atomic.h
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -25,7 +25,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+)
 
 diff --git a/include/linux/wait.h b/include/linux/wait.h
-index 9b8b0833100a..33001b534a84 100644
+index 1663e47681a3..20aae69387aa 100644
 --- a/include/linux/wait.h
 +++ b/include/linux/wait.h
 @@ -10,6 +10,7 @@

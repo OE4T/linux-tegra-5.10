@@ -1,7 +1,7 @@
-From 075cd2c8d92d29c15d66cbd7a455a514974ee0ff Mon Sep 17 00:00:00 2001
+From 2976d696f86eb2b513310c6069887d574ca3ea87 Mon Sep 17 00:00:00 2001
 From: Steven Rostedt <rostedt@goodmis.org>
 Date: Tue, 14 Jul 2015 14:26:34 +0200
-Subject: [PATCH 162/318] futex: Fix bug on when a requeued RT task times out
+Subject: [PATCH 162/319] futex: Fix bug on when a requeued RT task times out
 
 Requeue with timeout causes a bug with PREEMPT_RT.
 

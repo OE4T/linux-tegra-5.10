@@ -1,7 +1,7 @@
-From 6221a08eccad7ab211c03cac5a913a94c72c71ed Mon Sep 17 00:00:00 2001
+From 580cf27bd0177f2e3a8ed224bf3eaeb7520aeb1d Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Mon, 28 May 2018 15:24:22 +0200
-Subject: [PATCH 199/318] mm/SLxB: change list_lock to raw_spinlock_t
+Subject: [PATCH 199/319] mm/SLxB: change list_lock to raw_spinlock_t
 
 The list_lock is used with used with IRQs off on RT. Make it a raw_spinlock_t
 otherwise the interrupts won't be disabled on -RT.  The locking rules remain
@@ -382,7 +382,7 @@ index 6952e10cf33b..ed5dd6e9e0cc 100644
  #ifdef CONFIG_SLAB
  	struct list_head slabs_partial;	/* partial list first, better asm code */
 diff --git a/mm/slub.c b/mm/slub.c
-index 1384dc906833..2b2e623007ca 100644
+index b0f637519ac9..863554db3323 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
 @@ -1214,7 +1214,7 @@ static noinline int free_debug_processing(
@@ -448,7 +448,7 @@ index 1384dc906833..2b2e623007ca 100644
  
  	if (m == M_PARTIAL)
  		stat(s, tail);
-@@ -2322,10 +2322,10 @@ static void unfreeze_partials(struct kmem_cache *s,
+@@ -2323,10 +2323,10 @@ static void unfreeze_partials(struct kmem_cache *s,
  		n2 = get_node(s, page_to_nid(page));
  		if (n != n2) {
  			if (n)
@@ -461,7 +461,7 @@ index 1384dc906833..2b2e623007ca 100644
  		}
  
  		do {
-@@ -2354,7 +2354,7 @@ static void unfreeze_partials(struct kmem_cache *s,
+@@ -2355,7 +2355,7 @@ static void unfreeze_partials(struct kmem_cache *s,
  	}
  
  	if (n)
@@ -470,7 +470,7 @@ index 1384dc906833..2b2e623007ca 100644
  
  	while (discard_page) {
  		page = discard_page;
-@@ -2521,10 +2521,10 @@ static unsigned long count_partial(struct kmem_cache_node *n,
+@@ -2520,10 +2520,10 @@ static unsigned long count_partial(struct kmem_cache_node *n,
  	unsigned long x = 0;
  	struct page *page;
  

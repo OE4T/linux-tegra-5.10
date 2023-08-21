@@ -1,7 +1,7 @@
-From 3a08a4dbf2f770b3301f96c966d08aa8b8c41d2f Mon Sep 17 00:00:00 2001
+From fba0a6e12222dc1c1d7e2b33544d59212cb04a60 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 27 May 2017 19:02:06 +0200
-Subject: [PATCH 226/318] kernel/sched: add {put|get}_cpu_light()
+Subject: [PATCH 226/319] kernel/sched: add {put|get}_cpu_light()
 
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 ---

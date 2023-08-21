@@ -1,7 +1,7 @@
-From dfd81eb2f4691d4917ad9357ba9f31e69f1f38ba Mon Sep 17 00:00:00 2001
+From 8e9df7b1acf06d3d1eb27c610134f90841c4185b Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 29 Aug 2013 18:21:04 +0200
-Subject: [PATCH 224/318] ptrace: fix ptrace vs tasklist_lock race
+Subject: [PATCH 224/319] ptrace: fix ptrace vs tasklist_lock race
 
 As explained by Alexander Fyodorov <halcy@yandex.ru>:
 
@@ -30,7 +30,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  3 files changed, 68 insertions(+), 7 deletions(-)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 4c1c54eb85ef..65d31e296f4f 100644
+index 0d22b3c99dba..9c56ff13616e 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -112,12 +112,8 @@ struct io_uring_task;
@@ -46,7 +46,7 @@ index 4c1c54eb85ef..65d31e296f4f 100644
  #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
  
  /*
-@@ -1885,6 +1881,51 @@ static inline int test_tsk_need_resched(struct task_struct *tsk)
+@@ -1881,6 +1877,51 @@ static inline int test_tsk_need_resched(struct task_struct *tsk)
  	return unlikely(test_tsk_thread_flag(tsk,TIF_NEED_RESCHED));
  }
  
@@ -99,7 +99,7 @@ index 4c1c54eb85ef..65d31e296f4f 100644
   * cond_resched() and cond_resched_lock(): latency reduction via
   * explicit rescheduling in places that are safe. The return
 diff --git a/kernel/ptrace.c b/kernel/ptrace.c
-index d99f73f83bf5..dd7eb90258c5 100644
+index aab480e24bd6..71acb6341e63 100644
 --- a/kernel/ptrace.c
 +++ b/kernel/ptrace.c
 @@ -196,7 +196,14 @@ static bool ptrace_freeze_traced(struct task_struct *task)
@@ -119,10 +119,10 @@ index d99f73f83bf5..dd7eb90258c5 100644
  	}
  	spin_unlock_irq(&task->sighand->siglock);
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 93999512667f..ad043bb33a23 100644
+index 92da66e2fac1..3f1e0ce5392e 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2583,6 +2583,18 @@ int migrate_swap(struct task_struct *cur, struct task_struct *p,
+@@ -2584,6 +2584,18 @@ int migrate_swap(struct task_struct *cur, struct task_struct *p,
  }
  #endif /* CONFIG_NUMA_BALANCING */
  
@@ -141,7 +141,7 @@ index 93999512667f..ad043bb33a23 100644
  /*
   * wait_task_inactive - wait for a thread to unschedule.
   *
-@@ -2627,7 +2639,7 @@ unsigned long wait_task_inactive(struct task_struct *p, long match_state)
+@@ -2628,7 +2640,7 @@ unsigned long wait_task_inactive(struct task_struct *p, long match_state)
  		 * is actually now running somewhere else!
  		 */
  		while (task_running(rq, p)) {
@@ -150,7 +150,7 @@ index 93999512667f..ad043bb33a23 100644
  				return 0;
  			cpu_relax();
  		}
-@@ -2642,7 +2654,8 @@ unsigned long wait_task_inactive(struct task_struct *p, long match_state)
+@@ -2643,7 +2655,8 @@ unsigned long wait_task_inactive(struct task_struct *p, long match_state)
  		running = task_running(rq, p);
  		queued = task_on_rq_queued(p);
  		ncsw = 0;

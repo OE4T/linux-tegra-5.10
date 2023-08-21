@@ -1,7 +1,7 @@
-From 6abf5c27cf19fd4551902e6d1ad8016129eceb6e Mon Sep 17 00:00:00 2001
+From 23345e59ddd0af43acea3d1f7d565d236ddadc21 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:55:56 +0100
-Subject: [PATCH 150/318] softirq: Make softirq control and processing RT aware
+Subject: [PATCH 150/319] softirq: Make softirq control and processing RT aware
 
 Provide a local lock based serialization for soft interrupts on RT which
 allows the local_bh_disabled() sections and servicing soft interrupts to be

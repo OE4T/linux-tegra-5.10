@@ -1,7 +1,7 @@
-From a4d7104f42541ddeb11e0558b085877eae17f08d Mon Sep 17 00:00:00 2001
+From d15eafc95b3985541eba54dbc9866a1237d215b3 Mon Sep 17 00:00:00 2001
 From: Oleg Nesterov <oleg@redhat.com>
 Date: Tue, 3 Nov 2020 12:39:01 +0100
-Subject: [PATCH 225/318] ptrace: fix ptrace_unfreeze_traced() race with
+Subject: [PATCH 225/319] ptrace: fix ptrace_unfreeze_traced() race with
  rt-lock
 
 The patch "ptrace: fix ptrace vs tasklist_lock race" changed
@@ -19,7 +19,7 @@ Cc: stable-rt@vger.kernel.org
  1 file changed, 15 insertions(+), 8 deletions(-)
 
 diff --git a/kernel/ptrace.c b/kernel/ptrace.c
-index dd7eb90258c5..f4b20365b16d 100644
+index 71acb6341e63..fb5d1a19507d 100644
 --- a/kernel/ptrace.c
 +++ b/kernel/ptrace.c
 @@ -213,8 +213,8 @@ static bool ptrace_freeze_traced(struct task_struct *task)

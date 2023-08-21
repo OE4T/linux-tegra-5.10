@@ -1,7 +1,7 @@
-From a6cca8ea94cfdc0f985ca3f5f61cd85af356c89c Mon Sep 17 00:00:00 2001
+From 76fa99cd02e0dd7fbca7fa20f0f09eaafc374d47 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 14 Sep 2016 14:35:49 +0200
-Subject: [PATCH 185/318] fs/dcache: use swait_queue instead of waitqueue
+Subject: [PATCH 185/319] fs/dcache: use swait_queue instead of waitqueue
 
 __d_lookup_done() invokes wake_up_all() while holding a hlist_bl_lock()
 which disables preemption. As a workaround convert it to swait.
@@ -111,10 +111,10 @@ index bc267832310c..3176913fae6c 100644
  	if (!o->nodeid) {
  		/*
 diff --git a/fs/namei.c b/fs/namei.c
-index 72f354b62dd5..3e50a5fc66ef 100644
+index eba2f13d229d..41f5cbe39e78 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
-@@ -1520,7 +1520,7 @@ static struct dentry *__lookup_slow(const struct qstr *name,
+@@ -1522,7 +1522,7 @@ static struct dentry *__lookup_slow(const struct qstr *name,
  {
  	struct dentry *dentry, *old;
  	struct inode *inode = dir->d_inode;
@@ -123,7 +123,7 @@ index 72f354b62dd5..3e50a5fc66ef 100644
  
  	/* Don't go there if it's already dead */
  	if (unlikely(IS_DEADDIR(inode)))
-@@ -3014,7 +3014,7 @@ static struct dentry *lookup_open(struct nameidata *nd, struct file *file,
+@@ -3016,7 +3016,7 @@ static struct dentry *lookup_open(struct nameidata *nd, struct file *file,
  	struct dentry *dentry;
  	int error, create_error = 0;
  	umode_t mode = op->mode;

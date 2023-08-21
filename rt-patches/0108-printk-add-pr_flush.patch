@@ -1,7 +1,7 @@
-From 708235a51f317972855b67c8c96cd7aaf627c690 Mon Sep 17 00:00:00 2001
+From 867fd69dc2527eb6044b90307b102e37869fa227 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:10 +0106
-Subject: [PATCH 108/318] printk: add pr_flush()
+Subject: [PATCH 108/319] printk: add pr_flush()
 
 Provide a function to allow waiting for console printers to catch
 up to the latest logged message.

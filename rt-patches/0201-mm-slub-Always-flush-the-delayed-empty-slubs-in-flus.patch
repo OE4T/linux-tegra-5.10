@@ -1,7 +1,7 @@
-From 5b6de4d9107b03e1fd7035c33916da9276bba844 Mon Sep 17 00:00:00 2001
+From b04428abd8fd84b33520b7454b95c534c37f9e75 Mon Sep 17 00:00:00 2001
 From: Kevin Hao <haokexin@gmail.com>
 Date: Mon, 4 May 2020 11:34:07 +0800
-Subject: [PATCH 201/318] mm: slub: Always flush the delayed empty slubs in
+Subject: [PATCH 201/319] mm: slub: Always flush the delayed empty slubs in
  flush_all()
 
 After commit f0b231101c94 ("mm/SLUB: delay giving back empty slubs to
@@ -42,10 +42,10 @@ Cc: stable-rt@vger.kernel.org
  1 file changed, 3 deletions(-)
 
 diff --git a/mm/slub.c b/mm/slub.c
-index b3b760450e39..50ebee37c046 100644
+index faba29039375..cb414c1f9ef6 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
-@@ -2502,9 +2502,6 @@ static void flush_all(struct kmem_cache *s)
+@@ -2501,9 +2501,6 @@ static void flush_all(struct kmem_cache *s)
  	for_each_online_cpu(cpu) {
  		struct slub_free_list *f;
  

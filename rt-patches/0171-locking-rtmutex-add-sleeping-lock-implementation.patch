@@ -1,7 +1,7 @@
-From 71c694a98262eaf6a093ad44e95fd2a68802acfe Mon Sep 17 00:00:00 2001
+From 213219e8c46162d023832a7fe8c425ccb95ab477 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 12 Oct 2017 17:11:19 +0200
-Subject: [PATCH 171/318] locking/rtmutex: add sleeping lock implementation
+Subject: [PATCH 171/319] locking/rtmutex: add sleeping lock implementation
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -108,7 +108,7 @@ index b828b938c876..b02009f53026 100644
  #define DEFINE_RT_MUTEX(mutexname) \
  	struct rt_mutex mutexname = __RT_MUTEX_INITIALIZER(mutexname)
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index f14be48ecc7d..20b94de2aa17 100644
+index 745eca10a89e..c1d808d68023 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -141,6 +141,9 @@ struct io_uring_task;
@@ -131,7 +131,7 @@ index f14be48ecc7d..20b94de2aa17 100644
  /*
   * set_special_state() should be used for those states when the blocking task
   * can not use the regular condition based wait-loop. In that case we must
-@@ -1022,6 +1028,7 @@ struct task_struct {
+@@ -1018,6 +1024,7 @@ struct task_struct {
  	raw_spinlock_t			pi_lock;
  
  	struct wake_q_node		wake_q;
@@ -368,7 +368,7 @@ index 000000000000..446da786e5d5
 +
 +#endif
 diff --git a/kernel/fork.c b/kernel/fork.c
-index 89767c29ab3d..6cd01fe5a193 100644
+index 074e2106e975..1ad9921383c7 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -927,6 +927,7 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
@@ -1139,7 +1139,7 @@ index 9d1e974ca9c3..c1a280167e3c 100644
  #ifdef CONFIG_DEBUG_RT_MUTEXES
  # include "rtmutex-debug.h"
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index fbabc918d395..479683c01be8 100644
+index a22f648ae640..be9fa7da3be5 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
 @@ -511,9 +511,15 @@ static bool set_nr_if_polling(struct task_struct *p)

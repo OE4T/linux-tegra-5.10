@@ -1,7 +1,7 @@
-From fab5578da5887fd03cf7a903e0f7efb1f748dacc Mon Sep 17 00:00:00 2001
+From 1f8ae4af9b57e3d84fcd168421599b9a42d3d8b0 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Thu, 21 Jun 2018 17:29:19 +0200
-Subject: [PATCH 200/318] mm/SLUB: delay giving back empty slubs to IRQ enabled
+Subject: [PATCH 200/319] mm/SLUB: delay giving back empty slubs to IRQ enabled
  regions
 
 __free_slab() is invoked with disabled interrupts which increases the
@@ -17,7 +17,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 69 insertions(+), 5 deletions(-)
 
 diff --git a/mm/slub.c b/mm/slub.c
-index 2b2e623007ca..b3b760450e39 100644
+index 863554db3323..faba29039375 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
 @@ -1494,6 +1494,12 @@ static bool freelist_corrupted(struct kmem_cache *s, struct page *page,
@@ -63,7 +63,7 @@ index 2b2e623007ca..b3b760450e39 100644
  	} else
  		__free_slab(s, page);
  }
-@@ -2391,14 +2413,21 @@ static void put_cpu_partial(struct kmem_cache *s, struct page *page, int drain)
+@@ -2392,14 +2414,21 @@ static void put_cpu_partial(struct kmem_cache *s, struct page *page, int drain)
  			pobjects = oldpage->pobjects;
  			pages = oldpage->pages;
  			if (drain && pobjects > slub_cpu_partial(s)) {
@@ -85,7 +85,7 @@ index 2b2e623007ca..b3b760450e39 100644
  				oldpage = NULL;
  				pobjects = 0;
  				pages = 0;
-@@ -2466,7 +2495,22 @@ static bool has_cpu_slab(int cpu, void *info)
+@@ -2465,7 +2494,22 @@ static bool has_cpu_slab(int cpu, void *info)
  
  static void flush_all(struct kmem_cache *s)
  {
@@ -108,7 +108,7 @@ index 2b2e623007ca..b3b760450e39 100644
  }
  
  /*
-@@ -2663,8 +2707,10 @@ static inline void *get_freelist(struct kmem_cache *s, struct page *page)
+@@ -2662,8 +2706,10 @@ static inline void *get_freelist(struct kmem_cache *s, struct page *page)
   * already disabled (which is the case for bulk allocation).
   */
  static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,

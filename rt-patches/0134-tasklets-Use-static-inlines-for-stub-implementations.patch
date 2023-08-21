@@ -1,7 +1,7 @@
-From c6784d52893dbcf48068c139e87d8c910a815dc4 Mon Sep 17 00:00:00 2001
+From 27966dd8b51299500318adec30e0a27d16d41425 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 9 Mar 2021 09:42:05 +0100
-Subject: [PATCH 134/318] tasklets: Use static inlines for stub implementations
+Subject: [PATCH 134/319] tasklets: Use static inlines for stub implementations
 
 Inlines exist for a reason.
 

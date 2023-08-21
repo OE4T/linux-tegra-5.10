@@ -1,7 +1,7 @@
-From 795867393c982a9384b0e41603de70df70f96460 Mon Sep 17 00:00:00 2001
+From 11a74451ab4deb9943191e0ecbc3023d98f1ea6a Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Mon, 9 Nov 2020 15:54:03 +0100
-Subject: [PATCH 021/318] sched: Unlock the rq in affine_move_task() error path
+Subject: [PATCH 021/319] sched: Unlock the rq in affine_move_task() error path
 
 Unlock the rq if returned early in the error path.
 
@@ -13,10 +13,10 @@ Link: https://lkml.kernel.org/r/20201106203921.GA48461@zipoli.concurrent-rt.com
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index fef1bad62e1b..40651b6f936b 100644
+index 6b4408527e75..929e65b75db8 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -2224,8 +2224,10 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2225,8 +2225,10 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  	 *
  	 * Either way, we really should have a @pending here.
  	 */

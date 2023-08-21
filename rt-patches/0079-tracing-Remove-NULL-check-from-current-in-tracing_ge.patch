@@ -1,7 +1,7 @@
-From cd16354f1e0189847fcf010a3ab7889757ec6981 Mon Sep 17 00:00:00 2001
+From 9d43dcff63b42d3c45d379f2d2c0aaff46a2801d Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 3 Feb 2021 11:05:26 -0500
-Subject: [PATCH 079/318] tracing: Remove NULL check from current in
+Subject: [PATCH 079/319] tracing: Remove NULL check from current in
  tracing_generic_entry_update().
 
 I can't imagine when or why `current' would return a NULL pointer. This

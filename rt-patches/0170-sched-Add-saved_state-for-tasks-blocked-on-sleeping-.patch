@@ -1,7 +1,7 @@
-From 6d7af90d5393b3d31ecf270879e04a3c3f8cacc0 Mon Sep 17 00:00:00 2001
+From ffe4661a598673c16681a4f1d7918048e6677d01 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Sat, 25 Jun 2011 09:21:04 +0200
-Subject: [PATCH 170/318] sched: Add saved_state for tasks blocked on sleeping
+Subject: [PATCH 170/319] sched: Add saved_state for tasks blocked on sleeping
  locks
 
 Spinlocks are state preserving in !RT. RT changes the state when a
@@ -18,10 +18,10 @@ Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
  3 files changed, 36 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index 2a486e1e1e27..f14be48ecc7d 100644
+index 0e7ff0054650..745eca10a89e 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -663,6 +663,8 @@ struct task_struct {
+@@ -659,6 +659,8 @@ struct task_struct {
  #endif
  	/* -1 unrunnable, 0 runnable, >0 stopped: */
  	volatile long			state;
@@ -30,7 +30,7 @@ index 2a486e1e1e27..f14be48ecc7d 100644
  
  	/*
  	 * This begins the randomizable portion of task_struct. Only
-@@ -1781,6 +1783,7 @@ extern struct task_struct *find_get_task_by_vpid(pid_t nr);
+@@ -1777,6 +1779,7 @@ extern struct task_struct *find_get_task_by_vpid(pid_t nr);
  
  extern int wake_up_state(struct task_struct *tsk, unsigned int state);
  extern int wake_up_process(struct task_struct *tsk);
@@ -39,10 +39,10 @@ index 2a486e1e1e27..f14be48ecc7d 100644
  
  #ifdef CONFIG_SMP
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index f41026149096..fbabc918d395 100644
+index 9405f835fa0d..a22f648ae640 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -3297,7 +3297,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+@@ -3302,7 +3302,7 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
  	int cpu, success = 0;
  
  	preempt_disable();
@@ -51,7 +51,7 @@ index f41026149096..fbabc918d395 100644
  		/*
  		 * We're waking current, this means 'p->on_rq' and 'task_cpu(p)
  		 * == smp_processor_id()'. Together this means we can special
-@@ -3327,8 +3327,26 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+@@ -3332,8 +3332,26 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
  	 */
  	raw_spin_lock_irqsave(&p->pi_lock, flags);
  	smp_mb__after_spinlock();
@@ -79,7 +79,7 @@ index f41026149096..fbabc918d395 100644
  
  	trace_sched_waking(p);
  
-@@ -3517,6 +3535,18 @@ int wake_up_process(struct task_struct *p)
+@@ -3522,6 +3540,18 @@ int wake_up_process(struct task_struct *p)
  }
  EXPORT_SYMBOL(wake_up_process);
  
@@ -99,10 +99,10 @@ index f41026149096..fbabc918d395 100644
  {
  	return try_to_wake_up(p, state, 0);
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index b69e84f30b8d..6356c505089a 100644
+index e23e3352fba7..2c8553d88b34 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1754,6 +1754,7 @@ static inline int task_on_rq_migrating(struct task_struct *p)
+@@ -1753,6 +1753,7 @@ static inline int task_on_rq_migrating(struct task_struct *p)
  #define WF_FORK			0x02		/* Child wakeup after fork */
  #define WF_MIGRATED		0x04		/* Internal use, task got migrated */
  #define WF_ON_CPU		0x08		/* Wakee is on_cpu */

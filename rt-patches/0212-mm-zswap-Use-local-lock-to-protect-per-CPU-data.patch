@@ -1,7 +1,7 @@
-From 84ccb50394f15f36f89ed36b36234cc080ebe1b7 Mon Sep 17 00:00:00 2001
+From 8275dfc123ab34872355b9d2208f03e25fd30ad8 Mon Sep 17 00:00:00 2001
 From: "Luis Claudio R. Goncalves" <lgoncalv@redhat.com>
 Date: Tue, 25 Jun 2019 11:28:04 -0300
-Subject: [PATCH 212/318] mm/zswap: Use local lock to protect per-CPU data
+Subject: [PATCH 212/319] mm/zswap: Use local lock to protect per-CPU data
 
 zwap uses per-CPU compression. The per-CPU data pointer is acquired with
 get_cpu_ptr() which implicitly disables preemption. It allocates

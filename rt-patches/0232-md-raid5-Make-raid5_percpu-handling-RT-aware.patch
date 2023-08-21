@@ -1,7 +1,7 @@
-From 5c4f142c2637a369393ed47344ba51ec3c8dbcac Mon Sep 17 00:00:00 2001
+From c14c8755df08a1aca424ec9237d85237d89c23b0 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 6 Apr 2010 16:51:31 +0200
-Subject: [PATCH 232/318] md: raid5: Make raid5_percpu handling RT aware
+Subject: [PATCH 232/319] md: raid5: Make raid5_percpu handling RT aware
 
 __raid_run_ops() disables preemption with get_cpu() around the access
 to the raid5_percpu variables. That causes scheduling while atomic
@@ -19,10 +19,10 @@ Tested-by: Udo van den Heuvel <udovdh@xs4all.nl>
  2 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
-index 02767866b9ff..8e3aa90f3a93 100644
+index 9f114b9d8dc6..7e0eb8defeaf 100644
 --- a/drivers/md/raid5.c
 +++ b/drivers/md/raid5.c
-@@ -2217,8 +2217,9 @@ static void raid_run_ops(struct stripe_head *sh, unsigned long ops_request)
+@@ -2218,8 +2218,9 @@ static void raid_run_ops(struct stripe_head *sh, unsigned long ops_request)
  	struct raid5_percpu *percpu;
  	unsigned long cpu;
  
@@ -33,7 +33,7 @@ index 02767866b9ff..8e3aa90f3a93 100644
  	if (test_bit(STRIPE_OP_BIOFILL, &ops_request)) {
  		ops_run_biofill(sh);
  		overlap_clear++;
-@@ -2277,7 +2278,8 @@ static void raid_run_ops(struct stripe_head *sh, unsigned long ops_request)
+@@ -2278,7 +2279,8 @@ static void raid_run_ops(struct stripe_head *sh, unsigned long ops_request)
  			if (test_and_clear_bit(R5_Overlap, &dev->flags))
  				wake_up(&sh->raid_conf->wait_for_overlap);
  		}
@@ -43,7 +43,7 @@ index 02767866b9ff..8e3aa90f3a93 100644
  }
  
  static void free_stripe(struct kmem_cache *sc, struct stripe_head *sh)
-@@ -7096,6 +7098,7 @@ static int raid456_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
+@@ -7108,6 +7110,7 @@ static int raid456_cpu_up_prepare(unsigned int cpu, struct hlist_node *node)
  			__func__, cpu);
  		return -ENOMEM;
  	}

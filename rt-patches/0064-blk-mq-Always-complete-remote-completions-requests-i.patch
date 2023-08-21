@@ -1,7 +1,7 @@
-From 8360f81b4c6047401d87f584db5d5778256d4a31 Mon Sep 17 00:00:00 2001
+From a4529010d987eea5a2e8ad5b5d8da05ad5230579 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Sat, 23 Jan 2021 21:10:26 +0100
-Subject: [PATCH 064/318] blk-mq: Always complete remote completions requests
+Subject: [PATCH 064/319] blk-mq: Always complete remote completions requests
  in softirq
 
 Controllers with multiple queues have their IRQ-handelers pinned to a
@@ -19,10 +19,10 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  1 file changed, 1 insertion(+), 13 deletions(-)
 
 diff --git a/block/blk-mq.c b/block/blk-mq.c
-index 769cfac295eb..ecdc0ae2361f 100644
+index 705399c1f776..d0cac68a0c0f 100644
 --- a/block/blk-mq.c
 +++ b/block/blk-mq.c
-@@ -626,19 +626,7 @@ static void __blk_mq_complete_request_remote(void *data)
+@@ -629,19 +629,7 @@ static void __blk_mq_complete_request_remote(void *data)
  {
  	struct request *rq = data;
  

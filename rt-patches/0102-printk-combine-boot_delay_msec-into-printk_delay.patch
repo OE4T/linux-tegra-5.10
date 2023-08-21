@@ -1,7 +1,7 @@
-From a88a94155f738ccf40114b6f6b33f865971eb987 Mon Sep 17 00:00:00 2001
+From 4a1e9d0f3a11f381539ad51a4671cd49746db5b6 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Mon, 30 Nov 2020 01:42:04 +0106
-Subject: [PATCH 102/318] printk: combine boot_delay_msec() into printk_delay()
+Subject: [PATCH 102/319] printk: combine boot_delay_msec() into printk_delay()
 
 boot_delay_msec() is always called immediately before printk_delay()
 so just combine the two.

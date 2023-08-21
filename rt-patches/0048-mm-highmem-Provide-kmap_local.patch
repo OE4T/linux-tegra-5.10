@@ -1,7 +1,7 @@
-From 502a16684eca25c929ee21d0ff068f2fb7da5533 Mon Sep 17 00:00:00 2001
+From 3f9a7f97ae38fefa0504240d8e8e38e16140311e Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:37 +0100
-Subject: [PATCH 048/318] mm/highmem: Provide kmap_local*
+Subject: [PATCH 048/319] mm/highmem: Provide kmap_local*
 
 Now that the kmap atomic index is stored in task struct provide a
 preemptible variant. On context switch the maps of an outgoing task are

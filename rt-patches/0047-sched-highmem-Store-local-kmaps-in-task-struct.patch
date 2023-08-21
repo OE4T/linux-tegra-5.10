@@ -1,7 +1,7 @@
-From fcc18ef4e06c3970e77b1cacdfcbbdf6dd7934b5 Mon Sep 17 00:00:00 2001
+From 0808ed4c771aa33ba5ac877db753030923f4f907 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:36 +0100
-Subject: [PATCH 047/318] sched: highmem: Store local kmaps in task struct
+Subject: [PATCH 047/319] sched: highmem: Store local kmaps in task struct
 
 Instead of storing the map per CPU provide and use per task storage. That
 prepares for local kmaps which are preemptible.
@@ -51,7 +51,7 @@ index 6ceed907b14e..c5a22177db85 100644
  
  #ifdef CONFIG_HIGHMEM
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index bedd83a68c21..9599a71cea6d 100644
+index a5c0a58d4f0d..628187c96b76 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -34,6 +34,7 @@
@@ -62,7 +62,7 @@ index bedd83a68c21..9599a71cea6d 100644
  
  /* task_struct member predeclarations (sorted alphabetically): */
  struct audit_context;
-@@ -645,6 +646,13 @@ struct wake_q_node {
+@@ -641,6 +642,13 @@ struct wake_q_node {
  	struct wake_q_node *next;
  };
  
@@ -76,7 +76,7 @@ index bedd83a68c21..9599a71cea6d 100644
  struct task_struct {
  #ifdef CONFIG_THREAD_INFO_IN_TASK
  	/*
-@@ -1324,6 +1332,7 @@ struct task_struct {
+@@ -1320,6 +1328,7 @@ struct task_struct {
  	unsigned int			sequential_io;
  	unsigned int			sequential_io_avg;
  #endif
@@ -105,7 +105,7 @@ index e289e6773292..59c666d9d43c 100644
  	lockdep_sys_exit();
  }
 diff --git a/kernel/fork.c b/kernel/fork.c
-index 6ca205964a74..89767c29ab3d 100644
+index 09fadba68817..074e2106e975 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
 @@ -931,6 +931,7 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
@@ -117,10 +117,10 @@ index 6ca205964a74..89767c29ab3d 100644
  #ifdef CONFIG_FAULT_INJECTION
  	tsk->fail_nth = 0;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index dc1ee345cc71..f41026149096 100644
+index ba7d3dc17f47..9405f835fa0d 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -4084,6 +4084,22 @@ static inline void finish_lock_switch(struct rq *rq)
+@@ -4089,6 +4089,22 @@ static inline void finish_lock_switch(struct rq *rq)
  # define finish_arch_post_lock_switch()	do { } while (0)
  #endif
  
@@ -143,7 +143,7 @@ index dc1ee345cc71..f41026149096 100644
  /**
   * prepare_task_switch - prepare to switch tasks
   * @rq: the runqueue preparing to switch
-@@ -4107,6 +4123,7 @@ prepare_task_switch(struct rq *rq, struct task_struct *prev,
+@@ -4112,6 +4128,7 @@ prepare_task_switch(struct rq *rq, struct task_struct *prev,
  	quadd_task_sched_out(prev, next);
  	rseq_preempt(prev);
  	fire_sched_out_preempt_notifiers(prev, next);
@@ -151,7 +151,7 @@ index dc1ee345cc71..f41026149096 100644
  	prepare_task(next);
  	prepare_arch_switch(next);
  }
-@@ -4174,6 +4191,7 @@ static struct rq *finish_task_switch(struct task_struct *prev)
+@@ -4179,6 +4196,7 @@ static struct rq *finish_task_switch(struct task_struct *prev)
  	finish_lock_switch(rq);
  	finish_arch_post_lock_switch();
  	kcov_finish_switch(current);

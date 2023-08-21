@@ -1,7 +1,7 @@
-From 608377cad2628424cf25b6993aa37825aaa78056 Mon Sep 17 00:00:00 2001
+From 64c5c6f1400e2c2eea6861d8dc9ee056b1f186f9 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:20 +0100
-Subject: [PATCH 031/318] x86/mm/highmem: Use generic kmap atomic
+Subject: [PATCH 031/319] x86/mm/highmem: Use generic kmap atomic
  implementation
 
 Convert X86 to the generic kmap atomic implementation and make the
@@ -27,7 +27,7 @@ Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
  delete mode 100644 arch/x86/include/asm/kmap_types.h
 
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index db95ac482e0e..e210bd34e5cf 100644
+index d64e69013995..bba7c9d12e38 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -15,6 +15,7 @@ config X86_32

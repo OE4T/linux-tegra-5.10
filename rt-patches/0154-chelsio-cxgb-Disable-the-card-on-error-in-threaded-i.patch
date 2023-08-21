@@ -1,7 +1,7 @@
-From 65ae3aa471d6470ae2bb7fc1385052592ff12eda Mon Sep 17 00:00:00 2001
+From 1976b5da5b788a8181e5b474672bdda5276a95e5 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Tue, 2 Feb 2021 18:01:04 +0100
-Subject: [PATCH 154/318] chelsio: cxgb: Disable the card on error in threaded
+Subject: [PATCH 154/319] chelsio: cxgb: Disable the card on error in threaded
  interrupt
 
 t1_fatal_err() is invoked from the interrupt handler. The bad part is

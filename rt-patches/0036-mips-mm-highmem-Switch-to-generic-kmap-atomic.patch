@@ -1,7 +1,7 @@
-From 53ac8c714651b9a440b15f6daaf8444e635d9284 Mon Sep 17 00:00:00 2001
+From aa0740f09645d10b31e7a52d2c77d4923ad086e4 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Tue, 3 Nov 2020 10:27:25 +0100
-Subject: [PATCH 036/318] mips/mm/highmem: Switch to generic kmap atomic
+Subject: [PATCH 036/319] mips/mm/highmem: Switch to generic kmap atomic
 
 No reason having the same code in every architecture
 
