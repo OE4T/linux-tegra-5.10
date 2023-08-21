@@ -855,7 +855,7 @@ static irqreturn_t tegra_pcie_rp_irq_handler(int irq, void *arg)
 	status_l0 = appl_readl(pcie, APPL_INTR_STATUS_L0);
 	if (status_l0 & APPL_INTR_STATUS_L0_LINK_STATE_INT) {
 		status_l1 = appl_readl(pcie, APPL_INTR_STATUS_L1_0_0);
-		writel(status_l1, pcie->appl_base + APPL_INTR_STATUS_L1_0_0);
+		appl_writel(pcie, status_l1, APPL_INTR_STATUS_L1_0_0);
 		if (pcie->of_data->sbr_reset_fixup &&
 		    status_l1 & APPL_INTR_STATUS_L1_0_0_LINK_REQ_RST_NOT_CHGED) {
 			/* SBR & Surprise Link Down WAR */
@@ -4043,6 +4043,7 @@ static int tegra_pcie_config_ep(struct tegra_pcie_dw *pcie,
 	if (ret) {
 		dev_err(dev, "Failed to initialize DWC Endpoint subsystem: %d\n",
 			ret);
+		pm_runtime_disable(dev);
 		return ret;
 	}
 
