@@ -1,5 +1,6 @@
-/*
- * Copyright (c) 2022-2023, NVIDIA CORPORATION.  All rights reserved.
+// SPDX-License-Identifier: GPL-2.0
+/* SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES.
+ * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -46,14 +47,13 @@
 /********************************************************************************
  * State of the sender for Command Data to L2SS protected with E2E Profile 5.
  *******************************************************************************/
-static E2E_P05ProtectStateType E2EProtectState;
-static E2E_P05CheckStateType E2ECheckState;
+static struct E2E_P05ProtectStateType E2EProtectState;
+static struct E2E_P05CheckStateType E2ECheckState;
 
 /*******************************************************************************
  * Configuration of transmitted Command Data to L2SS for E2E Profile 5.
  *******************************************************************************/
-static  E2E_P05ConfigType E2ETxConfig =
-{
+static  struct E2E_P05ConfigType E2ETxConfig = {
 	.Offset = 0U,
 	.DataLength = (8U*CMDRESP_CMD_FRAME_EX_SIZE),
 	.DataID = 0x55,
@@ -63,8 +63,7 @@ static  E2E_P05ConfigType E2ETxConfig =
 /*******************************************************************************
  * Configuration of received Data from L2SS, for E2E Profile 5.
  *******************************************************************************/
-static E2E_P05ConfigType E2ERxConfig =
-{
+static struct E2E_P05ConfigType E2ERxConfig = {
 	.Offset = 0U,
 	.DataLength = (8U*CMDRESP_CMD_FRAME_EX_SIZE),
 	.DataID = NVGUARD_LAYER_2,
@@ -111,12 +110,12 @@ static const struct file_operations l1ss_fops = {
  ******************************************************************************************/
 static int lCmdRespAdapt_E2EInit(void)
 {
-	if(E2E_E_OK != E2E_P05ProtectInit(&E2EProtectState)) {
+	if (E2E_P05ProtectInit(&E2EProtectState) != E2E_E_OK) {
 		pr_err("E2E_P05ProtectInit Failed\r\n");
 		return -1;
 	}
 
-	if(E2E_E_OK != E2E_P05CheckInit(&E2ECheckState)) {
+	if (E2E_P05CheckInit(&E2ECheckState) != E2E_E_OK) {
 		pr_err("E2E_P05CheckInit Failed\r\n");
 		return -1;
 	}
@@ -136,7 +135,7 @@ int l1ss_cmd_resp_send_frame(const cmdresp_frame_ex_t *p_cmd_pkt,
 	ret = E2E_P05Protect(
 			&(E2ETxConfig),
 			&(E2EProtectState),
-			(uint8_t*)p_cmd_pkt, CMDRESP_CMD_FRAME_EX_SIZE);
+			(uint8_t *)p_cmd_pkt, CMDRESP_CMD_FRAME_EX_SIZE);
 
 	mutex_lock(&ldata->safety_ivc->wlock);
 
@@ -580,9 +579,8 @@ int tegra_safety_handle_cmd(cmdresp_frame_ex_t *cmd_resp,
 	ret = E2E_P05Check(
 			&(E2ERxConfig),
 			&(E2ECheckState),
-			(uint8_t*)cmd_resp, CMDRESP_CMD_FRAME_EX_SIZE);
-	if (E2E_E_OK != ret)
-	{
+			(uint8_t *)cmd_resp, CMDRESP_CMD_FRAME_EX_SIZE);
+	if (ret != E2E_E_OK) {
 		pr_err("E2E_P05 Check failed!! - 0x%x", ret);
 		return -1;
 	}
