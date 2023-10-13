@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: (GPL-2.0-or-later)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/gpio/lenovo,thinkedge-se70.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Lenovo ThinkEdge SE70 GPIOs
+
+maintainers:
+  - Renê de Souza Pinto <rene@renesp.com.br>
+
+description:
+  The Lenovo ThinkEdge SE70 provides Digital Input/Output pins connected
+  internally to a Nuvoton NCT5635Y GPIO expander. Some additional GPIOs are
+  used to set the protocol for the transceiver IC connected to the serial
+  ports (which can operate on RS-232, RS-485, RS-422 or LOOP mode).  This
+  driver allows to control these GPIO pins by abstracting them through two
+  GPIO controllers, one dedicated to the I/O pins and other dedicated to
+  set the communication protocol for the serial ports. The serial port
+  protocol is chosen according to the GPIOs (1,0), for ttyTHS0 port, and
+  (3,2) for the ttyTHS1 port. They must be set according the supported
+  protocols":" LOOP (0,0), RS-232 (0,1), RS-485 (1,0) or RS-422 (1,1).
+
+properties:
+  compatible:
+    const: lenovo,thinkedge-se70
+
+  reg:
+    maxItems: 1
+
+required:
+  - compatible
+  - reg
+
+additionalProperties: false
+
+examples:
+  - |
+    i2c {
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            nct5635y@20 {
+                    compatible = "lenovo,thinkedge-se70";
+                    reg = <0x20>;
+                    status = "okay";
+            };
+    };
