@@ -1,7 +1,8 @@
-From 122d8c2441a2087155db19290e1603669c452164 Mon Sep 17 00:00:00 2001
+From a1303111c4513b8081a92809f65b55ab3358a205 Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 13 Nov 2020 15:02:08 +0100
-Subject: [PATCH 114/319] parisc: Remove bogus __IRQ_STAT macro
+Subject: [PATCH 114/322] parisc: Remove bogus __IRQ_STAT macro
+X-NVConfidentiality: public
 
 This is a leftover from a historical array based implementation and unused.
 

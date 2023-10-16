@@ -1,7 +1,8 @@
-From a1f72251a456609a22820d7dd9e949ccdc5b5e20 Mon Sep 17 00:00:00 2001
+From 7bf8ca7828d685edcb9de3cea20558083fece537 Mon Sep 17 00:00:00 2001
 From: John Ogness <john.ogness@linutronix.de>
 Date: Fri, 11 Dec 2020 00:55:25 +0106
-Subject: [PATCH 096/319] printk: track/limit recursion
+Subject: [PATCH 096/322] printk: track/limit recursion
+X-NVConfidentiality: public
 
 Limit printk() recursion to 1 level. This is enough to print a
 stacktrace for the printk call, should a WARN or BUG occur.

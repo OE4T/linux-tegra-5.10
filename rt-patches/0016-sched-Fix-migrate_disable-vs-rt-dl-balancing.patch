@@ -1,7 +1,8 @@
-From a68e8a503bb851fd7d6aac245ad167f436df6ac7 Mon Sep 17 00:00:00 2001
+From 9c42cf8064ebed33a9792dbf984ff9be3733b95d Mon Sep 17 00:00:00 2001
 From: Peter Zijlstra <peterz@infradead.org>
 Date: Fri, 23 Oct 2020 12:12:13 +0200
-Subject: [PATCH 016/319] sched: Fix migrate_disable() vs rt/dl balancing
+Subject: [PATCH 016/322] sched: Fix migrate_disable() vs rt/dl balancing
+X-NVConfidentiality: public
 
 In order to minimize the interference of migrate_disable() on lower
 priority tasks, which can be deprived of runtime due to being stuck
@@ -85,7 +86,7 @@ index 97ba7c920653..8b43922e65df 100644
   *
   * The reason we have it anyway.
 diff --git a/include/linux/sched.h b/include/linux/sched.h
-index d7316b9b056f..1b196d4b0964 100644
+index 83447024a7ea..343d2f13345a 100644
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
 @@ -728,8 +728,9 @@ struct task_struct {
@@ -100,10 +101,10 @@ index d7316b9b056f..1b196d4b0964 100644
  #ifdef CONFIG_PREEMPT_RCU
  	int				rcu_read_lock_nesting;
 diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index 392618142d2b..4d9ac666ea80 100644
+index 7124abdb3184..c93059871a85 100644
 --- a/kernel/sched/core.c
 +++ b/kernel/sched/core.c
-@@ -1774,11 +1774,6 @@ void migrate_enable(void)
+@@ -1777,11 +1777,6 @@ void migrate_enable(void)
  }
  EXPORT_SYMBOL_GPL(migrate_enable);
  
@@ -115,7 +116,7 @@ index 392618142d2b..4d9ac666ea80 100644
  static inline bool rq_has_pinned_tasks(struct rq *rq)
  {
  	return rq->nr_pinned;
-@@ -1983,6 +1978,49 @@ static int migration_cpu_stop(void *data)
+@@ -1986,6 +1981,49 @@ static int migration_cpu_stop(void *data)
  	return 0;
  }
  
@@ -165,7 +166,7 @@ index 392618142d2b..4d9ac666ea80 100644
  /*
   * sched_class::set_cpus_allowed must do the below, but is not required to
   * actually call this function.
-@@ -2063,6 +2101,14 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2066,6 +2104,14 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  
  	/* Can the task run on the task's current CPU? If so, we're done */
  	if (cpumask_test_cpu(task_cpu(p), &p->cpus_mask)) {
@@ -180,7 +181,7 @@ index 392618142d2b..4d9ac666ea80 100644
  		pending = p->migration_pending;
  		if (pending) {
  			refcount_inc(&pending->refs);
-@@ -2071,6 +2117,11 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2074,6 +2120,11 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  		}
  		task_rq_unlock(rq, p, rf);
  
@@ -192,7 +193,7 @@ index 392618142d2b..4d9ac666ea80 100644
  		if (complete)
  			goto do_complete;
  
-@@ -2107,6 +2158,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
+@@ -2110,6 +2161,7 @@ static int affine_move_task(struct rq *rq, struct task_struct *p, struct rq_flag
  	if (flags & SCA_MIGRATE_ENABLE) {
  
  		refcount_inc(&pending->refs); /* pending->{arg,stop_work} */
@@ -200,7 +201,7 @@ index 392618142d2b..4d9ac666ea80 100644
  		task_rq_unlock(rq, p, rf);
  
  		pending->arg = (struct migration_arg) {
-@@ -2725,11 +2777,6 @@ static inline int __set_cpus_allowed_ptr(struct task_struct *p,
+@@ -2728,11 +2780,6 @@ static inline int __set_cpus_allowed_ptr(struct task_struct *p,
  
  static inline void migrate_disable_switch(struct rq *rq, struct task_struct *p) { }
  
@@ -213,10 +214,10 @@ index 392618142d2b..4d9ac666ea80 100644
  {
  	return false;
 diff --git a/kernel/sched/deadline.c b/kernel/sched/deadline.c
-index 20cb36e506d3..0ad28ede7297 100644
+index 0510ca205ad1..5ca7a8031fd9 100644
 --- a/kernel/sched/deadline.c
 +++ b/kernel/sched/deadline.c
-@@ -2139,6 +2139,9 @@ static int push_dl_task(struct rq *rq)
+@@ -2138,6 +2138,9 @@ static int push_dl_task(struct rq *rq)
  		return 0;
  
  retry:
@@ -226,7 +227,7 @@ index 20cb36e506d3..0ad28ede7297 100644
  	if (WARN_ON(next_task == rq->curr))
  		return 0;
  
-@@ -2216,7 +2219,7 @@ static void push_dl_tasks(struct rq *rq)
+@@ -2215,7 +2218,7 @@ static void push_dl_tasks(struct rq *rq)
  static void pull_dl_task(struct rq *this_rq)
  {
  	int this_cpu = this_rq->cpu, cpu;
@@ -235,7 +236,7 @@ index 20cb36e506d3..0ad28ede7297 100644
  	bool resched = false;
  	struct rq *src_rq;
  	u64 dmin = LONG_MAX;
-@@ -2246,6 +2249,7 @@ static void pull_dl_task(struct rq *this_rq)
+@@ -2245,6 +2248,7 @@ static void pull_dl_task(struct rq *this_rq)
  			continue;
  
  		/* Might drop this_rq->lock */
@@ -243,7 +244,7 @@ index 20cb36e506d3..0ad28ede7297 100644
  		double_lock_balance(this_rq, src_rq);
  
  		/*
-@@ -2277,17 +2281,27 @@ static void pull_dl_task(struct rq *this_rq)
+@@ -2276,17 +2280,27 @@ static void pull_dl_task(struct rq *this_rq)
  					   src_rq->curr->dl.deadline))
  				goto skip;
  
@@ -277,7 +278,7 @@ index 20cb36e506d3..0ad28ede7297 100644
  	}
  
  	if (resched)
-@@ -2536,6 +2550,7 @@ const struct sched_class dl_sched_class
+@@ -2535,6 +2549,7 @@ const struct sched_class dl_sched_class
  	.rq_online              = rq_online_dl,
  	.rq_offline             = rq_offline_dl,
  	.task_woken		= task_woken_dl,
@@ -286,10 +287,10 @@ index 20cb36e506d3..0ad28ede7297 100644
  
  	.task_tick		= task_tick_dl,
 diff --git a/kernel/sched/rt.c b/kernel/sched/rt.c
-index d839836533f6..ec6d769f9ffd 100644
+index f91339c0dee8..c25e35f41555 100644
 --- a/kernel/sched/rt.c
 +++ b/kernel/sched/rt.c
-@@ -1871,7 +1871,7 @@ static struct task_struct *pick_next_pushable_task(struct rq *rq)
+@@ -1873,7 +1873,7 @@ static struct task_struct *pick_next_pushable_task(struct rq *rq)
   * running task can migrate over to a CPU that is running a task
   * of lesser priority.
   */
@@ -298,7 +299,7 @@ index d839836533f6..ec6d769f9ffd 100644
  {
  	struct task_struct *next_task;
  	struct rq *lowest_rq;
-@@ -1885,6 +1885,34 @@ static int push_rt_task(struct rq *rq)
+@@ -1887,6 +1887,34 @@ static int push_rt_task(struct rq *rq)
  		return 0;
  
  retry:
@@ -333,7 +334,7 @@ index d839836533f6..ec6d769f9ffd 100644
  	if (WARN_ON(next_task == rq->curr))
  		return 0;
  
-@@ -1939,12 +1967,10 @@ static int push_rt_task(struct rq *rq)
+@@ -1941,12 +1969,10 @@ static int push_rt_task(struct rq *rq)
  	deactivate_task(rq, next_task, 0);
  	set_task_cpu(next_task, lowest_rq->cpu);
  	activate_task(lowest_rq, next_task, 0);
@@ -347,7 +348,7 @@ index d839836533f6..ec6d769f9ffd 100644
  out:
  	put_task_struct(next_task);
  
-@@ -1954,7 +1980,7 @@ static int push_rt_task(struct rq *rq)
+@@ -1956,7 +1982,7 @@ static int push_rt_task(struct rq *rq)
  static void push_rt_tasks(struct rq *rq)
  {
  	/* push_rt_task will return true if it moved an RT */
@@ -356,7 +357,7 @@ index d839836533f6..ec6d769f9ffd 100644
  		;
  }
  
-@@ -2107,7 +2133,8 @@ void rto_push_irq_work_func(struct irq_work *work)
+@@ -2109,7 +2135,8 @@ void rto_push_irq_work_func(struct irq_work *work)
  	 */
  	if (has_pushable_tasks(rq)) {
  		raw_spin_lock(&rq->lock);
@@ -366,7 +367,7 @@ index d839836533f6..ec6d769f9ffd 100644
  		raw_spin_unlock(&rq->lock);
  	}
  
-@@ -2132,7 +2159,7 @@ static void pull_rt_task(struct rq *this_rq)
+@@ -2134,7 +2161,7 @@ static void pull_rt_task(struct rq *this_rq)
  {
  	int this_cpu = this_rq->cpu, cpu;
  	bool resched = false;
@@ -375,7 +376,7 @@ index d839836533f6..ec6d769f9ffd 100644
  	struct rq *src_rq;
  	int rt_overload_count = rt_overloaded(this_rq);
  
-@@ -2179,6 +2206,7 @@ static void pull_rt_task(struct rq *this_rq)
+@@ -2181,6 +2208,7 @@ static void pull_rt_task(struct rq *this_rq)
  		 * double_lock_balance, and another CPU could
  		 * alter this_rq
  		 */
@@ -383,7 +384,7 @@ index d839836533f6..ec6d769f9ffd 100644
  		double_lock_balance(this_rq, src_rq);
  
  		/*
-@@ -2206,11 +2234,14 @@ static void pull_rt_task(struct rq *this_rq)
+@@ -2208,11 +2236,14 @@ static void pull_rt_task(struct rq *this_rq)
  			if (p->prio < src_rq->curr->prio)
  				goto skip;
  
@@ -403,7 +404,7 @@ index d839836533f6..ec6d769f9ffd 100644
  			/*
  			 * We continue with the search, just in
  			 * case there's an even higher prio task
-@@ -2220,6 +2251,13 @@ static void pull_rt_task(struct rq *this_rq)
+@@ -2222,6 +2253,13 @@ static void pull_rt_task(struct rq *this_rq)
  		}
  skip:
  		double_unlock_balance(this_rq, src_rq);
@@ -417,7 +418,7 @@ index d839836533f6..ec6d769f9ffd 100644
  	}
  
  	if (resched)
-@@ -2468,6 +2506,7 @@ const struct sched_class rt_sched_class
+@@ -2470,6 +2508,7 @@ const struct sched_class rt_sched_class
  	.rq_offline             = rq_offline_rt,
  	.task_woken		= task_woken_rt,
  	.switched_from		= switched_from_rt,
@@ -426,10 +427,10 @@ index d839836533f6..ec6d769f9ffd 100644
  
  	.task_tick		= task_tick_rt,
 diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
-index d809e7e2f1e3..db0849b772de 100644
+index b302284734fe..8678dbd18028 100644
 --- a/kernel/sched/sched.h
 +++ b/kernel/sched/sched.h
-@@ -1061,6 +1061,8 @@ struct rq {
+@@ -1062,6 +1062,8 @@ struct rq {
  #if defined(CONFIG_PREEMPT_RT) && defined(CONFIG_SMP)
  	unsigned int		nr_pinned;
  #endif
@@ -438,7 +439,7 @@ index d809e7e2f1e3..db0849b772de 100644
  };
  
  #ifdef CONFIG_FAIR_GROUP_SCHED
-@@ -1088,6 +1090,16 @@ static inline int cpu_of(struct rq *rq)
+@@ -1089,6 +1091,16 @@ static inline int cpu_of(struct rq *rq)
  #endif
  }
  
@@ -455,7 +456,7 @@ index d809e7e2f1e3..db0849b772de 100644
  
  #ifdef CONFIG_SCHED_SMT
  extern void __update_idle_core(struct rq *rq);
-@@ -1827,6 +1839,8 @@ struct sched_class {
+@@ -1828,6 +1840,8 @@ struct sched_class {
  
  	void (*rq_online)(struct rq *rq);
  	void (*rq_offline)(struct rq *rq);
@@ -464,7 +465,7 @@ index d809e7e2f1e3..db0849b772de 100644
  #endif
  
  	void (*task_tick)(struct rq *rq, struct task_struct *p, int queued);
-@@ -1922,6 +1936,24 @@ extern void trigger_load_balance(struct rq *rq);
+@@ -1923,6 +1937,24 @@ extern void trigger_load_balance(struct rq *rq);
  
  extern void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask, u32 flags);
  
