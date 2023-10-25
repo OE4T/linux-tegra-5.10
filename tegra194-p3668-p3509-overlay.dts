@@ -91,34 +91,11 @@
 		};
 	};
 
-	/* pcie-c5-rp */
-	fragment@4 {
-		target-path = "/";
-		board_config {
-			odm-data = "disable-pcie-c5-endpoint", "enable-nvhs-uphy-pcie-c5";
-		};
-		__overlay__ {
-			pcie@141a0000 {
-				status = "okay";
-			};
-			pcie_ep@141a0000 {
-				status = "disabled";
-			};
-#if TEGRA_PCIE_VERSION < DT_VERSION_2
-			gpio@c2f0000 {
-				pex-refclk-sel-low {
-					status = "okay";
-				};
-			};
-#endif
-		};
-	};
-
 	/* pcie-c5-ep */
 	fragment@5 {
 		target-path = "/";
 		board_config {
-			odm-data = "enable-pcie-c5-endpoint", "enable-nvhs-uphy-pcie-c5";
+			odm-data = "pcie-c5-endpoint-enable", "NVHS_PCIE";
 		};
 		__overlay__ {
 			pcie@141a0000 {
