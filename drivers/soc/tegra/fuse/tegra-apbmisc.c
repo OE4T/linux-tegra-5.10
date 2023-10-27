@@ -72,7 +72,9 @@ static u32 chipid;
 
 u32 tegra_read_chipid(void)
 {
-	WARN(!chipid, "Tegra APB MISC not yet available\n");
+	/** Warning only when running on a Tegra SoC */
+	if (soc_is_tegra())
+		WARN(!chipid, "Tegra APB MISC not yet available\n");
 
 	return chipid;
 }
