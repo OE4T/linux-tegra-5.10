@@ -88,9 +88,9 @@
 			#address-cells = <2>;
 			#size-cells = <2>;
 
-			/* This is the Silicon ID private key. */
-			silicon-id-privkey@0 {
-				compatible = "nvidia,ftpm-silicon-id-privkey";
+			/* This is the ftpm seed. */
+			ftpm-seed@0 {
+				compatible = "nvidia,ftpm-seed";
 				reg = <0 0 0 0>;
 				status = "disabled";
 				secure-status = "disabled";
