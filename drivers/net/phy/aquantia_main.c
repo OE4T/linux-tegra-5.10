@@ -5,7 +5,7 @@
  * Author: Shaohui Xie <Shaohui.Xie@freescale.com>
  *
  * Copyright 2015 Freescale Semiconductor, Inc.
- * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION.  All rights reserved.
  */
 
 #include <linux/kernel.h>
@@ -125,6 +125,7 @@
 /* Vendor specific 1, MDIO_MMD_VEND1 */
 #define VEND1_GLOBAL_FW_ID			0x0020
 #define VEND1_GLOBAL_FW_ID_MAJOR		GENMASK(15, 8)
+#define VEND1_GLOBAL_FW_ID_MASK			GENMASK(15, 0)
 #define VEND1_GLOBAL_FW_ID_MINOR		GENMASK(7, 0)
 
 #define VEND1_GLOBAL_GEN_STAT2			0xc831
@@ -575,7 +576,9 @@ static int aqr107_wait_reset_complete(struct phy_device *phydev)
 	int val;
 
 	return phy_read_mmd_poll_timeout(phydev, MDIO_MMD_VEND1,
-					 VEND1_GLOBAL_FW_ID, val, val != 0,
+					 VEND1_GLOBAL_FW_ID, val,
+					 ((val & VEND1_GLOBAL_FW_ID_MASK) != 0 &&
+					 (val & VEND1_GLOBAL_FW_ID_MASK) != VEND1_GLOBAL_FW_ID_MASK),
 					 20000, 2000000, false);
 }
 
